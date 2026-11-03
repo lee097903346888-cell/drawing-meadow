@@ -1,0 +1,5820 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#8bd26f" />
+  <title>圖畫草原書｜2.5D 遼闊多人世界</title>
+
+  <style>
+    :root{
+      --ink:#223325;
+      --card:#fffdf5;
+      --green:#4f9e4a;
+      --green2:#78c760;
+      --blue:#5bbce5;
+      --sun:#ffd65b;
+      --danger:#d9534f;
+      --shadow:0 12px 32px rgba(34,51,37,.16)
+    }
+
+    *{box-sizing:border-box}
+
+    html,body{
+      margin:0;
+      min-height:100%;
+      font-family:ui-rounded,"PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+      color:var(--ink);
+      background:#dff3d1
+    }
+
+    button,input,select{font:inherit}
+    button{cursor:pointer;border:0}
+    .hidden{display:none!important}
+
+    #app{
+      min-height:100vh;
+      background:linear-gradient(#c9efff 0 36%,#c9eaa3 36% 100%)
+    }
+
+    .start{
+      min-height:100vh;
+      position:relative;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:28px 18px 34px;
+      background:linear-gradient(#91ddff 0 46%,#b7e990 46% 100%)
+    }
+
+    .start:before{
+      content:"";
+      position:absolute;
+      width:140px;
+      height:140px;
+      border-radius:50%;
+      right:8%;
+      top:7%;
+      background:#ffe56f;
+      box-shadow:0 0 0 14px rgba(255,240,138,.22)
+    }
+
+    .start:after{
+      content:"";
+      position:absolute;
+      left:-5%;
+      right:-5%;
+      bottom:-30px;
+      height:42%;
+      background:
+        radial-gradient(ellipse at 15% 100%,#5ca950 0 28%,transparent 29%),
+        radial-gradient(ellipse at 45% 100%,#70bd59 0 31%,transparent 32%),
+        radial-gradient(ellipse at 78% 100%,#4f9d49 0 30%,transparent 31%);
+      opacity:.95;
+      pointer-events:none
+    }
+
+    .welcomeShell{
+      position:relative;
+      z-index:2;
+      width:min(1040px,100%);
+      display:grid;
+      grid-template-columns:minmax(0,1.02fr) minmax(340px,.98fr);
+      gap:24px;
+      align-items:center
+    }
+
+    .heroCopy{
+      padding:18px 8px 18px 4px;
+      text-shadow:0 2px 0 rgba(255,255,255,.18)
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+      background:rgba(255,255,255,.82);
+      border:2px solid rgba(255,255,255,.78);
+      padding:8px 12px;
+      border-radius:999px;
+      font-weight:1000;
+      color:#397040;
+      box-shadow:0 8px 24px rgba(45,92,51,.12)
+    }
+
+    .logo{
+      font-size:clamp(43px,7vw,76px);
+      font-weight:1000;
+      letter-spacing:.025em;
+      line-height:1.03;
+      margin:15px 0 10px;
+      color:#244b2e
+    }
+
+    .sub{
+      margin:0;
+      color:#355f3d;
+      font-size:clamp(17px,2.3vw,23px);
+      line-height:1.55;
+      font-weight:900;
+      max-width:620px
+    }
+
+    .heroChips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:18px
+    }
+
+    .heroChip{
+      background:rgba(255,255,255,.79);
+      padding:8px 11px;
+      border-radius:999px;
+      font-size:13px;
+      font-weight:900;
+      color:#416b48;
+      border:1px solid rgba(255,255,255,.8)
+    }
+
+    .heroAnimals{
+      margin-top:24px;
+      display:flex;
+      align-items:flex-end;
+      gap:8px;
+      font-size:clamp(38px,6vw,70px);
+      filter:drop-shadow(0 7px 0 rgba(67,110,65,.12))
+    }
+
+    .heroAnimals span:nth-child(2){transform:translateY(-17px)}
+    .heroAnimals span:nth-child(4){transform:translateY(-9px)}
+
+    .startCard{
+      width:100%;
+      background:rgba(255,253,245,.96);
+      border:4px solid rgba(255,255,255,.9);
+      border-radius:32px;
+      padding:22px;
+      box-shadow:0 22px 55px rgba(40,82,48,.22);
+      backdrop-filter:blur(9px)
+    }
+
+    .startCard h2{
+      margin:0 0 5px;
+      font-size:26px
+    }
+
+    .startLead{
+      margin:0 0 14px;
+      color:#677a68;
+      font-weight:750;
+      line-height:1.55
+    }
+
+    .fieldLabel{
+      display:block;
+      text-align:left;
+      margin:9px 4px 3px;
+      color:#536955;
+      font-weight:900;
+      font-size:13px
+    }
+
+    .start input{
+      width:100%;
+      padding:14px 16px;
+      border:2px solid #d6e6d1;
+      border-radius:16px;
+      background:white;
+      outline:none;
+      margin:5px 0;
+      font-weight:850;
+      color:#294331;
+      box-shadow:inset 0 1px 0 rgba(0,0,0,.02)
+    }
+
+    .start input:focus{
+      border-color:#70b865;
+      box-shadow:0 0 0 4px rgba(112,184,101,.13)
+    }
+
+    .choiceGrid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:11px
+    }
+
+    .choiceCard{
+      border-radius:20px;
+      padding:14px 13px;
+      text-align:left;
+      background:#f5fbf0;
+      border:2px solid #dcebd6
+    }
+
+    .choiceCard.blue{
+      background:#eff8ff;
+      border-color:#d9ebf7
+    }
+
+    .choiceTitle{
+      font-size:16px;
+      font-weight:1000;
+      margin-bottom:4px
+    }
+
+    .choiceHint{
+      font-size:12px;
+      color:#718071;
+      line-height:1.45;
+      min-height:34px
+    }
+
+    .bigBtn{
+      width:100%;
+      padding:14px;
+      border-radius:16px;
+      margin:10px 0 0;
+      font-weight:1000;
+      font-size:16px;
+      color:white;
+      box-shadow:0 6px 0 rgba(0,0,0,.10);
+      transition:transform .12s,filter .12s
+    }
+
+    .bigBtn:hover{filter:brightness(1.03)}
+
+    .bigBtn:active{
+      transform:translateY(3px);
+      box-shadow:0 3px 0 rgba(0,0,0,.10)
+    }
+
+    .createBtn{
+      background:linear-gradient(135deg,#5bb453,#459f48)
+    }
+
+    .joinBtn{
+      background:linear-gradient(135deg,#49aee0,#358ec1)
+    }
+
+    .ghostBtn{
+      background:#fff;
+      color:#3e5841;
+      border:2px solid #d9e8d2;
+      box-shadow:none
+    }
+
+    .joinCodeLabel{margin-top:5px}
+
+    .privacyNote{
+      display:flex;
+      gap:8px;
+      align-items:flex-start;
+      margin-top:13px;
+      padding:10px 11px;
+      border-radius:14px;
+      background:#f3f6ef;
+      color:#667467;
+      font-size:12px;
+      line-height:1.5
+    }
+
+    .privacyNote b{color:#425943}
+
+    .startFooter{
+      text-align:center;
+      color:#4f7156;
+      font-size:12px;
+      font-weight:800;
+      margin-top:9px
+    }
+
+    .tiny{
+      font-size:12px;
+      color:#6d7e6f;
+      line-height:1.55
+    }
+
+    .error{
+      margin-top:10px;
+      color:#b63d39;
+      font-weight:800;
+      white-space:pre-wrap
+    }
+
+    #game{
+      min-height:100vh;
+      padding:10px max(10px,env(safe-area-inset-right))
+        calc(14px + env(safe-area-inset-bottom))
+        max(10px,env(safe-area-inset-left));
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      background:#d7edbe
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+      background:rgba(255,255,255,.92);
+      padding:8px 10px;
+      border-radius:18px;
+      box-shadow:0 5px 18px rgba(0,0,0,.10);
+      z-index:5
+    }
+
+    .brand{
+      font-weight:1000;
+      margin-right:auto
+    }
+
+    .pill{
+      background:#eef7e8;
+      padding:7px 10px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:13px;
+      white-space:nowrap
+    }
+
+    .pill.blue{background:#e3f5ff}
+    .pill.gold{background:#fff2bf}
+
+    .iconBtn{
+      width:38px;
+      height:38px;
+      border-radius:12px;
+      background:#fff1bc;
+      font-size:20px;
+      box-shadow:inset 0 0 0 2px rgba(111,87,23,.08)
+    }
+
+    .stageWrap{
+      position:relative;
+      flex:1;
+      min-height:520px;
+      border-radius:26px;
+      overflow:hidden;
+      border:4px solid rgba(255,255,255,.8);
+      box-shadow:var(--shadow);
+      background:#9bdcff
+    }
+
+    #world{
+      display:block;
+      width:100%;
+      height:100%;
+      min-height:520px;
+      touch-action:manipulation
+    }
+
+    .floating{
+      position:absolute;
+      left:50%;
+      top:12px;
+      transform:translateX(-50%);
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(255,255,255,.92);
+      font-weight:900;
+      pointer-events:none;
+      opacity:0;
+      transition:.2s;
+      box-shadow:0 4px 14px rgba(0,0,0,.13)
+    }
+
+    .floating.show{
+      opacity:1;
+      transform:translate(-50%,4px)
+    }
+
+    #deleteFloating{
+      position:absolute;
+      z-index:8;
+      background:#e6534f;
+      color:white;
+      padding:8px 11px;
+      border-radius:12px;
+      font-weight:900;
+      box-shadow:0 6px 14px rgba(120,30,30,.25);
+      display:none
+    }
+
+    .uploadRow{
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:8px;
+      background:rgba(255,255,255,.91);
+      padding:8px;
+      border-radius:20px;
+      box-shadow:0 6px 18px rgba(0,0,0,.08)
+    }
+
+    .typeBtn{
+      min-height:70px;
+      border-radius:16px;
+      background:white;
+      border:2px solid #e2eadf;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:2px;
+      font-weight:900;
+      color:#344c36
+    }
+
+    .typeBtn span{font-size:28px}
+
+    .typeBtn:disabled{
+      opacity:.45;
+      filter:grayscale(.5)
+    }
+
+    .typeBtn.food{background:#fff7df}
+    .typeBtn.bird{background:#eaf8ff}
+    .typeBtn.fish{background:#e8f7ff}
+    .typeBtn.reptile{background:#eef6d6}
+
+    .displayMode .uploadRow,
+    .displayMode #gearBtn{
+      display:none!important
+    }
+
+    .displayMode .stageWrap{
+      min-height:calc(100vh - 76px)
+    }
+
+    .displayMode #world{
+      min-height:calc(100vh - 76px)
+    }
+
+    .modalBackdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(28,42,32,.56);
+      display:grid;
+      place-items:center;
+      padding:14px;
+      z-index:30;
+      backdrop-filter:blur(5px)
+    }
+
+    .modal{
+      width:min(680px,100%);
+      max-height:90vh;
+      overflow:auto;
+      background:#fffdf7;
+      border-radius:28px;
+      padding:20px;
+      box-shadow:0 24px 70px rgba(0,0,0,.28);
+      border:3px solid #fff
+    }
+
+    .modal h2{margin:0 0 12px}
+
+    .close{
+      float:right;
+      width:38px;
+      height:38px;
+      border-radius:12px;
+      background:#edf1e9;
+      font-size:20px
+    }
+
+    .roomCode{
+      font-size:42px;
+      font-weight:1000;
+      letter-spacing:.16em;
+      color:#2f7f47;
+      margin:8px 0
+    }
+
+    .shareGrid{
+      display:grid;
+      grid-template-columns:200px 1fr;
+      gap:16px;
+      align-items:center
+    }
+
+    .qrBox{
+      width:190px;
+      height:190px;
+      background:#fff;
+      border:8px solid white;
+      border-radius:18px;
+      box-shadow:0 0 0 2px #dfe9da;
+      display:grid;
+      place-items:center;
+      overflow:hidden
+    }
+
+    .shareLink{
+      width:100%;
+      padding:12px;
+      border:2px solid #d8e6d1;
+      border-radius:12px;
+      background:#f8fbf6
+    }
+
+    .adminGrid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px
+    }
+
+    .setting{
+      background:#f4f7f0;
+      border:1px solid #dfe8da;
+      border-radius:16px;
+      padding:12px
+    }
+
+    .setting label{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      font-weight:900;
+      margin-bottom:7px
+    }
+
+    .setting input[type=range]{width:100%}
+
+    .setting input[type=number],
+    .setting select{
+      width:100%;
+      padding:9px;
+      border:1px solid #cad9c4;
+      border-radius:10px;
+      background:white
+    }
+
+    .switch{
+      display:flex;
+      align-items:center;
+      gap:8px
+    }
+
+    .adminActions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:12px
+    }
+
+    .smallBtn{
+      padding:10px 12px;
+      border-radius:12px;
+      font-weight:900;
+      background:#e6f1e0;
+      color:#30523a
+    }
+
+    .smallBtn.blue{background:#dff2ff}
+
+    .smallBtn.red{
+      background:#ffe1df;
+      color:#9f2d29
+    }
+
+    .smallBtn.gold{background:#fff0b8}
+
+    .log{
+      background:#18251b;
+      color:#d9f2db;
+      border-radius:14px;
+      padding:10px;
+      height:130px;
+      overflow:auto;
+      font:12px/1.5 ui-monospace,monospace;
+      white-space:pre-wrap;
+      margin-top:10px
+    }
+
+    .memberList{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px
+    }
+
+    .memberChip{
+      background:#e9f4e5;
+      border-radius:999px;
+      padding:6px 9px;
+      font-size:12px;
+      font-weight:800
+    }
+
+    .ended{
+      position:absolute;
+      inset:0;
+      z-index:12;
+      background:rgba(34,48,37,.68);
+      display:grid;
+      place-items:center;
+      color:white;
+      text-align:center;
+      padding:20px
+    }
+
+    .endedBox{
+      font-size:26px;
+      font-weight:1000;
+      background:rgba(30,40,32,.72);
+      padding:20px 28px;
+      border-radius:24px
+    }
+
+    @media(max-width:760px){
+      .welcomeShell{grid-template-columns:1fr;gap:4px}
+      .heroCopy{text-align:center;padding:4px 8px 8px}
+      .logo{font-size:clamp(40px,12vw,62px)}
+      .sub{margin-inline:auto;font-size:17px}
+      .heroChips{justify-content:center}
+      .heroAnimals{justify-content:center;margin-top:12px;font-size:43px}
+      .heroAnimals span:nth-child(2){transform:translateY(-8px)}
+      .start{align-items:flex-start;padding-top:22px}
+      .choiceGrid{grid-template-columns:1fr}
+      .choiceHint{min-height:auto}
+      .startCard{padding:18px}
+      .stageWrap,#world{min-height:58vh}
+      .uploadRow{gap:5px}
+      .typeBtn{min-height:62px;font-size:11px}
+      .typeBtn span{font-size:24px}
+      .shareGrid{grid-template-columns:1fr}
+      .qrBox{margin:auto}
+      .adminGrid{grid-template-columns:1fr}
+      .brand{width:100%;margin:0}
+      .topbar{justify-content:center}
+      .roomCode{font-size:34px}
+    }
+
+/* v16: full-screen explorers' map instead of an enclosed miniature stage */
+#game{height:100dvh;min-height:0;padding:0;gap:0;position:relative;overflow:hidden;background:#9ec97e}
+#game .stageWrap{position:absolute;inset:0;min-height:0!important;border:0;border-radius:0;box-shadow:none;overflow:hidden;background:#99c782}
+#game #world{width:100%;height:100%;min-height:0!important;touch-action:none;display:block;cursor:grab}
+#game #world:active{cursor:grabbing}
+#game .topbar{position:absolute;z-index:12;left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));top:calc(8px + env(safe-area-inset-top));display:flex;gap:5px;flex-wrap:nowrap;justify-content:space-between;border:2px solid rgba(255,255,255,.7);background:rgba(255,252,239,.91);box-shadow:0 5px 18px rgba(50,71,42,.18);backdrop-filter:blur(10px);padding:7px;border-radius:16px}
+#game .brand{margin:0;white-space:nowrap;font-size:13px;align-self:center}
+#game .pill{padding:6px 7px;font-size:11px}
+#game .iconBtn{height:31px;width:31px;font-size:16px}
+#game .uploadRow{position:absolute;z-index:11;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));width:min(96%,600px);grid-template-columns:repeat(5,minmax(0,1fr));padding:6px;gap:5px;background:rgba(255,251,234,.94);border:2px solid rgba(255,255,255,.8);border-radius:22px;box-shadow:0 6px 24px rgba(44,77,42,.22);backdrop-filter:blur(10px)}
+#game .typeBtn{min-height:55px;font-size:11px;border:1.5px solid #d5d7be;border-radius:14px;gap:0;padding:3px}
+#game .typeBtn span{font-size:24px}
+#meadowMapControls{position:absolute;z-index:9;left:50%;bottom:calc(91px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:6px;align-items:center;border-radius:999px;background:rgba(255,250,235,.91);border:2px solid rgba(255,255,255,.9);padding:5px 7px;box-shadow:0 5px 18px #3f684846;white-space:nowrap}
+#meadowMapControls button{font-weight:950;border-radius:999px;padding:9px 11px;background:#fff8df;color:#4d4834;border:1px solid #c7b894;font-size:12px}
+#meadowMapControls button:active{transform:scale(.94)}
+#meadowMiniWrap{position:absolute;z-index:8;right:12px;top:calc(70px + env(safe-area-inset-top));background:#fffdf0d9;padding:5px;border:3px solid white;border-radius:14px;box-shadow:0 6px 15px #43543640;cursor:pointer;overflow:hidden}
+#meadowMini{width:130px;height:83px;display:block;border-radius:8px}
+#meadowMiniLabel{text-align:center;font-size:10px;font-weight:900;color:#4f684b}
+#meadowInfo{position:absolute;z-index:8;left:10px;top:calc(74px + env(safe-area-inset-top));font-size:12px;line-height:1.5;color:#4a5d40;font-weight:900;pointer-events:none;border-radius:13px;background:#fffbeaec;border:2px solid #fffc;padding:7px 10px;box-shadow:0 2px 11px #45634024}
+#game .floating{z-index:20;white-space:nowrap}
+#game .ended{z-index:20}
+.displayMode #game .uploadRow,.displayMode #game #gearBtn,.displayMode #game #meadowInfo{display:none!important}
+.displayMode #game .stageWrap,.displayMode #game #world{min-height:0!important}
+@media(max-width:540px){
+ #game .brand{display:none}
+ #game .pill{font-size:10px;max-width:120px;overflow:hidden;text-overflow:ellipsis}
+ #meadowMiniWrap{right:9px;top:calc(62px + env(safe-area-inset-top))}
+ #meadowMini{width:106px;height:71px}
+ #meadowInfo{top:calc(64px + env(safe-area-inset-top));font-size:10px;padding:6px}
+ #meadowMapControls{bottom:calc(86px + env(safe-area-inset-bottom))}
+ #meadowMapControls button{padding:7px 8px;font-size:11px}
+ #game .uploadRow{bottom:calc(7px + env(safe-area-inset-bottom))}
+ #game .typeBtn{min-height:50px;font-size:10px}
+ #game .typeBtn span{font-size:21px}
+}
+
+  </style>
+</head>
+
+<body>
+
+<div id="app">
+
+  <section id="startScreen" class="start">
+
+    <div class="welcomeShell">
+
+      <div class="heroCopy">
+
+        <div class="eyebrow">
+          🌈 一起把孩子的畫變成會生活的世界
+        </div>
+
+        <h1 class="logo">圖畫草原書</h1>
+
+        <p class="sub">
+          畫一隻鳥、一條魚，或一份好吃的食物。
+          上傳後，它們會一起住進同一片草原，和朋友的作品相遇。
+        </p>
+
+        <div class="heroChips">
+          <span class="heroChip">🐦 天空飛翔</span>
+          <span class="heroChip">🐾 草地散步</span>
+          <span class="heroChip">🦎 地面爬行</span>
+          <span class="heroChip">🐟 河裡游泳</span>
+          <span class="heroChip">🍎 一起吃飯長大</span>
+        </div>
+
+        <div class="heroAnimals" aria-hidden="true">
+          <span>🐛</span>
+          <span>🐦</span>
+          <span>🌳</span>
+          <span>🦋</span>
+          <span>🐟</span>
+        </div>
+
+      </div>
+
+      <div class="startCard">
+
+        <h2>👋 歡迎來到草原</h2>
+
+        <p class="startLead">
+          先取一個暱稱，再選擇建立自己的世界，
+          或加入朋友的房間。
+        </p>
+
+        <label class="fieldLabel" for="nickname">你的暱稱</label>
+
+        <input
+          id="nickname"
+          maxlength="24"
+          placeholder="例如：小安"
+          autocomplete="nickname"
+        />
+
+        <div class="choiceGrid">
+
+          <div class="choiceCard">
+
+            <div class="choiceTitle">
+              🌱 我要建立世界
+            </div>
+
+            <div class="choiceHint">
+              建立後會得到 6 位房間碼與 QR Code，
+              邀請大家一起畫。
+            </div>
+
+            <button id="createRoomBtn" class="bigBtn createBtn">
+              建立新世界
+            </button>
+
+          </div>
+
+          <div class="choiceCard blue">
+
+            <div class="choiceTitle">
+              🚪 我要加入世界
+            </div>
+
+            <div class="choiceHint">
+              輸入朋友分享的 6 位房間碼，
+              就能進入同一片草原。
+            </div>
+
+            <label class="fieldLabel joinCodeLabel" for="roomCodeInput">
+              房間碼
+            </label>
+
+            <input
+              id="roomCodeInput"
+              maxlength="6"
+              placeholder="例如 A7K3P2"
+              inputmode="text"
+              style="
+                text-transform:uppercase;
+                letter-spacing:.14em;
+                text-align:center;
+                font-size:18px
+              "
+            />
+
+            <button id="joinRoomBtn" class="bigBtn joinBtn">
+              加入朋友的世界
+            </button>
+
+          </div>
+
+        </div>
+
+        <div class="privacyNote">
+
+          <span>🔒</span>
+
+          <div>
+            <b>不用註冊帳號。</b>
+            第一次進入會自動建立匿名身份，
+            用來區分房主與每位孩子自己的作品。
+          </div>
+
+        </div>
+
+        <div id="startStatus" class="tiny" style="margin-top:8px">
+          準備好後，就可以開始共創。
+        </div>
+
+        <div id="startError" class="error"></div>
+
+        <div class="startFooter">
+          v16 2.5D 大世界 · Supabase 多人共創版
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <section id="game" class="hidden">
+
+    <div class="topbar">
+
+      <div class="brand">
+        🌿 圖畫草原書
+      </div>
+
+      <div id="roomPill" class="pill">
+        房間 ------
+      </div>
+
+      <button id="shareBtn" class="pill blue">
+        📱 邀請
+      </button>
+
+      <div id="onlinePill" class="pill blue">
+        👥 1
+      </div>
+
+      <div id="timePill" class="pill gold">
+        ☀️ 09:00
+      </div>
+
+      <div id="modePill" class="pill">
+        🎈 玩耍
+      </div>
+
+      <button
+        id="gearBtn"
+        class="iconBtn hidden"
+        title="大人後台"
+      >
+        ⚙️
+      </button>
+
+    </div>
+
+
+    <div class="stageWrap" id="stageWrap">
+
+      <canvas id="world"></canvas>
+
+      <div id="meadowInfo">🌿 2.5D 開放世界<br>↔ 拖曳探索 · 雙指縮放</div>
+      <div id="meadowMiniWrap" title="點一下小地圖，快速前往該區域"><canvas id="meadowMini" width="260" height="166"></canvas><div id="meadowMiniLabel">🧭 世界地圖</div></div>
+      <div id="meadowMapControls"><button type="button" id="meadowMinus">－ 拉遠</button><button type="button" id="meadowOverview">🗺 全景</button><button type="button" id="meadowHome">🏡 返回村莊</button><button type="button" id="meadowPlus">＋ 拉近</button></div>
+
+
+      <div id="toast" class="floating"></div>
+
+      <button id="deleteFloating">
+        🗑 刪除
+      </button>
+
+      <div id="endedOverlay" class="ended hidden">
+
+        <div class="endedBox">
+          🌙 這個共創世界已結束
+          <br>
+          <small style="font-size:15px">
+            謝謝一起畫畫！
+          </small>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="uploadRow" id="uploadRow">
+
+      <button class="typeBtn bird" data-kind="bird">
+        <span>🐦</span>
+        鳥類
+      </button>
+
+      <button class="typeBtn land" data-kind="land">
+        <span>🐾</span>
+        陸地
+      </button>
+
+      <button class="typeBtn reptile" data-kind="reptile">
+        <span>🦎</span>
+        爬蟲
+      </button>
+
+      <button class="typeBtn fish" data-kind="fish">
+        <span>🐟</span>
+        魚類
+      </button>
+
+      <button class="typeBtn food" data-kind="food">
+        <span>🍎</span>
+        食物
+      </button>
+
+      <input
+        id="fileInput"
+        type="file"
+        accept="image/*"
+        class="hidden"
+      />
+
+      <input id="cameraInput" type="file" accept="image/*" capture="environment" class="hidden" />
+    </div>
+
+  </section>
+
+
+  <div id="sourceModal" class="modalBackdrop hidden">
+    <div class="modal" style="max-width:440px;text-align:center">
+      <button class="close" data-close="sourceModal">✕</button>
+      <h2>🎨 選擇畫作來源</h2>
+      <p class="tiny">拍攝畫作，或從手機相簿選擇現有圖片。</p>
+      <div class="adminActions" style="justify-content:center;gap:12px">
+        <button id="useCamera" class="smallBtn gold" style="font-size:17px;padding:16px">📷 拍照</button>
+        <button id="useGallery" class="smallBtn blue" style="font-size:17px;padding:16px">🖼️ 相簿</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="shareModal" class="modalBackdrop hidden">
+
+    <div class="modal">
+
+      <button class="close" data-close="shareModal">
+        ✕
+      </button>
+
+      <h2>📱 邀請大家一起畫</h2>
+
+      <div class="roomCode" id="shareCode">
+        ------
+      </div>
+
+      <div class="shareGrid">
+
+        <div id="qrBox" class="qrBox"></div>
+
+        <div>
+
+          <p>
+            <b>掃 QR Code</b>
+            或輸入房間碼即可加入，不需要註冊。
+          </p>
+
+          <input
+            id="shareLink"
+            class="shareLink"
+            readonly
+          />
+
+          <div class="adminActions">
+
+            <button
+              id="copyLinkBtn"
+              class="smallBtn blue"
+            >
+              🔗 複製邀請連結
+            </button>
+
+            <button
+              id="copyCodeBtn"
+              class="smallBtn"
+            >
+              📋 複製房間碼
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div id="adminModal" class="modalBackdrop hidden">
+
+    <div class="modal">
+
+      <button class="close" data-close="adminModal">
+        ✕
+      </button>
+
+      <h2>⚙️ 大人後台模式</h2>
+
+      <div class="tiny">
+        房主修改後會同步給所有玩家。
+        角色動畫仍在每台裝置本地播放，
+        所以多人時網路負擔較低。
+      </div>
+
+      <div
+        id="memberList"
+        class="memberList"
+        style="margin:10px 0"
+      ></div>
+
+
+      <div class="adminGrid">
+
+        <div class="setting">
+
+          <label>
+            智慧去背強度
+            <b id="cutoutVal">120</b>
+          </label>
+
+          <input
+            id="cutoutStrength"
+            type="range"
+            min="80"
+            max="160"
+            step="1"
+            value="120"
+          />
+
+        </div>
+
+
+        <div class="setting">
+
+          <label>
+            畫面色彩濃度
+            <b id="satVal">1.10×</b>
+          </label>
+
+          <input
+            id="visualSaturation"
+            type="range"
+            min="0.8"
+            max="1.5"
+            step="0.05"
+            value="1.1"
+          />
+
+        </div>
+
+
+        <div class="setting">
+
+          <label>一整天幾分鐘</label>
+
+          <input
+            id="dayMinutes"
+            type="number"
+            min="2"
+            max="60"
+            step="1"
+            value="8"
+          />
+
+        </div>
+
+
+        <div class="setting">
+
+          <label>世界速度</label>
+
+          <select id="worldSpeed">
+            <option value="0.5">0.5× 慢慢玩</option>
+            <option value="1">1× 悠閒</option>
+            <option value="4">4× 快轉</option>
+            <option value="12">12× 展示</option>
+          </select>
+
+        </div>
+
+
+        <div class="setting">
+
+          <label>起床時間</label>
+
+          <input
+            id="wakeHour"
+            type="number"
+            min="0"
+            max="23.5"
+            step="0.5"
+            value="6.5"
+          />
+
+        </div>
+
+
+        <div class="setting">
+
+          <label>睡覺時間</label>
+
+          <input
+            id="sleepHour"
+            type="number"
+            min="0"
+            max="23.5"
+            step="0.5"
+            value="21.5"
+          />
+
+        </div>
+
+
+        <div class="setting">
+
+          <label>早餐</label>
+
+          <input
+            id="breakfastHour"
+            type="number"
+            min="0"
+            max="23.5"
+            step="0.5"
+            value="8"
+          />
+
+        </div>
+
+
+        <div class="setting">
+
+          <label>午餐</label>
+
+          <input
+            id="lunchHour"
+            type="number"
+            min="0"
+            max="23.5"
+            step="0.5"
+            value="12.5"
+          />
+
+        </div>
+
+
+        <div class="setting">
+
+          <label>晚餐</label>
+
+          <input
+            id="dinnerHour"
+            type="number"
+            min="0"
+            max="23.5"
+            step="0.5"
+            value="18.5"
+          />
+
+        </div>
+
+
+        <div class="setting">
+
+          <label>
+            每餐持續（世界小時）
+          </label>
+
+          <input
+            id="mealDuration"
+            type="number"
+            min="0.25"
+            max="3"
+            step="0.25"
+            value="1"
+          />
+
+        </div>
+
+
+        <div class="setting">
+
+          <label>
+            每餐長大速度
+            <b id="growthVal">0.08</b>
+          </label>
+
+          <input
+            id="growthStep"
+            type="range"
+            min="0.02"
+            max="0.30"
+            step="0.01"
+            value="0.08"
+          />
+
+        </div>
+
+
+        <div class="setting">
+
+          <label>目前天氣</label>
+
+          <select id="weather">
+            <option value="sunny">☀️ 晴天</option>
+            <option value="cloudy">☁️ 多雲</option>
+            <option value="rain">🌧️ 下雨</option>
+            <option value="snow">❄️ 下雪</option>
+          </select>
+
+        </div>
+
+
+        <div class="setting">
+
+          <label class="switch">
+
+            <input
+              id="infiniteGrowth"
+              type="checkbox"
+              checked
+            >
+
+            ♾️ 無限長大
+
+          </label>
+
+          <div class="tiny">
+            關閉時只顯示到約 1.35×。
+          </div>
+
+        </div>
+
+
+        <div class="setting">
+
+          <label class="switch">
+
+            <input
+              id="weatherEnabled"
+              type="checkbox"
+              checked
+            >
+
+            自動天氣變化
+
+          </label>
+
+        </div>
+
+
+        <div class="setting">
+
+          <label class="switch">
+
+            <input
+              id="showNames"
+              type="checkbox"
+              checked
+            >
+
+            顯示角色名字
+
+          </label>
+
+        </div>
+
+
+        <div class="setting">
+
+          <label class="switch">
+
+            <input
+              id="showWeather"
+              type="checkbox"
+              checked
+            >
+
+            顯示季節／天氣
+
+          </label>
+
+        </div>
+
+
+        <div class="setting">
+
+          <label class="switch">
+
+            <input
+              id="uploadEnabled"
+              type="checkbox"
+              checked
+            >
+
+            允許孩子上傳作品
+
+          </label>
+
+        </div>
+
+
+        <div class="setting">
+
+          <label class="switch">
+
+            <input
+              id="roomLocked"
+              type="checkbox"
+            >
+
+            🔒 鎖定房間（禁止新加入）
+
+          </label>
+
+        </div>
+
+      </div>
+
+
+      <div class="adminActions">
+
+        <button
+          class="smallBtn gold quickTime"
+          data-hour="10"
+        >
+          ☀️ 白天
+        </button>
+
+        <button
+          class="smallBtn quickTime"
+          data-hour="23"
+        >
+          🌙 夜晚
+        </button>
+
+        <button
+          class="smallBtn quickTime"
+          data-hour="8.1"
+        >
+          🥣 早餐
+        </button>
+
+        <button
+          class="smallBtn quickTime"
+          data-hour="12.6"
+        >
+          🍱 午餐
+        </button>
+
+        <button
+          class="smallBtn quickTime"
+          data-hour="18.6"
+        >
+          🍲 晚餐
+        </button>
+
+        <button
+          id="displayBtn"
+          class="smallBtn blue"
+        >
+          📺 大螢幕模式
+        </button>
+
+        <button
+          id="clearBtn"
+          class="smallBtn red"
+        >
+          🧹 清空角色與食物
+        </button>
+
+        <button
+          id="endRoomBtn"
+          class="smallBtn red"
+        >
+          ⛔ 結束房間
+        </button>
+
+      </div>
+
+      <div id="adminLog" class="log"></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+
+<script>
+
+'use strict';
+
+
+const SUPABASE_URL =
+  'https://pceikeksfakzmeigzopr.supabase.co';
+
+
+const SUPABASE_PUBLISHABLE_KEY =
+  'sb_publishable_cLZISWRMCVtp-Pjg_rhYow_llMEsFRb';
+
+
+const sb = window.supabase?.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY,
+  {
+    auth:{
+      persistSession:true,
+      autoRefreshToken:true,
+      detectSessionInUrl:false
+    }
+  }
+);
+
+
+const $ = id => document.getElementById(id);
+
+
+const state = {
+
+  user:null,
+
+  room:null,
+
+  nickname:'',
+
+  isHost:false,
+
+  channel:null,
+
+  presence:{},
+
+  objects:new Map(),
+
+  images:new Map(),
+
+  selectedId:null,
+
+  selectedKind:null,
+
+  displayMode:
+    new URLSearchParams(location.search)
+      .get('display') === '1',
+
+  hostClock:null,
+
+  hostDay:1,
+
+  hostLastTick:performance.now(),
+
+  hostPushAt:0,
+
+  lastMealAttempt:'',
+
+  lastWeatherDay:0,
+
+  logs:[],
+
+  running:true
+};
+
+
+const defaultSettings = {
+
+  cutout_strength:120,
+
+  visual_saturation:1.10,
+
+  show_names:true,
+
+  show_weather:true,
+
+  day_minutes:8,
+
+  world_speed:1,
+
+  wake_hour:6.5,
+
+  sleep_hour:21.5,
+
+  breakfast_hour:8,
+
+  lunch_hour:12.5,
+
+  dinner_hour:18.5,
+
+  meal_duration:1,
+
+  growth_step:.08,
+
+  infinite_growth:true,
+
+  weather_enabled:true
+};
+
+
+function log(msg){
+
+  const t =
+    new Date().toLocaleTimeString(
+      'zh-TW',
+      {hour12:false}
+    );
+
+  state.logs.push(`${t} ${msg}`);
+
+  state.logs =
+    state.logs.slice(-80);
+
+  $('adminLog').textContent =
+    state.logs.join('\n');
+
+  $('adminLog').scrollTop =
+    $('adminLog').scrollHeight;
+}
+
+
+function showError(msg){
+
+  $('startError').textContent =
+    msg || '';
+}
+
+
+function toast(msg,ms=2200){
+
+  const e = $('toast');
+
+  e.textContent = msg;
+
+  e.classList.add('show');
+
+  clearTimeout(toast._t);
+
+  toast._t =
+    setTimeout(
+      ()=>e.classList.remove('show'),
+      ms
+    );
+}
+
+
+function settings(){
+
+  return {
+    ...defaultSettings,
+    ...(state.room?.settings || {})
+  };
+}
+
+
+function sleepMode(hour){
+
+  const s = settings();
+
+  return s.sleep_hour > s.wake_hour
+
+    ? (
+        hour >= s.sleep_hour ||
+        hour < s.wake_hour
+      )
+
+    : (
+        hour >= s.sleep_hour &&
+        hour < s.wake_hour
+      );
+}
+
+
+function seasonFor(day){
+
+  return [
+    '春天',
+    '夏天',
+    '秋天',
+    '冬天'
+  ][
+    Math.floor(
+      ((Math.max(1,day)-1)%28)/7
+    )
+  ];
+}
+
+
+function weatherIcon(w){
+
+  return ({
+    sunny:'☀️',
+    cloudy:'☁️',
+    rain:'🌧️',
+    snow:'❄️'
+  })[w] || '☀️';
+}
+
+
+function modeAt(hour){
+
+  const s = settings();
+
+  const dur =
+    +s.meal_duration || 1;
+
+  const meals = [
+
+    [
+      '🥣 早餐',
+      'breakfast',
+      +s.breakfast_hour
+    ],
+
+    [
+      '🍱 午餐',
+      'lunch',
+      +s.lunch_hour
+    ],
+
+    [
+      '🍲 晚餐',
+      'dinner',
+      +s.dinner_hour
+    ]
+  ];
+
+  for(
+    const [label,key,h]
+    of meals
+  ){
+
+    if(
+      hour >= h &&
+      hour < h + dur
+    ){
+      return {label,key};
+    }
+  }
+
+  return sleepMode(hour)
+
+    ? {
+        label:'💤 睡覺',
+        key:'sleep'
+      }
+
+    : {
+        label:'🎈 玩耍',
+        key:'play'
+      };
+}
+
+
+function fmtHour(h){
+
+  h = ((h%24)+24)%24;
+
+  const hh = Math.floor(h);
+
+  const mm =
+    Math.floor(
+      (h-hh)*60
+    );
+
+  return (
+    `${String(hh).padStart(2,'0')}:` +
+    `${String(mm).padStart(2,'0')}`
+  );
+}
+
+
+function randomPos(kind){
+
+  if(kind === 'bird'){
+
+    return {
+      x:.12 + Math.random()*.76,
+      y:.12 + Math.random()*.27
+    };
+  }
+
+  if(kind === 'fish'){
+
+    return {
+      x:.08 + Math.random()*.84,
+      y:.84 + Math.random()*.10
+    };
+  }
+
+  if(kind === 'food'){
+
+    return {
+      x:.16 + Math.random()*.68,
+      y:.60 + Math.random()*.13
+    };
+  }
+
+  if(kind === 'reptile'){
+
+    return {
+      x:.08 + Math.random()*.84,
+      y:.68 + Math.random()*.08
+    };
+  }
+
+  return {
+    x:.08 + Math.random()*.84,
+    y:.52 + Math.random()*.20
+  };
+}
+
+
+function growthScale(o){
+
+  if(o.kind === 'food'){
+    return 1;
+  }
+
+  const s = settings();
+
+  const m =
+    Math.max(
+      0,
+      o.growth_meals || 0
+    );
+
+  let g =
+    1 +
+    (+s.growth_step || .08) *
+    Math.pow(m,.72);
+
+  if(!s.infinite_growth){
+
+    g = Math.min(
+      g,
+      1.35
+    );
+  }
+
+  return g;
+}
+
+
+function safeName(kind){
+
+  return ({
+    bird:'天空朋友',
+    land:'草原朋友',
+    reptile:'爬爬朋友',
+    fish:'河川朋友',
+    food:'好吃的'
+  })[kind] || '新朋友';
+}
+
+
+function hash01(str){
+
+  let h = 2166136261;
+
+  for(
+    let i=0;
+    i<str.length;
+    i++
+  ){
+
+    h ^= str.charCodeAt(i);
+
+    h =
+      Math.imul(
+        h,
+        16777619
+      );
+  }
+
+  return (
+    (h>>>0) /
+    4294967295
+  );
+}
+
+
+async function ensureAuth(){
+
+  if(!sb){
+
+    throw new Error(
+      'Supabase 程式庫載入失敗，請確認網路可連到 jsDelivr。'
+    );
+  }
+
+  const {
+    data:{session}
+  } =
+    await sb.auth.getSession();
+
+
+  if(session?.user){
+
+    state.user =
+      session.user;
+
+    return;
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await sb.auth.signInAnonymously({
+
+      options:{
+        data:{
+          app:'drawing-meadow-v14'
+        }
+      }
+
+    });
+
+
+  if(error){
+
+    if(
+      /anonymous|disabled|provider/i
+        .test(error.message || '')
+    ){
+
+      throw new Error(
+        'Supabase 匿名登入尚未開啟。' +
+        '請到 Dashboard → Authentication → Providers，' +
+        '啟用 Anonymous Sign-Ins。\n\n' +
+        '原始錯誤：' +
+        error.message
+      );
+    }
+
+    throw error;
+  }
+
+
+  state.user =
+    data.user;
+}
+
+
+async function createRoom(){
+
+  try{
+
+    showError('');
+
+    await ensureAuth();
+
+    const nick =
+      $('nickname').value.trim()
+      || '小朋友';
+
+    state.nickname =
+      nick;
+
+    localStorage.setItem(
+      'meadow_nickname',
+      nick
+    );
+
+
+    const {
+      data,
+      error
+    } =
+      await sb.rpc(
+        'create_room',
+        {
+          p_nickname:nick
+        }
+      );
+
+
+    if(error){
+      throw error;
+    }
+
+
+    const row =
+      data?.[0];
+
+
+    if(!row){
+
+      throw new Error(
+        '建立房間失敗'
+      );
+    }
+
+
+    await enterRoom(
+      row.room_id,
+      true,
+      row.room_code
+    );
+
+
+    openShare();
+
+  }
+  catch(e){
+
+    showError(
+      friendlyError(e)
+    );
+  }
+}
+
+
+async function joinRoom(codeOverride){
+
+  try{
+
+    showError('');
+
+    await ensureAuth();
+
+
+    const nick =
+      state.displayMode
+
+      ? '展示螢幕'
+
+      : (
+          $('nickname')
+            .value
+            .trim()
+          || '小朋友'
+        );
+
+
+    state.nickname =
+      nick;
+
+
+    localStorage.setItem(
+      'meadow_nickname',
+      nick
+    );
+
+
+    const code =
+      (
+        codeOverride ||
+        $('roomCodeInput').value
+      )
+      .trim()
+      .toUpperCase();
+
+
+    if(code.length !== 6){
+
+      throw new Error(
+        '請輸入 6 位房間碼'
+      );
+    }
+
+
+    const {
+      data,
+      error
+    } =
+      await sb.rpc(
+        'join_room',
+        {
+          p_code:code,
+          p_nickname:nick
+        }
+      );
+
+
+    if(error){
+      throw error;
+    }
+
+
+    const row =
+      data?.[0];
+
+
+    if(!row){
+
+      throw new Error(
+        '找不到房間'
+      );
+    }
+
+
+    await enterRoom(
+      row.room_id,
+      row.is_host,
+      row.room_code
+    );
+
+  }
+  catch(e){
+
+    showError(
+      friendlyError(e)
+    );
+  }
+}
+
+
+function friendlyError(e){
+
+  const m =
+    e?.message ||
+    String(e);
+
+
+  if(/ROOM_NOT_FOUND/.test(m)){
+
+    return (
+      '找不到這個房間，' +
+      '請確認房間碼。'
+    );
+  }
+
+
+  if(/ROOM_LOCKED/.test(m)){
+
+    return (
+      '這個房間已鎖定，' +
+      '暫時不能加入。'
+    );
+  }
+
+
+  if(/ROOM_FULL/.test(m)){
+
+    return (
+      '這個房間已達 50 人上限。'
+    );
+  }
+
+
+  if(
+    /relation .* does not exist|function .* does not exist|schema cache/i
+      .test(m)
+  ){
+
+    return (
+      'Supabase 還沒初始化。' +
+      '請先在 SQL Editor 執行 supabase_setup.sql。\n\n' +
+      m
+    );
+  }
+
+
+  return m;
+}
+
+
+async function enterRoom(
+  roomId,
+  isHost,
+  code
+){
+
+  state.isHost =
+    !!isHost;
+
+
+  const {
+    data:room,
+    error:rErr
+  } =
+    await sb
+      .from('rooms')
+      .select('*')
+      .eq('id',roomId)
+      .single();
+
+
+  if(rErr){
+    throw rErr;
+  }
+
+
+  state.room =
+    room;
+
+
+  state.room.code =
+    code || room.code;
+
+
+  const {
+    data:objs,
+    error:oErr
+  } =
+    await sb
+      .from('objects')
+      .select('*')
+      .eq('room_id',roomId)
+      .order('created_at');
+
+
+  if(oErr){
+    throw oErr;
+  }
+
+
+  state.objects.clear();
+
+
+  for(
+    const o
+    of objs || []
+  ){
+
+    state.objects.set(
+      o.id,
+      makeRuntimeObject(o)
+    );
+  }
+
+
+  await Promise.all(
+    (objs || [])
+      .map(loadObjectImage)
+  );
+
+
+  state.hostClock =
+    +room.world_time;
+
+
+  state.hostDay =
+    room.world_day || 1;
+
+
+  state.hostLastTick =
+    performance.now();
+
+
+  await subscribeRoom();
+
+
+  $('startScreen')
+    .classList
+    .add('hidden');
+
+
+  $('game')
+    .classList
+    .remove('hidden');
+
+
+  $('gearBtn')
+    .classList
+    .toggle(
+      'hidden',
+      !state.isHost ||
+      state.displayMode
+    );
+
+
+  $('roomPill')
+    .textContent =
+      `🌿 房間 ${room.code}`;
+
+
+  if(state.displayMode){
+
+    document.body
+      .classList
+      .add('displayMode');
+  }
+
+
+  syncAdminUI();
+
+  updateUploadButtons();
+
+  log(
+    `進入房間 ${room.code}` +
+    `${state.isHost?'（房主）':''}`
+  );
+
+
+  resizeCanvas();
+
+
+  history.replaceState(
+    null,
+    '',
+    location.pathname +
+    `?room=${encodeURIComponent(room.code)}` +
+    `${state.displayMode?'&display=1':''}`
+  );
+}
+
+
+function makeRuntimeObject(o){
+
+  const seed =
+    hash01(o.id);
+
+  return {
+
+    ...o,
+
+    rx:+o.x,
+
+    ry:+o.y,
+
+    vx:
+      (.015 + seed*.018) *
+      (seed>.5 ? 1 : -1),
+
+    vy:
+      (seed-.5)*.006,
+
+    phase:
+      seed*Math.PI*2,
+
+    lastGrowth:
+      o.growth_meals || 0
+  };
+}
+
+
+async function loadObjectImage(o){
+
+  if(
+    !o?.image_path ||
+    state.images.has(o.id)
+  ){
+    return;
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await sb.storage
+      .from('drawings')
+      .download(o.image_path);
+
+
+  if(error){
+
+    log(
+      `圖片下載失敗 ${o.name}: ` +
+      error.message
+    );
+
+    return;
+  }
+
+
+  const url =
+    URL.createObjectURL(data);
+
+
+  const img =
+    new Image();
+
+
+  img.onload =
+    ()=>{
+      state.images.set(
+        o.id,
+        {img,url}
+      );
+    };
+
+
+  img.onerror =
+    ()=>{
+      URL.revokeObjectURL(url);
+    };
+
+
+  img.src =
+    url;
+}
+
+
+function releaseImage(id){
+
+  const v =
+    state.images.get(id);
+
+
+  if(v?.url){
+
+    URL.revokeObjectURL(
+      v.url
+    );
+  }
+
+
+  state.images.delete(id);
+}
+
+
+async function subscribeRoom(){
+
+  if(state.channel){
+
+    await sb.removeChannel(
+      state.channel
+    );
+  }
+
+
+  const topic =
+    `meadow:${state.room.code}`;
+
+
+  const ch =
+    sb.channel(
+      topic,
+      {
+        config:{
+          presence:{
+            key:state.user.id
+          }
+        }
+      }
+    );
+
+
+  state.channel =
+    ch;
+
+
+  ch
+  .on(
+    'presence',
+    {event:'sync'},
+    ()=>{
+      state.presence =
+        ch.presenceState();
+
+      renderPresence();
+    }
+  )
+
+  .on(
+    'presence',
+    {event:'join'},
+    ()=>{
+      state.presence =
+        ch.presenceState();
+
+      renderPresence();
+    }
+  )
+
+  .on(
+    'presence',
+    {event:'leave'},
+    ()=>{
+      state.presence =
+        ch.presenceState();
+
+      renderPresence();
+    }
+  )
+
+  .on(
+    'postgres_changes',
+    {
+      event:'*',
+      schema:'public',
+      table:'objects',
+      filter:
+        `room_id=eq.${state.room.id}`
+    },
+
+    async payload=>{
+
+      if(
+        payload.eventType ===
+        'INSERT'
+      ){
+
+        const o =
+          makeRuntimeObject(
+            payload.new
+          );
+
+
+        state.objects.set(
+          o.id,
+          o
+        );
+
+
+        await loadObjectImage(o);
+
+
+        toast(
+          `${kindIcon(o.kind)} ` +
+          `${o.owner_nickname} 的作品進來了！`
+        );
+
+      }
+
+      else if(
+        payload.eventType ===
+        'UPDATE'
+      ){
+
+        const old =
+          state.objects.get(
+            payload.new.id
+          );
+
+
+        const o =
+          Object.assign(
+            old ||
+            makeRuntimeObject(
+              payload.new
+            ),
+            payload.new
+          );
+
+
+        if(
+          (
+            old?.lastGrowth ??
+            old?.growth_meals ??
+            0
+          )
+          <
+          payload.new.growth_meals
+        ){
+
+          o.lastGrowth =
+            payload.new.growth_meals;
+
+
+          o.growPulse =
+            performance.now();
+
+
+          toast(
+            `🌱 ${o.name} 又長大了！`
+          );
+        }
+
+
+        state.objects.set(
+          o.id,
+          o
+        );
+
+      }
+
+      else if(
+        payload.eventType ===
+        'DELETE'
+      ){
+
+        releaseImage(
+          payload.old.id
+        );
+
+
+        state.objects.delete(
+          payload.old.id
+        );
+
+
+        if(
+          state.selectedId ===
+          payload.old.id
+        ){
+
+          clearSelection();
+        }
+      }
+    }
+  )
+
+  .on(
+    'postgres_changes',
+    {
+      event:'UPDATE',
+      schema:'public',
+      table:'rooms',
+      filter:
+        `id=eq.${state.room.id}`
+    },
+
+    payload=>{
+
+      const prev =
+        state.room;
+
+
+      state.room = {
+        ...state.room,
+        ...payload.new
+      };
+
+
+      if(!state.isHost){
+
+        state.hostClock =
+          +state.room.world_time;
+
+
+        state.hostDay =
+          state.room.world_day || 1;
+
+
+        state.hostLastTick =
+          performance.now();
+      }
+
+
+      syncAdminUI();
+
+      updateUploadButtons();
+
+
+      if(
+        prev?.status !== 'ended' &&
+        state.room.status === 'ended'
+      ){
+
+        toast(
+          '🌙 房主結束了這個世界'
+        );
+      }
+    }
+  );
+
+
+  await new Promise(
+    (resolve,reject)=>{
+
+      ch.subscribe(
+        async status=>{
+
+          if(
+            status === 'SUBSCRIBED'
+          ){
+
+            await ch.track({
+
+              user_id:
+                state.user.id,
+
+              nickname:
+                state.nickname,
+
+              role:
+                state.isHost
+                  ? 'host'
+                  : 'player',
+
+              joined_at:
+                new Date()
+                  .toISOString()
+
+            });
+
+
+            resolve();
+          }
+
+          else if(
+            status === 'CHANNEL_ERROR' ||
+            status === 'TIMED_OUT'
+          ){
+
+            reject(
+              new Error(
+                'Realtime 連線失敗：' +
+                status
+              )
+            );
+          }
+        }
+      );
+
+    }
+  );
+}
+
+
+function renderPresence(){
+
+  const all = [];
+
+
+  for(
+    const arr
+    of Object.values(
+      state.presence || {}
+    )
+  ){
+
+    for(
+      const p
+      of arr
+    ){
+
+      all.push(p);
+    }
+  }
+
+
+  const unique =
+    [
+      ...new Map(
+        all.map(
+          p=>[
+            p.user_id,
+            p
+          ]
+        )
+      ).values()
+    ];
+
+
+  $('onlinePill')
+    .textContent =
+      `👥 ${unique.length || 1}`;
+
+
+  $('memberList')
+    .innerHTML =
+      unique
+      .map(
+        p=>
+          `<span class="memberChip">` +
+          `${p.role==='host'?'👑':'👤'} ` +
+          `${escapeHtml(p.nickname || '小朋友')}` +
+          `</span>`
+      )
+      .join('');
+}
+
+
+function escapeHtml(s){
+
+  return String(s)
+    .replace(
+      /[&<>'"]/g,
+      c=>({
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        "'":'&#39;',
+        '"':'&quot;'
+      })[c]
+    );
+}
+
+
+function kindIcon(k){
+
+  return ({
+    bird:'🐦',
+    land:'🐾',
+    reptile:'🦎',
+    fish:'🐟',
+    food:'🍎'
+  })[k] || '🎨';
+}
+
+
+function openShare(){
+
+  const url =
+    location.origin +
+    location.pathname +
+    `?room=${encodeURIComponent(state.room.code)}`;
+
+
+  $('shareCode')
+    .textContent =
+      state.room.code;
+
+
+  $('shareLink')
+    .value =
+      url;
+
+
+  $('shareModal')
+    .classList
+    .remove('hidden');
+
+
+  const box =
+    $('qrBox');
+
+
+  box.innerHTML =
+    '';
+
+
+  if(window.QRCode){
+
+    new QRCode(
+      box,
+      {
+        text:url,
+        width:170,
+        height:170,
+        colorDark:'#223325',
+        colorLight:'#ffffff',
+        correctLevel:
+          QRCode.CorrectLevel.M
+      }
+    );
+
+  }
+  else{
+
+    box.textContent =
+      'QR 程式庫載入失敗';
+  }
+}
+
+
+function closeModal(id){
+
+  $(id)
+    .classList
+    .add('hidden');
+}
+
+
+async function copyText(t){
+
+  try{
+
+    await navigator.clipboard
+      .writeText(t);
+
+
+    toast(
+      '已複製 ✅'
+    );
+
+  }
+  catch{
+
+    prompt(
+      '請手動複製：',
+      t
+    );
+  }
+}
+
+
+function syncAdminUI(){
+
+  if(!state.room){
+    return;
+  }
+
+
+  const s =
+    settings();
+
+
+  const set =
+    (id,v)=>{
+
+      const e =
+        $(id);
+
+
+      if(!e){
+        return;
+      }
+
+
+      if(
+        e.type === 'checkbox'
+      ){
+
+        e.checked =
+          !!v;
+      }
+      else{
+
+        e.value =
+          v;
+      }
+    };
+
+
+  set(
+    'cutoutStrength',
+    s.cutout_strength
+  );
+
+  set(
+    'visualSaturation',
+    s.visual_saturation
+  );
+
+  set(
+    'dayMinutes',
+    s.day_minutes
+  );
+
+  set(
+    'worldSpeed',
+    s.world_speed
+  );
+
+  set(
+    'wakeHour',
+    s.wake_hour
+  );
+
+  set(
+    'sleepHour',
+    s.sleep_hour
+  );
+
+  set(
+    'breakfastHour',
+    s.breakfast_hour
+  );
+
+  set(
+    'lunchHour',
+    s.lunch_hour
+  );
+
+  set(
+    'dinnerHour',
+    s.dinner_hour
+  );
+
+  set(
+    'mealDuration',
+    s.meal_duration
+  );
+
+  set(
+    'growthStep',
+    s.growth_step
+  );
+
+  set(
+    'weather',
+    state.room.weather
+  );
+
+  set(
+    'infiniteGrowth',
+    s.infinite_growth
+  );
+
+  set(
+    'weatherEnabled',
+    s.weather_enabled
+  );
+
+  set(
+    'showNames',
+    s.show_names
+  );
+
+  set(
+    'showWeather',
+    s.show_weather
+  );
+
+  set(
+    'uploadEnabled',
+    state.room.upload_enabled
+  );
+
+  set(
+    'roomLocked',
+    state.room.locked
+  );
+
+
+  $('cutoutVal')
+    .textContent =
+      s.cutout_strength;
+
+
+  $('satVal')
+    .textContent =
+      (+s.visual_saturation)
+        .toFixed(2)
+      + '×';
+
+
+  $('growthVal')
+    .textContent =
+      (+s.growth_step)
+        .toFixed(2);
+
+
+  $('world')
+    .style
+    .filter =
+      `saturate(${+s.visual_saturation || 1})`;
+}
+
+
+let saveTimer;
+
+
+function scheduleSettingsSave(){
+
+  if(!state.isHost){
+    return;
+  }
+
+
+  syncAdminLabels();
+
+
+  clearTimeout(
+    saveTimer
+  );
+
+
+  saveTimer =
+    setTimeout(
+      saveAdminSettings,
+      350
+    );
+}
+
+
+function syncAdminLabels(){
+
+  $('cutoutVal')
+    .textContent =
+      $('cutoutStrength').value;
+
+
+  $('satVal')
+    .textContent =
+      (+$('visualSaturation').value)
+        .toFixed(2)
+      + '×';
+
+
+  $('growthVal')
+    .textContent =
+      (+$('growthStep').value)
+        .toFixed(2);
+}
+
+
+async function saveAdminSettings(){
+
+  if(!state.isHost){
+    return;
+  }
+
+
+  const newSettings = {
+
+    ...settings(),
+
+    cutout_strength:
+      +$('cutoutStrength').value,
+
+    visual_saturation:
+      +$('visualSaturation').value,
+
+    day_minutes:
+      +$('dayMinutes').value,
+
+    world_speed:
+      +$('worldSpeed').value,
+
+    wake_hour:
+      +$('wakeHour').value,
+
+    sleep_hour:
+      +$('sleepHour').value,
+
+    breakfast_hour:
+      +$('breakfastHour').value,
+
+    lunch_hour:
+      +$('lunchHour').value,
+
+    dinner_hour:
+      +$('dinnerHour').value,
+
+    meal_duration:
+      +$('mealDuration').value,
+
+    growth_step:
+      +$('growthStep').value,
+
+    infinite_growth:
+      $('infiniteGrowth').checked,
+
+    weather_enabled:
+      $('weatherEnabled').checked,
+
+    show_names:
+      $('showNames').checked,
+
+    show_weather:
+      $('showWeather').checked
+  };
+
+
+  const patch = {
+
+    settings:newSettings,
+
+    weather:
+      $('weather').value,
+
+    upload_enabled:
+      $('uploadEnabled').checked,
+
+    locked:
+      $('roomLocked').checked
+  };
+
+
+  const {
+    error
+  } =
+    await sb
+      .from('rooms')
+      .update(patch)
+      .eq(
+        'id',
+        state.room.id
+      );
+
+
+  if(error){
+
+    log(
+      '儲存設定失敗：' +
+      error.message
+    );
+
+  }
+  else{
+
+    state.room = {
+      ...state.room,
+      ...patch
+    };
+
+
+    log(
+      '後台設定已同步'
+    );
+
+
+    updateUploadButtons();
+
+    syncAdminUI();
+  }
+}
+
+
+function updateUploadButtons(){
+
+  const allowed =
+    state.room?.status === 'open' &&
+    state.room?.upload_enabled !== false;
+
+
+  document
+    .querySelectorAll('.typeBtn')
+    .forEach(
+      b=>
+        b.disabled =
+          !allowed ||
+          state.displayMode
+    );
+
+
+  $('endedOverlay')
+    .classList
+    .toggle(
+      'hidden',
+      state.room?.status !== 'ended'
+    );
+}
+
+
+async function uploadSelected(
+  file,
+  kind
+){
+
+  if(
+    !file ||
+    !state.room
+  ){
+    return;
+  }
+
+
+  try{
+
+    toast(
+      '✂️ 正在把畫作變成角色…',
+      5000
+    );
+
+
+    const strength =
+      +settings().cutout_strength
+      || 120;
+
+
+    const blob =
+      await smartCutout(
+        file,
+        strength
+      );
+
+
+    const id =
+      crypto.randomUUID();
+
+
+    const path =
+      `${state.room.id}/` +
+      `${state.user.id}/` +
+      `${id}.webp`;
+
+
+    const {
+      error:upErr
+    } =
+      await sb.storage
+        .from('drawings')
+        .upload(
+          path,
+          blob,
+          {
+            contentType:'image/webp',
+            upsert:false,
+            cacheControl:'3600'
+          }
+        );
+
+
+    if(upErr){
+      throw upErr;
+    }
+
+
+    const pos =
+      randomPos(kind);
+
+
+    const payload = {
+
+      id,
+
+      room_id:
+        state.room.id,
+
+      owner_user_id:
+        state.user.id,
+
+      owner_nickname:
+        state.nickname,
+
+      kind,
+
+      name:
+        safeName(kind),
+
+      image_path:
+        path,
+
+      x:
+        pos.x,
+
+      y:
+        pos.y
+    };
+
+
+    const {
+      error:dbErr
+    } =
+      await sb
+        .from('objects')
+        .insert(payload);
+
+
+    if(dbErr){
+
+      await sb.storage
+        .from('drawings')
+        .remove([path]);
+
+
+      throw dbErr;
+    }
+
+
+    toast(
+      `${kindIcon(kind)} 上傳成功！`
+    );
+
+
+    log(
+      `${state.nickname} 上傳 ${kind}`
+    );
+
+  }
+  catch(e){
+
+    toast(
+      '上傳失敗'
+    );
+
+
+    log(
+      '上傳失敗：' +
+      e.message
+    );
+
+
+    alert(
+      '上傳失敗：\n' +
+      friendlyError(e)
+    );
+
+  }
+  finally{
+
+    $('fileInput').value = '';
+    $('cameraInput').value = '';
+  }
+}
+
+
+async function smartCutout(
+  file,
+  strength=120
+){
+
+  const bmp =
+    await createImageBitmap(file);
+
+
+  const max =
+    820;
+
+
+  const scale =
+    Math.min(
+      1,
+      max /
+      Math.max(
+        bmp.width,
+        bmp.height
+      )
+    );
+
+
+  const w =
+    Math.max(
+      1,
+      Math.round(
+        bmp.width*scale
+      )
+    );
+
+
+  const h =
+    Math.max(
+      1,
+      Math.round(
+        bmp.height*scale
+      )
+    );
+
+
+  const c =
+    document.createElement(
+      'canvas'
+    );
+
+
+  c.width =
+    w;
+
+  c.height =
+    h;
+
+
+  const x =
+    c.getContext(
+      '2d',
+      {willReadFrequently:true}
+    );
+
+
+  x.drawImage(
+    bmp,
+    0,
+    0,
+    w,
+    h
+  );
+
+
+  bmp.close?.();
+
+
+  const im =
+    x.getImageData(
+      0,
+      0,
+      w,
+      h
+    );
+
+
+  const d =
+    im.data;
+
+
+  const N =
+    w*h;
+
+
+  const border = [];
+
+
+  const sample =
+    (px,py)=>{
+
+      const i =
+        (py*w+px)*4;
+
+
+      border.push(
+        [
+          d[i],
+          d[i+1],
+          d[i+2]
+        ]
+      );
+    };
+
+
+  for(
+    let xx=0;
+    xx<w;
+    xx+=4
+  ){
+
+    sample(xx,0);
+
+    sample(xx,h-1);
+  }
+
+
+  for(
+    let yy=0;
+    yy<h;
+    yy+=4
+  ){
+
+    sample(0,yy);
+
+    sample(w-1,yy);
+  }
+
+
+  border.sort(
+    (a,b)=>
+      (
+        b[0]+b[1]+b[2]
+      )
+      -
+      (
+        a[0]+a[1]+a[2]
+      )
+  );
+
+
+  const take =
+    border.slice(
+      0,
+      Math.max(
+        8,
+        Math.floor(
+          border.length*.65
+        )
+      )
+    );
+
+
+  const bg =
+    take
+      .reduce(
+        (a,p)=>[
+          a[0]+p[0],
+          a[1]+p[1],
+          a[2]+p[2]
+        ],
+        [0,0,0]
+      )
+      .map(
+        v=>v/take.length
+      );
+
+
+  const bgLum =
+    .2126*bg[0] +
+    .7152*bg[1] +
+    .0722*bg[2];
+
+
+  const protect =
+    new Uint8Array(N);
+
+
+  const dilated =
+    new Uint8Array(N);
+
+
+  const seen =
+    new Uint8Array(N);
+
+
+  const inkThreshold =
+    48 +
+    Math.max(
+      0,
+      strength-80
+    )*.34;
+
+
+  for(
+    let p=0;
+    p<N;
+    p++
+  ){
+
+    const i =
+      p*4;
+
+
+    const r =
+      d[i];
+
+    const g =
+      d[i+1];
+
+    const b =
+      d[i+2];
+
+
+    const mx =
+      Math.max(r,g,b);
+
+
+    const mn =
+      Math.min(r,g,b);
+
+
+    const sat =
+      mx
+      ? ((mx-mn)/mx)
+      : 0;
+
+
+    const lum =
+      .2126*r +
+      .7152*g +
+      .0722*b;
+
+
+    const dist =
+      Math.hypot(
+        r-bg[0],
+        g-bg[1],
+        b-bg[2]
+      );
+
+
+    if(
+      dist > inkThreshold ||
+      (
+        sat>.16 &&
+        dist>24
+      ) ||
+      (
+        bgLum-lum>48
+      )
+    ){
+
+      protect[p] =
+        1;
+    }
+  }
+
+
+  const rad =
+    2;
+
+
+  for(
+    let yy=0;
+    yy<h;
+    yy++
+  ){
+
+    for(
+      let xx=0;
+      xx<w;
+      xx++
+    ){
+
+      const p =
+        yy*w+xx;
+
+
+      if(!protect[p]){
+        continue;
+      }
+
+
+      for(
+        let dy=-rad;
+        dy<=rad;
+        dy++
+      ){
+
+        for(
+          let dx=-rad;
+          dx<=rad;
+          dx++
+        ){
+
+          const nx =
+            xx+dx;
+
+
+          const ny =
+            yy+dy;
+
+
+          if(
+            nx>=0 &&
+            ny>=0 &&
+            nx<w &&
+            ny<h
+          ){
+
+            dilated[
+              ny*w+nx
+            ] = 1;
+          }
+        }
+      }
+    }
+  }
+
+
+  const q =
+    new Int32Array(N);
+
+
+  const qx =
+    new Int32Array(N);
+
+
+  const qy =
+    new Int32Array(N);
+
+
+  let head =
+    0;
+
+
+  let tail =
+    0;
+
+
+  const push =
+    (xx,yy)=>{
+
+      const p =
+        yy*w+xx;
+
+
+      if(
+        seen[p] ||
+        dilated[p]
+      ){
+        return;
+      }
+
+
+      const i =
+        p*4;
+
+
+      const r =
+        d[i];
+
+      const g =
+        d[i+1];
+
+      const b =
+        d[i+2];
+
+
+      const mx =
+        Math.max(r,g,b);
+
+
+      const mn =
+        Math.min(r,g,b);
+
+
+      const sat =
+        mx
+        ? ((mx-mn)/mx)
+        : 0;
+
+
+      const lum =
+        .2126*r +
+        .7152*g +
+        .0722*b;
+
+
+      const dist =
+        Math.hypot(
+          r-bg[0],
+          g-bg[1],
+          b-bg[2]
+        );
+
+
+      const removable =
+
+        dist <
+        strength*1.42
+
+        ||
+
+        (
+          lum>205 &&
+          sat<.13
+        )
+
+        ||
+
+        (
+          dist <
+          strength*1.8
+          &&
+          lum >
+          bgLum-45
+          &&
+          sat<.18
+        );
+
+
+      if(!removable){
+        return;
+      }
+
+
+      seen[p] =
+        1;
+
+
+      q[tail] =
+        p;
+
+
+      qx[tail] =
+        xx;
+
+
+      qy[tail] =
+        yy;
+
+
+      tail++;
+    };
+
+
+  for(
+    let xx=0;
+    xx<w;
+    xx++
+  ){
+
+    push(xx,0);
+
+    push(xx,h-1);
+  }
+
+
+  for(
+    let yy=0;
+    yy<h;
+    yy++
+  ){
+
+    push(0,yy);
+
+    push(w-1,yy);
+  }
+
+
+  while(
+    head<tail
+  ){
+
+    const xx =
+      qx[head];
+
+
+    const yy =
+      qy[head];
+
+
+    head++;
+
+
+    if(xx>0){
+      push(xx-1,yy);
+    }
+
+
+    if(xx+1<w){
+      push(xx+1,yy);
+    }
+
+
+    if(yy>0){
+      push(xx,yy-1);
+    }
+
+
+    if(yy+1<h){
+      push(xx,yy+1);
+    }
+  }
+
+
+  for(
+    let p=0;
+    p<N;
+    p++
+  ){
+
+    if(seen[p]){
+
+      d[p*4+3] =
+        0;
+    }
+  }
+
+
+  /* 去白邊 */
+
+  for(
+    let yy=1;
+    yy<h-1;
+    yy++
+  ){
+
+    for(
+      let xx=1;
+      xx<w-1;
+      xx++
+    ){
+
+      const p =
+        yy*w+xx;
+
+
+      const i =
+        p*4;
+
+
+      if(
+        d[i+3]===0
+      ){
+        continue;
+      }
+
+
+      const nearZero =
+
+        d[((yy-1)*w+xx)*4+3]===0
+
+        ||
+
+        d[((yy+1)*w+xx)*4+3]===0
+
+        ||
+
+        d[(yy*w+xx-1)*4+3]===0
+
+        ||
+
+        d[(yy*w+xx+1)*4+3]===0;
+
+
+      if(nearZero){
+
+        const lum =
+          (
+            d[i] +
+            d[i+1] +
+            d[i+2]
+          )/3;
+
+
+        if(lum>210){
+
+          d[i+3] =
+            Math.min(
+              d[i+3],
+              170
+            );
+        }
+      }
+    }
+  }
+
+
+  x.putImageData(
+    im,
+    0,
+    0
+  );
+
+
+  let minX=w;
+  let minY=h;
+  let maxX=-1;
+  let maxY=-1;
+
+
+  for(
+    let yy=0;
+    yy<h;
+    yy++
+  ){
+
+    for(
+      let xx=0;
+      xx<w;
+      xx++
+    ){
+
+      if(
+        d[
+          (yy*w+xx)*4+3
+        ] > 12
+      ){
+
+        if(xx<minX){
+          minX=xx;
+        }
+
+        if(xx>maxX){
+          maxX=xx;
+        }
+
+        if(yy<minY){
+          minY=yy;
+        }
+
+        if(yy>maxY){
+          maxY=yy;
+        }
+      }
+    }
+  }
+
+
+  if(maxX<0){
+
+    throw new Error(
+      '沒有辨識到畫作主體，請換一張背景較亮的照片。'
+    );
+  }
+
+
+  const pad =
+    10;
+
+
+  minX =
+    Math.max(
+      0,
+      minX-pad
+    );
+
+
+  minY =
+    Math.max(
+      0,
+      minY-pad
+    );
+
+
+  maxX =
+    Math.min(
+      w-1,
+      maxX+pad
+    );
+
+
+  maxY =
+    Math.min(
+      h-1,
+      maxY+pad
+    );
+
+
+  const out =
+    document.createElement(
+      'canvas'
+    );
+
+
+  out.width =
+    maxX-minX+1;
+
+
+  out.height =
+    maxY-minY+1;
+
+
+  out
+    .getContext('2d')
+    .drawImage(
+      c,
+      minX,
+      minY,
+      out.width,
+      out.height,
+      0,
+      0,
+      out.width,
+      out.height
+    );
+
+
+  return await new Promise(
+    (res,rej)=>
+
+      out.toBlob(
+
+        b=>
+          b
+          ? res(b)
+          : rej(
+              new Error(
+                '圖片處理失敗'
+              )
+            ),
+
+        'image/webp',
+
+        .92
+      )
+  );
+}
+
+
+async function deleteObject(id){
+
+  const o =
+    state.objects.get(id);
+
+
+  if(!o){
+    return;
+  }
+
+
+  const allowed =
+    state.isHost ||
+    o.owner_user_id ===
+    state.user.id;
+
+
+  if(!allowed){
+
+    toast(
+      '只能刪除自己的作品'
+    );
+
+    return;
+  }
+
+
+  if(
+    !confirm(
+      `刪除「${o.name}」嗎？`
+    )
+  ){
+    return;
+  }
+
+
+  try{
+
+    await sb.storage
+      .from('drawings')
+      .remove(
+        [o.image_path]
+      );
+
+
+    const {
+      error
+    } =
+      await sb
+        .from('objects')
+        .delete()
+        .eq(
+          'id',
+          id
+        );
+
+
+    if(error){
+      throw error;
+    }
+
+
+    clearSelection();
+
+  }
+  catch(e){
+
+    alert(
+      '刪除失敗：' +
+      e.message
+    );
+  }
+}
+
+
+function clearSelection(){
+
+  state.selectedId =
+    null;
+
+
+  $('deleteFloating')
+    .style
+    .display =
+      'none';
+}
+
+
+async function clearRoom(){
+
+  if(
+    !state.isHost ||
+    !confirm(
+      '確定清空這個房間的所有角色與食物？'
+    )
+  ){
+    return;
+  }
+
+
+  const rows =
+    [...state.objects.values()];
+
+
+  const paths =
+    rows
+      .map(
+        o=>o.image_path
+      )
+      .filter(Boolean);
+
+
+  if(paths.length){
+
+    await sb.storage
+      .from('drawings')
+      .remove(paths);
+  }
+
+
+  const {
+    error
+  } =
+    await sb
+      .from('objects')
+      .delete()
+      .eq(
+        'room_id',
+        state.room.id
+      );
+
+
+  if(error){
+
+    alert(
+      error.message
+    );
+  }
+  else{
+
+    toast(
+      '農場已清空'
+    );
+  }
+}
+
+
+async function endRoom(){
+
+  if(
+    !state.isHost ||
+    !confirm(
+      '確定結束房間？結束後不能再上傳。'
+    )
+  ){
+    return;
+  }
+
+
+  const {
+    error
+  } =
+    await sb
+      .from('rooms')
+      .update({
+
+        status:'ended',
+
+        upload_enabled:false,
+
+        locked:true
+
+      })
+      .eq(
+        'id',
+        state.room.id
+      );
+
+
+  if(error){
+
+    alert(
+      error.message
+    );
+  }
+}
+
+
+async function quickTime(h){
+
+  if(!state.isHost){
+    return;
+  }
+
+
+  state.hostClock =
+    +h;
+
+
+  state.hostLastTick =
+    performance.now();
+
+
+  const {
+    error
+  } =
+    await sb
+      .from('rooms')
+      .update({
+
+        world_time:+h,
+
+        world_day:
+          state.hostDay
+
+      })
+      .eq(
+        'id',
+        state.room.id
+      );
+
+
+  if(error){
+
+    log(
+      error.message
+    );
+  }
+}
+
+
+async function processMealIfNeeded(hour){
+
+  if(
+    !state.isHost ||
+    state.room.status !== 'open'
+  ){
+    return;
+  }
+
+
+  const m =
+    modeAt(hour);
+
+
+  if(
+    ![
+      'breakfast',
+      'lunch',
+      'dinner'
+    ].includes(m.key)
+  ){
+    return;
+  }
+
+
+  const key =
+    `${state.hostDay}:${m.key}`;
+
+
+  if(
+    state.lastMealAttempt ===
+    key
+  ){
+    return;
+  }
+
+
+  state.lastMealAttempt =
+    key;
+
+
+  const {
+    data,
+    error
+  } =
+    await sb.rpc(
+      'process_meal',
+      {
+        p_room_id:
+          state.room.id,
+
+        p_meal_key:
+          key
+      }
+    );
+
+
+  if(error){
+
+    log(
+      '用餐處理失敗：' +
+      error.message
+    );
+
+    return;
+  }
+
+
+  if(data?.processed){
+
+    const paths =
+      data.removed_paths ||
+      [];
+
+
+    if(paths.length){
+
+      await sb.storage
+        .from('drawings')
+        .remove(paths);
+    }
+
+
+    if(
+      (data.fed_ids || []).length
+    ){
+
+      toast(
+        `${m.label}時間！大家吃飽又長大了 🌟`,
+        3200
+      );
+
+    }
+    else{
+
+      toast(
+        `${m.label}時間～還沒有食物可以吃`,
+        2300
+      );
+    }
+  }
+}
+
+
+async function maybeChangeWeather(){
+
+  const s =
+    settings();
+
+
+  if(
+    !state.isHost ||
+    !s.weather_enabled ||
+    state.lastWeatherDay ===
+    state.hostDay
+  ){
+    return;
+  }
+
+
+  state.lastWeatherDay =
+    state.hostDay;
+
+
+  if(Math.random()<.7){
+
+    const list = [
+      'sunny',
+      'sunny',
+      'cloudy',
+      'rain',
+      'snow'
+    ];
+
+
+    const w =
+      list[
+        Math.floor(
+          Math.random() *
+          list.length
+        )
+      ];
+
+
+    await sb
+      .from('rooms')
+      .update({
+        weather:w
+      })
+      .eq(
+        'id',
+        state.room.id
+      );
+  }
+}
+
+
+function updateHostClock(now){
+
+  if(
+    !state.isHost ||
+    !state.room ||
+    state.room.status !== 'open' ||
+    !state.running
+  ){
+    return;
+  }
+
+
+  const s =
+    settings();
+
+
+  const dt =
+    (
+      now -
+      state.hostLastTick
+    ) / 1000;
+
+
+  state.hostLastTick =
+    now;
+
+
+  const add =
+
+    dt / 60
+
+    *
+
+    (
+      24 /
+      Math.max(
+        1,
+        +s.day_minutes
+      )
+    )
+
+    *
+
+    Math.max(
+      .05,
+      +s.world_speed
+    );
+
+
+  state.hostClock +=
+    add;
+
+
+  while(
+    state.hostClock >= 24
+  ){
+
+    state.hostClock -=
+      24;
+
+
+    state.hostDay++;
+
+
+    maybeChangeWeather();
+  }
+
+
+  processMealIfNeeded(
+    state.hostClock
+  );
+
+
+  if(
+    now -
+    state.hostPushAt >
+    4000
+  ){
+
+    state.hostPushAt =
+      now;
+
+
+    sb
+      .from('rooms')
+      .update({
+
+        world_time:
+          state.hostClock,
+
+        world_day:
+          state.hostDay
+
+      })
+      .eq(
+        'id',
+        state.room.id
+      )
+      .then(
+        ({error})=>{
+
+          if(error){
+
+            log(
+              '時間同步失敗：' +
+              error.message
+            );
+          }
+        }
+      );
+  }
+}
+
+
+function displayClock(){
+
+  if(!state.room){
+
+    return {
+      hour:9,
+      day:1
+    };
+  }
+
+
+  if(state.isHost){
+
+    return {
+
+      hour:
+        state.hostClock ??
+        +state.room.world_time,
+
+      day:
+        state.hostDay ||
+        state.room.world_day
+    };
+  }
+
+
+  const s =
+    settings();
+
+
+  const dt =
+    (
+      performance.now() -
+      state.hostLastTick
+    ) / 1000;
+
+
+  let h =
+
+    +state.hostClock
+
+    +
+
+    dt / 60
+
+    *
+
+    (
+      24 /
+      Math.max(
+        1,
+        +s.day_minutes
+      )
+    )
+
+    *
+
+    Math.max(
+      .05,
+      +s.world_speed
+    );
+
+
+  let d =
+    state.hostDay || 1;
+
+
+  while(h>=24){
+
+    h -= 24;
+
+    d++;
+  }
+
+
+  return {
+    hour:h,
+    day:d
+  };
+}
+
+
+const canvas =
+  $('world');
+
+
+const ctx =
+  canvas.getContext('2d');
+
+
+let DPR =
+  1;
+
+
+function resizeCanvas(){
+
+  const r =
+    $('stageWrap')
+      .getBoundingClientRect();
+
+
+  DPR =
+    Math.min(
+      2,
+      window.devicePixelRatio ||
+      1
+    );
+
+
+  canvas.width =
+    Math.max(
+      320,
+      Math.floor(
+        r.width*DPR
+      )
+    );
+
+
+  canvas.height =
+    Math.max(
+      420,
+      Math.floor(
+        r.height*DPR
+      )
+    );
+
+
+  ctx.setTransform(
+    DPR,
+    0,
+    0,
+    DPR,
+    0,
+    0
+  );
+}
+
+
+/* v16: large continuous 2.5D isometric world. Existing Supabase schema/room logic unchanged. */
+const MEADOW_WORLD = {n:60, tw:62, th:30, ox:1900, oy:170, width:3800, height:2180, cache:null};
+const meadowCamera = {x:1900, y:1050, z:.48, fit:.16, ready:false};
+let meadowLastMini=0;
+const mClamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+function mHash(x,y,k=0){
+  let v=(Math.imul(Math.floor(x*127)+k*911,0x9e3779b1) ^ Math.imul(Math.floor(y*191)+k*607,0x85ebca6b))>>>0;
+  v^=v>>>16;v=Math.imul(v,0x7feb352d);v^=v>>>15;v=Math.imul(v,0x846ca68b);v^=v>>>16;
+  return (v>>>0)/4294967295;
+}
+function meadowProject(q,r,h=0){
+  return {x:MEADOW_WORLD.ox+(q-r)*MEADOW_WORLD.tw/2,
+    y:MEADOW_WORLD.oy+(q+r)*MEADOW_WORLD.th/2-h*11};
+}
+function meadowRiver(q){return 35+8*Math.sin(q*.12+.35)-q*.105;}
+function meadowWater(q,r){
+  const river=Math.abs(r-meadowRiver(q))<3.15;
+  const lake=((q-45)/8.2)**2+((r-35)/7.1)**2<1;
+  const coast=q>49 && r>48 && q+r>108;
+  return river||lake||coast;
+}
+function meadowElev(q,r){
+  if(meadowWater(q,r))return 0;
+  const hills=[[12,9,6.1,11],[34,8,5,12],[51,16,6.1,9],[8,49,3.5,10],[49,51,2.6,10]];
+  let h=.6+Math.sin(q*.27)*.3+Math.cos(r*.33)*.33;
+  for(const [u,v,peak,rad] of hills){const d=((q-u)**2+(r-v)**2)/(rad*rad);h+=peak*Math.exp(-d*2.7)}
+  h+=mHash(q,r,32)*.36;
+  return Math.max(0,Math.floor(h));
+}
+function mPolygon(g,pts,fill,stroke,width=1){
+  g.beginPath();g.moveTo(pts[0].x,pts[0].y);
+  for(let i=1;i<pts.length;i++)g.lineTo(pts[i].x,pts[i].y);
+  g.closePath();g.fillStyle=fill;g.fill();
+  if(stroke){g.strokeStyle=stroke;g.lineWidth=width;g.stroke()}
+}
+function mEllipse(g,x,y,rx,ry,color){g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fillStyle=color;g.fill()}
+function mTree(g,q,r,n){
+  const p=meadowProject(q,r,meadowElev(q,r));
+  const s=.65+mHash(q,r,29)*.82;
+  const pine=mHash(q,r,17)>.57;
+  const foliage=mHash(q,r,18)>.88?'#e29ca7':(['#3e9459','#4ca764','#71b865','#4f9e4c','#5eaa57'][Math.floor(mHash(q,r,9)*5)]);
+  const y=p.y-12;
+  mEllipse(g,p.x+4,p.y+3,17*s,6*s,'rgba(39,87,39,.19)');
+  g.fillStyle='#826747';g.fillRect(p.x-3*s,y-26*s,6*s,33*s);
+  if(pine){
+    mPolygon(g,[{x:p.x,y:y-80*s},{x:p.x-21*s,y:y-32*s},{x:p.x+21*s,y:y-32*s}],'#39784a');
+    mPolygon(g,[{x:p.x,y:y-68*s},{x:p.x-24*s,y:y-15*s},{x:p.x+24*s,y:y-15*s}],foliage);
+    mPolygon(g,[{x:p.x,y:y-46*s},{x:p.x-25*s,y:y-5*s},{x:p.x+25*s,y:y-5*s}],'#317e4a');
+  }else{
+    mEllipse(g,p.x+7*s,y-43*s,26*s,21*s,'#357e49');
+    mEllipse(g,p.x-12*s,y-41*s,22*s,22*s,foliage);
+    mEllipse(g,p.x+4*s,y-56*s,25*s,24*s,foliage);
+    mEllipse(g,p.x-6*s,y-63*s,14*s,10*s,'rgba(209,241,163,.42)');
+  }
+}
+function mHouse(g,q,r){
+  const p=meadowProject(q,r,meadowElev(q,r)); const x=p.x,y=p.y;
+  mEllipse(g,x,y+7,67,23,'rgba(49,82,43,.25)');
+  mPolygon(g,[{x:x-39,y:y-31},{x:x+2,y:y-51},{x:x+47,y:y-25},{x:x+3,y:y-5}],'#f2dfab','#936b4d',2);
+  mPolygon(g,[{x:x-39,y:y-31},{x:x+3,y:y-5},{x:x+3,y:y+35},{x:x-39,y:y+11}],'#ebcb85','#a77e51',2);
+  mPolygon(g,[{x:x+3,y:y-5},{x:x+47,y:y-25},{x:x+47,y:y+11},{x:x+3,y:y+35}],'#d9b777','#a77e51',2);
+  mPolygon(g,[{x:x-53,y:y-37},{x:x-8,y:y-78},{x:x+17,y:y-58},{x:x-35,y:y-18}],'#b76a43','#7c4939',2);
+  mPolygon(g,[{x:x-8,y:y-78},{x:x+57,y:y-45},{x:x+47,y:y-25},{x:x+17,y:y-58}],'#92513b','#794c36',2);
+  mPolygon(g,[{x:x-21,y:y-4},{x:x-5,y:y+4},{x:x-5,y:y+28},{x:x-21,y:y+20}],'#75563c');
+  mPolygon(g,[{x:x+17,y:y+1},{x:x+33,y:y-7},{x:x+33,y:y+9},{x:x+17,y:y+18}],'#89cce1','#72573a',2);
+  g.fillStyle='#fff6c9';g.font='bold 14px sans-serif';g.textAlign='center';g.fillText('草原小屋',x+4,y-88);
+}
+function mMountain(g,q,r,n){
+ const p=meadowProject(q,r,meadowElev(q,r));const s=.75+n*.5;
+ mPolygon(g,[{x:p.x-95*s,y:p.y+12},{x:p.x-13*s,y:p.y-160*s},{x:p.x+100*s,y:p.y+12}],'#778b79','#607d74',1);
+ mPolygon(g,[{x:p.x-13*s,y:p.y-160*s},{x:p.x+100*s,y:p.y+12},{x:p.x+4*s,y:p.y+4}],'#647f79');
+ mPolygon(g,[{x:p.x-13*s,y:p.y-160*s},{x:p.x-46*s,y:p.y-88*s},{x:p.x-17*s,y:p.y-97*s},{x:p.x+8*s,y:p.y-73*s},{x:p.x+25*s,y:p.y-100*s}],'#eff7ee');
+}
+function mFlower(g,q,r){const p=meadowProject(q,r,0),sz=1.8+mHash(q,r,66)*2.2;g.fillStyle=mHash(q,r,77)>.5?'#ffe9a9':'#f7a4b8';
+ for(let k=0;k<4;k++)mEllipse(g,p.x+Math.cos(k*Math.PI/2)*sz,p.y+Math.sin(k*Math.PI/2)*sz*.6,sz*.76,sz*.65,g.fillStyle);
+ mEllipse(g,p.x,p.y,1.3,1.3,'#ffe57e');}
+function meadowPrepare(){
+ if(MEADOW_WORLD.cache)return;
+ const c=document.createElement('canvas');c.width=MEADOW_WORLD.width;c.height=MEADOW_WORLD.height;
+ const g=c.getContext('2d',{alpha:false});
+ const bg=g.createLinearGradient(0,0,0,c.height);bg.addColorStop(0,'#9acb85');bg.addColorStop(.55,'#a4cc77');bg.addColorStop(1,'#84bb70');g.fillStyle=bg;g.fillRect(0,0,c.width,c.height);
+ // Far country and valleys extend beyond the visible tiles so the world does not look like a single floating platform.
+ for(let i=0;i<2200;i++){const x=mHash(i,0,1)*c.width,y=mHash(i,0,2)*c.height;
+  mEllipse(g,x,y,2+mHash(i,0,3)*22,1+mHash(i,0,4)*8,i%3?'rgba(66,142,76,.08)':'rgba(247,240,150,.12)');}
+ const palettes=[['#a5d27a','#b1d982','#9fcb72','#afd581'],['#8dc06e','#93c16c','#9aca78','#a1cf7b']];
+ for(let d=0;d<=120;d++)for(let q=0;q<60;q++){
+  const r=d-q;if(r<0||r>=60)continue;const h=meadowElev(q,r),p=meadowProject(q,r,h);
+  const A=p,B=meadowProject(q+1,r,h),C=meadowProject(q+1,r+1,h),D=meadowProject(q,r+1,h);
+  const bank=meadowWater(q,r)?0:mHash(q,r,42);
+  const h2=meadowElev(q+1,r),h3=meadowElev(q,r+1);
+  if(h>h2){const dep=Math.max(0,(h-h2)*11);mPolygon(g,[B,C,{x:C.x,y:C.y+dep},{x:B.x,y:B.y+dep}],h>3?'#849578':'#80a667');}
+  if(h>h3){const dep=Math.max(0,(h-h3)*11);mPolygon(g,[D,C,{x:C.x,y:C.y+dep},{x:D.x,y:D.y+dep}],h>3?'#657e63':'#6d965f');}
+  const pale=h>=4? '#a4ac93' : h>=3?'#94b27b':palettes[h%2][Math.floor(mHash(q,r,9)*4)];
+  mPolygon(g,[A,B,C,D],pale);
+  if(h>=4&&mHash(q,r,8)>.48)mPolygon(g,[A,{x:(A.x+B.x)/2,y:(A.y+B.y)/2},{x:(A.x+C.x)/2,y:(A.y+C.y)/2}], 'rgba(240,244,219,.45)');
+ }
+ // The river crosses the *world*, winding through valleys into a lake and a southern coast.
+ const north=[],south=[];
+ for(let q=-3;q<=64;q+=.6){const rv=meadowRiver(q),p1=meadowProject(q,rv-3.8),p2=meadowProject(q,rv+3.8);north.push(p1);south.push(p2)}
+ const waterGrad=g.createLinearGradient(0,520,0,1750);waterGrad.addColorStop(0,'#66b9cc');waterGrad.addColorStop(.6,'#48b6d1');waterGrad.addColorStop(1,'#4f9bbd');
+ mPolygon(g,[...north,...south.reverse()],'#e8ddab');
+ const ni=[],si=[];for(let q=-3;q<=64;q+=.6){ni.push(meadowProject(q,meadowRiver(q)-2.95));si.push(meadowProject(q,meadowRiver(q)+2.95))}
+ mPolygon(g,[...ni,...si.reverse()],waterGrad,'rgba(219,252,244,.5)',3);
+ const lakePoints=[];for(let a=0;a<Math.PI*2;a+=.08)lakePoints.push(meadowProject(45+7.7*Math.cos(a),35+6.3*Math.sin(a)));
+ mPolygon(g,lakePoints,'#59b7cb','#d9e3b0',6);
+ // Small patches of rippling water glint along the river.
+ for(let i=0;i<160;i++){let q=mHash(i,1,22)*59,r=meadowRiver(q)+(mHash(i,1,23)-.5)*4.4;const p=meadowProject(q,r);
+  g.strokeStyle='rgba(224,248,238,.40)';g.lineWidth=1.2;g.beginPath();g.moveTo(p.x-6,p.y);g.quadraticCurveTo(p.x,p.y-2,p.x+7,p.y);g.stroke()}
+ // Paths and meadow / farms are ground plane features.
+ g.strokeStyle='#dacb98';g.lineWidth=16;g.lineCap='round';g.beginPath();
+ for(let t=0;t<=1;t+=.025){const q=15+33*t,r=18+6*Math.sin(t*5.3);const p=meadowProject(q,r);if(t===0)g.moveTo(p.x,p.y);else g.lineTo(p.x,p.y)}g.stroke();
+ g.strokeStyle='rgba(255,244,192,.6)';g.lineWidth=3;g.stroke();
+ for(let i=0;i<72;i++){const q=35+(i%9)*.56,r=25+Math.floor(i/9)*.5;const p=meadowProject(q,r);mEllipse(g,p.x,p.y,7,3,i%3?'#9cbf59':'#799944')}
+ // Cross-river footbridges with planks and railings, rendered in perspective.
+ for(const q of [21,47]){
+  const a=meadowProject(q,meadowRiver(q)-4.9),b=meadowProject(q,meadowRiver(q)+4.9);
+  g.lineCap='butt';g.strokeStyle='#876847';g.lineWidth=22;g.beginPath();g.moveTo(a.x,a.y-5);g.lineTo(b.x,b.y-5);g.stroke();
+  g.strokeStyle='#cead70';g.lineWidth=15;g.stroke();
+  for(let t=0;t<=1.001;t+=.10){const x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t-5;g.strokeStyle='#8e6745';g.lineWidth=2;g.beginPath();g.moveTo(x-5,y-6);g.lineTo(x+5,y+6);g.stroke()}
+ }
+ // Thousands of small details; generated once, not during each frame.
+ for(let i=0;i<1450;i++){
+  const q=1+mHash(i,2,3)*58,r=1+mHash(i,2,4)*58;
+  if(meadowWater(q,r)||meadowElev(q,r)>3)continue;
+  const p=meadowProject(q,r,meadowElev(q,r));
+  if(i%6===0){mEllipse(g,p.x,p.y,5+mHash(i,2,7)*7,2+mHash(i,2,8)*3,'rgba(78,118,61,.23)')}
+  else if(i%3===0) mFlower(g,q,r);
+  else{g.strokeStyle='rgba(49,136,68,.36)';g.lineWidth=1.3;g.beginPath();g.moveTo(p.x,p.y);g.lineTo(p.x-2,p.y-3-mHash(i,2,5)*6);g.moveTo(p.x,p.y);g.lineTo(p.x+2,p.y-3-mHash(i,2,6)*5);g.stroke()}
+ }
+ const decor=[];
+ for(let i=0;i<720;i++){
+  const q=1+mHash(i,5,2)*58,r=1+mHash(i,5,3)*58;
+  if(meadowWater(q,r)||meadowElev(q,r)>3)continue;
+  const wooded=q<18 ||r>41 ||(q>34&&r<21)||mHash(q,r,20)>.69;
+  if(!wooded||Math.hypot(q-27,r-18)<7)continue;
+  decor.push({q,r,k:'tree'});
+ }
+ for(const [q,r] of [[12,9],[34,8],[51,16]])decor.push({q,r,k:'mountain'});
+ decor.push({q:27,r:18,k:'house'});
+ for(let i=0;i<110;i++){
+  const q=1+mHash(i,9,2)*58,r=1+mHash(i,9,3)*58;
+  if(meadowWater(q,r))continue;
+  if(mHash(q,r,18)>.3)decor.push({q,r,k:'rock'});
+ }
+ decor.sort((a,b)=>(a.q+a.r)-(b.q+b.r));
+ for(const d of decor){if(d.k==='tree')mTree(g,d.q,d.r,0);
+  else if(d.k==='house')mHouse(g,d.q,d.r);
+  else if(d.k==='mountain')mMountain(g,d.q,d.r,mHash(d.q,d.r,4));
+  else{const p=meadowProject(d.q,d.r,meadowElev(d.q,d.r));mEllipse(g,p.x,p.y+3,11,5,'rgba(56,69,55,.23)');mPolygon(g,[{x:p.x-11,y:p.y},{x:p.x-5,y:p.y-8},{x:p.x+6,y:p.y-10},{x:p.x+14,y:p.y},{x:p.x+7,y:p.y+5}], '#9ea99a','#83988a',1)}
+ }
+ // Tiny birds in the distance and village smoke add life.
+ g.fillStyle='rgba(255,255,255,.54)'; const house=meadowProject(27,18);
+ for(let i=0;i<5;i++)mEllipse(g,house.x+30+i*5,house.y-130-i*12,12+i*2,7+i*2,'rgba(242,247,227,.38)');
+ MEADOW_WORLD.cache=c;
+}
+function meadowScreen(p,W,H){return {x:W/2+(p.x-meadowCamera.x)*meadowCamera.z,y:H/2+(p.y-meadowCamera.y)*meadowCamera.z}}
+function meadowViewInit(W,H){
+ meadowCamera.fit=Math.min(W/3900,H/2020)*.92;
+ if(!meadowCamera.ready){const center=meadowProject(28,27);meadowCamera.x=center.x;meadowCamera.y=center.y;
+   meadowCamera.z=mClamp(Math.min(W/720,H/1120),.34,.84);meadowCamera.ready=true;}
+}
+function meadowZoom(factor,clientX,clientY){
+ const W=canvas.clientWidth,H=canvas.clientHeight;
+ if(!W||!H)return;
+ const old=meadowCamera.z;
+ const next=mClamp(old*factor,Math.max(.095,meadowCamera.fit*.85),2.35);
+ const px=Number.isFinite(clientX)?clientX:W/2,py=Number.isFinite(clientY)?clientY:H/2;
+ const wx=meadowCamera.x+(px-W/2)/old,wy=meadowCamera.y+(py-H/2)/old;
+ meadowCamera.z=next;meadowCamera.x=wx-(px-W/2)/next;meadowCamera.y=wy-(py-H/2)/next;
+ meadowCameraClamp();
+}
+function meadowCameraClamp(){
+ meadowCamera.x=mClamp(meadowCamera.x,260,3520);
+ meadowCamera.y=mClamp(meadowCamera.y,110,2040);
+}
+function meadowFit(){
+ const W=canvas.clientWidth,H=canvas.clientHeight;
+ meadowCamera.x=MEADOW_WORLD.ox;meadowCamera.y=1100;
+ meadowCamera.z=Math.max(.095,Math.min(W/3860,H/2090)*.94);
+}
+function drawWorld(now){
+ if(canvas.clientWidth<=0||canvas.clientHeight<=0)return;
+ const W=canvas.clientWidth,H=canvas.clientHeight;
+ if(!MEADOW_WORLD.cache)meadowPrepare();
+ meadowViewInit(W,H);
+ const {hour,day}=displayClock(),night=sleepMode(hour);
+ ctx.setTransform(DPR,0,0,DPR,0,0);ctx.clearRect(0,0,W,H);
+ // Sky and distant world on camera edges are not a black/empty backdrop.
+ const sky=ctx.createLinearGradient(0,0,0,H);
+ sky.addColorStop(0,night?'#435878':'#b1e1c8');sky.addColorStop(1,night?'#2e4e54':'#8dc387');
+ ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+ ctx.save();ctx.translate(W/2,H/2);ctx.scale(meadowCamera.z,meadowCamera.z);
+ ctx.translate(-meadowCamera.x,-meadowCamera.y);ctx.drawImage(MEADOW_WORLD.cache,0,0);ctx.restore();
+ drawObjects(W,H,hour,night,now);
+ if(night){ctx.fillStyle='rgba(24,29,73,.30)';ctx.fillRect(0,0,W,H)}
+ if(seasonFor(day)==='冬天'){ctx.fillStyle='rgba(227,245,252,.07)';ctx.fillRect(0,0,W,H)}
+ drawWeather(W,H,now);updateHUD(hour,day);positionDeleteButton();
+ if(now-meadowLastMini>250){meadowMiniMap(W,H);meadowLastMini=now;}
+}
+function meadowObjectLocation(o){
+  let q,r,alt=0;
+  if(o.kind==='fish'){
+    q=3+mClamp(o.rx,.03,.97)*53;
+    r=meadowRiver(q)+(o.ry-.89)*12;
+  }else if(o.kind==='reptile'){
+    q=4+mClamp(o.rx,.03,.97)*52;
+    r=meadowRiver(q)+3.9+(o.ry-.71)*12;
+  }else if(o.kind==='bird'){
+    q=5+mClamp(o.rx,.04,.96)*51;
+    r=7+mClamp((o.ry-.07)/.35,0,1)*46;
+    alt=70+Math.sin(performance.now()/850+(o.phase||0))*16;
+  }else if(o.kind==='food'){
+    q=4+mClamp(o.rx,.03,.97)*51;
+    r=7+mClamp((o.ry-.49)/.29,0,1)*45;
+  }else{
+    q=4+mClamp(o.rx,.03,.97)*51;
+    r=7+mClamp((o.ry-.49)/.29,0,1)*45;
+  }
+  if(o.kind==='land'||o.kind==='food'){
+    if(meadowWater(q,r))r=meadowRiver(q)+(r>=meadowRiver(q)?6:-6);
+  }
+  q=mClamp(q,1,59);r=mClamp(r,1,59);
+  const p=meadowProject(q,r,meadowElev(q,r));p.y-=alt;
+  return p;
+}
+let lastFrame=performance.now();
+function drawObjects(W,H,hour,night,now){
+ const dt=Math.min(.05,(now-lastFrame)/1000);lastFrame=now;
+ const ordered=[...state.objects.values()];
+ for(const o of ordered)updateObjectMotion(o,dt,night);
+ ordered.sort((a,b)=>meadowObjectLocation(a).y-meadowObjectLocation(b).y);
+ for(const o of ordered){
+  const rec=state.images.get(o.id);if(!rec?.img){o._box=null;continue}
+  const img=rec.img;const p=meadowObjectLocation(o),s=meadowScreen(p,W,H);
+  const base=o.kind==='food'?74:o.kind==='fish'?104:o.kind==='bird'?124:o.kind==='reptile'?100:120;
+  const pulse=o.growPulse&&now-o.growPulse<1200?1+Math.sin((now-o.growPulse)/1200*Math.PI)*.22:1;
+  const ww=base*growthScale(o)*pulse*meadowCamera.z;
+  const hh=ww*(img.naturalHeight||img.height||1)/(img.naturalWidth||img.width||1);
+  if(s.x+ww<0||s.x-ww>W||s.y+hh<0||s.y-hh>H){o._box=null;continue}
+  ctx.save();
+  const shadowY=s.y+(o.kind==='bird'?56*meadowCamera.z:4);
+  mEllipse(ctx,s.x+4,shadowY,ww*.37,Math.max(2,ww*.08),'rgba(22,65,41,.23)');
+  ctx.translate(s.x,s.y);if(o.vx<0)ctx.scale(-1,1);
+  ctx.drawImage(img,-ww/2,-hh,ww,hh);
+  ctx.restore();
+  o._box={x:s.x-ww/2,y:s.y-hh,w:ww,h:hh};
+  if(night&&o.kind!=='food'){ctx.font='bold 17px sans-serif';ctx.fillText('💤',s.x+ww*.25,s.y-hh*.75)}
+  if(settings().show_names&&o.kind!=='food'&&meadowCamera.z>.29){
+   const font=mClamp(11*meadowCamera.z/.52,10,15);ctx.font=`800 ${font}px sans-serif`;
+   ctx.textAlign='center';ctx.textBaseline='middle';const tw=ctx.measureText(o.name).width+14;
+   ctx.fillStyle='rgba(255,253,240,.91)';roundRect(ctx,s.x-tw/2,s.y+4,tw,20,10);ctx.fill();
+   ctx.fillStyle='#31492f';ctx.fillText(o.name,s.x,s.y+14);
+  }
+ }
+}
+function meadowMiniMap(W,H){
+ const mini=$('meadowMini');if(!mini||!MEADOW_WORLD.cache)return;
+ const c=mini.getContext('2d'),w=mini.width,h=mini.height;
+ c.clearRect(0,0,w,h);c.drawImage(MEADOW_WORLD.cache,0,0,w,h);
+ const visW=W/meadowCamera.z,visH=H/meadowCamera.z;
+ const left=(meadowCamera.x-visW/2)/MEADOW_WORLD.width*w,top=(meadowCamera.y-visH/2)/MEADOW_WORLD.height*h;
+ c.fillStyle='rgba(255,255,255,.19)';c.fillRect(left,top,visW/MEADOW_WORLD.width*w,visH/MEADOW_WORLD.height*h);
+ c.strokeStyle='#fff';c.lineWidth=3;c.strokeRect(left,top,visW/MEADOW_WORLD.width*w,visH/MEADOW_WORLD.height*h);
+ c.fillStyle='#ffe69a';c.beginPath();c.arc(meadowCamera.x/MEADOW_WORLD.width*w,meadowCamera.y/MEADOW_WORLD.height*h,3,0,6.3);c.fill();
+}
+
+
+function drawWeather(
+  W,
+  H,
+  now
+){
+
+  if(!state.room){
+    return;
+  }
+
+
+  const w =
+    state.room.weather;
+
+
+  if(w==='rain'){
+
+    ctx.strokeStyle =
+      'rgba(55,110,160,.55)';
+
+
+    ctx.lineWidth =
+      1.5;
+
+
+    for(
+      let i=0;
+      i<70;
+      i++
+    ){
+
+      const x =
+        (
+          hash01(
+            'rainx'+i
+          )*W
+          +
+          now*.08
+        ) % W;
+
+
+      const y =
+        (
+          hash01(
+            'rainy'+i
+          )*H
+          +
+          now*.18
+        ) % H;
+
+
+      ctx.beginPath();
+
+
+      ctx.moveTo(
+        x,
+        y
+      );
+
+
+      ctx.lineTo(
+        x-5,
+        y+14
+      );
+
+
+      ctx.stroke();
+    }
+
+  }
+
+  else if(
+    w==='snow'
+  ){
+
+    ctx.fillStyle =
+      'rgba(255,255,255,.9)';
+
+
+    for(
+      let i=0;
+      i<55;
+      i++
+    ){
+
+      const x =
+        (
+          hash01(
+            'snowx'+i
+          )*W
+          +
+          Math.sin(
+            now/800+i
+          )*15
+          +
+          W
+        ) % W;
+
+
+      const y =
+        (
+          hash01(
+            'snowy'+i
+          )*H
+          +
+          now*.025*
+          (
+            1+
+            hash01(
+              'sp'+i
+            )
+          )
+        ) % H;
+
+
+      ctx.beginPath();
+
+
+      ctx.arc(
+        x,
+        y,
+        2+
+        hash01(
+          'sr'+i
+        )*2,
+        0,
+        6.3
+      );
+
+
+      ctx.fill();
+    }
+
+  }
+
+  else if(
+    w==='cloudy'
+  ){
+
+    ctx.fillStyle =
+      'rgba(120,130,140,.08)';
+
+
+    ctx.fillRect(
+      0,
+      0,
+      W,
+      H
+    );
+  }
+}
+
+
+function updateObjectMotion(
+  o,
+  dt,
+  night
+){
+
+  if(
+    o.kind==='food' ||
+    night
+  ){
+    return;
+  }
+
+
+  const speed =
+
+    o.kind==='reptile'
+    ? .35
+
+    : o.kind==='bird'
+    ? 1.1
+
+    : o.kind==='fish'
+    ? .8
+
+    : .55;
+
+
+  o.rx +=
+    o.vx*dt*speed;
+
+
+  o.ry +=
+    o.vy*dt*speed;
+
+
+  if(
+    o.kind==='bird'
+  ){
+
+    o.ry +=
+      Math.sin(
+        performance.now()/700+
+        o.phase
+      )
+      *.00035*dt;
+
+
+    if(
+      o.rx<.04 ||
+      o.rx>.96
+    ){
+
+      o.vx *=
+        -1;
+    }
+
+
+    if(
+      o.ry<.07 ||
+      o.ry>.42
+    ){
+
+      o.vy *=
+        -1;
+    }
+
+
+    o.ry =
+      Math.max(
+        .07,
+        Math.min(
+          .42,
+          o.ry
+        )
+      );
+
+  }
+
+  else if(
+    o.kind==='fish'
+  ){
+
+    o.ry +=
+      Math.sin(
+        performance.now()/500+
+        o.phase
+      )
+      *.0002*dt;
+
+
+    if(
+      o.rx<.03 ||
+      o.rx>.97
+    ){
+
+      o.vx *=
+        -1;
+    }
+
+
+    o.ry =
+      Math.max(
+        .82,
+        Math.min(
+          .96,
+          o.ry
+        )
+      );
+
+  }
+
+  else{
+
+    if(
+      o.rx<.03 ||
+      o.rx>.97
+    ){
+
+      o.vx *=
+        -1;
+    }
+
+
+    const min =
+      o.kind==='reptile'
+      ? .66
+      : .49;
+
+
+    const max =
+      .77;
+
+
+    if(
+      o.ry<min ||
+      o.ry>max
+    ){
+
+      o.vy *=
+        -1;
+    }
+
+
+    o.ry =
+      Math.max(
+        min,
+        Math.min(
+          max,
+          o.ry
+        )
+      );
+  }
+}
+
+
+function roundRect(
+  c,
+  x,
+  y,
+  w,
+  h,
+  r
+){
+
+  c.beginPath();
+
+  c.moveTo(
+    x+r,
+    y
+  );
+
+  c.arcTo(
+    x+w,
+    y,
+    x+w,
+    y+h,
+    r
+  );
+
+  c.arcTo(
+    x+w,
+    y+h,
+    x,
+    y+h,
+    r
+  );
+
+  c.arcTo(
+    x,
+    y+h,
+    x,
+    y,
+    r
+  );
+
+  c.arcTo(
+    x,
+    y,
+    x+w,
+    y,
+    r
+  );
+
+  c.closePath();
+}
+
+
+function updateHUD(
+  hour,
+  day
+){
+
+  $('timePill')
+    .textContent =
+      `${sleepMode(hour)?'🌙':'☀️'} ` +
+      `${fmtHour(hour)}`;
+
+
+  $('modePill')
+    .textContent =
+      modeAt(hour).label;
+
+
+  const s =
+    settings();
+
+
+  if(s.show_weather){
+
+    $('roomPill')
+      .textContent =
+        `🌿 ${state.room.code} · ` +
+        `${seasonFor(day)} ` +
+        `${weatherIcon(state.room.weather)}`;
+
+  }
+  else{
+
+    $('roomPill')
+      .textContent =
+        `🌿 房間 ${state.room.code}`;
+  }
+}
+
+
+function positionDeleteButton(){
+
+  const o =
+    state.selectedId &&
+    state.objects.get(
+      state.selectedId
+    );
+
+
+  const b =
+    $('deleteFloating');
+
+
+  if(!o?._box){
+
+    b.style.display =
+      'none';
+
+    return;
+  }
+
+
+  const allowed =
+    state.isHost ||
+    o.owner_user_id ===
+    state.user.id;
+
+
+  if(!allowed){
+
+    b.style.display =
+      'none';
+
+    return;
+  }
+
+
+  b.style.display =
+    'block';
+
+
+  const x =
+    Math.max(
+      8,
+      Math.min(
+        canvas.clientWidth-92,
+        o._box.x+
+        o._box.w/2-
+        42
+      )
+    );
+
+
+  const y =
+    Math.max(
+      8,
+      o._box.y-42
+    );
+
+
+  b.style.left =
+    x+'px';
+
+
+  b.style.top =
+    y+'px';
+}
+
+
+function pickObject(
+  clientX,
+  clientY
+){
+
+  const r =
+    canvas
+      .getBoundingClientRect();
+
+
+  const x =
+    clientX-r.left;
+
+
+  const y =
+    clientY-r.top;
+
+
+  let best =
+    null;
+
+
+  for(
+    const o
+    of [...state.objects.values()]
+      .reverse()
+  ){
+
+    const b =
+      o._box;
+
+
+    if(!b){
+      continue;
+    }
+
+
+    if(
+      x>=b.x &&
+      x<=b.x+b.w &&
+      y>=b.y &&
+      y<=b.y+b.h
+    ){
+
+      best =
+        o;
+
+      break;
+    }
+  }
+
+
+  return best;
+}
+
+
+function animation(now){
+
+  if(state.room){
+
+    updateHostClock(now);
+
+    drawWorld(now);
+  }
+
+
+  requestAnimationFrame(
+    animation
+  );
+}
+
+
+requestAnimationFrame(
+  animation
+);
+
+
+/* ===========================
+   事件
+=========================== */
+
+
+$('createRoomBtn').onclick =
+  createRoom;
+
+
+$('joinRoomBtn').onclick =
+  ()=>joinRoom();
+
+
+$('roomCodeInput')
+  .addEventListener(
+    'keydown',
+    e=>{
+
+      if(e.key==='Enter'){
+
+        joinRoom();
+      }
+    }
+  );
+
+
+$('shareBtn').onclick =
+  openShare;
+
+
+$('gearBtn').onclick =
+  ()=>{
+
+    state.running =
+      false;
+
+
+    $('adminModal')
+      .classList
+      .remove('hidden');
+
+
+    syncAdminUI();
+  };
+
+
+document
+  .querySelectorAll(
+    '[data-close]'
+  )
+  .forEach(
+    b=>
+      b.onclick =
+        ()=>{
+
+          closeModal(
+            b.dataset.close
+          );
+
+
+          if(
+            b.dataset.close ===
+            'adminModal'
+          ){
+
+            state.running =
+              true;
+
+
+            state.hostLastTick =
+              performance.now();
+          }
+        }
+  );
+
+
+$('copyLinkBtn').onclick =
+  ()=>copyText(
+    $('shareLink').value
+  );
+
+
+$('copyCodeBtn').onclick =
+  ()=>copyText(
+    state.room.code
+  );
+
+
+document
+  .querySelectorAll('.typeBtn')
+  .forEach(
+    b=>
+      b.onclick =
+        ()=>{
+
+          state.selectedKind =
+            b.dataset.kind;
+
+
+          $('sourceModal').classList.remove('hidden');
+        }
+  );
+
+
+$('fileInput').onchange = e=>uploadSelected(e.target.files?.[0],state.selectedKind);
+$('cameraInput').onchange = e=>uploadSelected(e.target.files?.[0],state.selectedKind);
+$('useCamera').onclick=()=>{$('sourceModal').classList.add('hidden');$('cameraInput').click()};
+$('useGallery').onclick=()=>{$('sourceModal').classList.add('hidden');$('fileInput').click()};
+
+
+
+const meadowPointers=new Map();let meadowPinchStart=0,meadowGestureMoved=false,meadowTapStart=null;
+canvas.addEventListener('pointerdown',e=>{
+ if(e.pointerType==='mouse'&&e.button!==0)return;
+ canvas.setPointerCapture(e.pointerId);
+ meadowPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ meadowGestureMoved=false;
+ meadowTapStart={x:e.clientX,y:e.clientY,t:performance.now()};
+ if(meadowPointers.size>1){meadowGestureMoved=true;meadowPinchStart=0}
+});
+canvas.addEventListener('pointermove',e=>{
+ const old=meadowPointers.get(e.pointerId);if(!old)return;
+ const dx=e.clientX-old.x,dy=e.clientY-old.y;
+ meadowPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ const pts=[...meadowPointers.values()];
+ if(pts.length===1){
+  if(Math.hypot(e.clientX-meadowTapStart.x,e.clientY-meadowTapStart.y)>7)meadowGestureMoved=true;
+  if(meadowGestureMoved){meadowCamera.x-=dx/meadowCamera.z;meadowCamera.y-=dy/meadowCamera.z;meadowCameraClamp()}
+ }else if(pts.length===2){
+  meadowGestureMoved=true;
+  const dist=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);
+  const rect=canvas.getBoundingClientRect();
+  if(meadowPinchStart>0)meadowZoom(dist/meadowPinchStart,(pts[0].x+pts[1].x)/2-rect.left,(pts[0].y+pts[1].y)/2-rect.top);
+  meadowPinchStart=dist;
+ }
+});
+canvas.addEventListener('pointerup',e=>{
+ if(meadowPointers.size===1&&!meadowGestureMoved&&meadowTapStart&&performance.now()-meadowTapStart.t<650){
+  const o=pickObject(e.clientX,e.clientY);
+  if(o){state.selectedId=o.id;toast(o.kind==='food'?`🍎 ${o.owner_nickname} 畫的食物`:`${kindIcon(o.kind)} ${o.name} · 吃了 ${o.growth_meals||0} 份 · 約 ${growthScale(o).toFixed(2)}×`)}
+  else clearSelection();
+ }
+ meadowPointers.delete(e.pointerId);meadowPinchStart=0;
+});
+canvas.addEventListener('pointercancel',e=>{meadowPointers.delete(e.pointerId);meadowPinchStart=0;meadowGestureMoved=true});
+canvas.addEventListener('wheel',e=>{
+ e.preventDefault();const r=canvas.getBoundingClientRect();meadowZoom(e.deltaY<0?1.12:1/1.12,e.clientX-r.left,e.clientY-r.top)
+},{passive:false});
+$('meadowMinus').onclick=()=>meadowZoom(1/1.33);
+$('meadowPlus').onclick=()=>meadowZoom(1.33);
+$('meadowOverview').onclick=()=>meadowFit();
+$('meadowHome').onclick=()=>{const p=meadowProject(28,27);meadowCamera.x=p.x;meadowCamera.y=p.y;meadowCamera.z=mClamp(Math.min(canvas.clientWidth/720,canvas.clientHeight/1120),.34,.84)};
+$('meadowMiniWrap').onclick=e=>{
+ const r=$('meadowMini').getBoundingClientRect();const x=mClamp((e.clientX-r.left)/r.width,0,1),y=mClamp((e.clientY-r.top)/r.height,0,1);
+ meadowCamera.x=x*MEADOW_WORLD.width;meadowCamera.y=y*MEADOW_WORLD.height;meadowCameraClamp();
+};
+
+$('deleteFloating').onclick =
+  ()=>
+    state.selectedId &&
+    deleteObject(
+      state.selectedId
+    );
+
+
+const adminIds = [
+
+  'cutoutStrength',
+
+  'visualSaturation',
+
+  'dayMinutes',
+
+  'worldSpeed',
+
+  'wakeHour',
+
+  'sleepHour',
+
+  'breakfastHour',
+
+  'lunchHour',
+
+  'dinnerHour',
+
+  'mealDuration',
+
+  'growthStep',
+
+  'weather',
+
+  'infiniteGrowth',
+
+  'weatherEnabled',
+
+  'showNames',
+
+  'showWeather',
+
+  'uploadEnabled',
+
+  'roomLocked'
+];
+
+
+adminIds.forEach(
+  id=>{
+
+    $(id)
+      .addEventListener(
+        'input',
+        scheduleSettingsSave
+      );
+
+
+    $(id)
+      .addEventListener(
+        'change',
+        scheduleSettingsSave
+      );
+  }
+);
+
+
+document
+  .querySelectorAll('.quickTime')
+  .forEach(
+    b=>
+      b.onclick =
+        ()=>quickTime(
+          +b.dataset.hour
+        )
+  );
+
+
+$('clearBtn').onclick =
+  clearRoom;
+
+
+$('endRoomBtn').onclick =
+  endRoom;
+
+
+$('displayBtn').onclick =
+  ()=>{
+
+    window.open(
+
+      location.origin +
+      location.pathname +
+      `?room=${state.room.code}` +
+      `&display=1`,
+
+      '_blank'
+    );
+  };
+
+
+window.addEventListener(
+  'resize',
+  resizeCanvas
+);
+
+
+document.addEventListener(
+  'visibilitychange',
+  ()=>{
+
+    if(!document.hidden){
+
+      state.hostLastTick =
+        performance.now();
+
+
+      resizeCanvas();
+    }
+  }
+);
+
+
+(async function boot(){
+  if(new URLSearchParams(location.search).get('preview')==='1' || window.MEADOW_STANDALONE_PREVIEW){
+    state.user={id:'preview-user'};state.nickname='預覽';state.isHost=false;
+    state.room={id:'preview-room',code:'DEMO25',status:'open',upload_enabled:false,world_time:10,world_day:1,weather:'sunny',settings:{}};
+    state.hostClock=10;state.hostDay=1;state.hostLastTick=performance.now();
+    $('startScreen').classList.add('hidden');$('game').classList.remove('hidden');
+    $('roomPill').textContent='🌿 預覽世界';$('shareBtn').style.display='none';
+    $('onlinePill').textContent='👥 示範';$('gearBtn').classList.add('hidden');
+    const icons=[['bird','🦜',.3,.22],['land','🦌',.56,.6],['reptile','🦎',.25,.69],['fish','🐟',.65,.88],['land','🐇',.74,.57],['food','🍎',.51,.67]];
+    for(let i=0;i<icons.length;i++){
+      const [kind,emoji,x,y]=icons[i],id='preview-'+i;
+      const o=makeRuntimeObject({id,kind,x,y,name:['天空朋友','森林朋友','河岸朋友','水中朋友','草原朋友','蘋果'][i],owner_user_id:'preview-user',owner_nickname:'示範',growth_meals:i===1?3:0});
+      state.objects.set(id,o);
+      const el=document.createElement('canvas');el.width=128;el.height=128;
+      const gc=el.getContext('2d');gc.font='94px serif';gc.textAlign='center';gc.textBaseline='middle';gc.fillText(emoji,64,65);
+      const img=new Image();img.src=el.toDataURL();state.images.set(id,{img,url:null});
+    }
+    updateUploadButtons();resizeCanvas();return;
+  }
+
+
+  const saved =
+    localStorage.getItem(
+      'meadow_nickname'
+    ) || '';
+
+
+  $('nickname').value =
+    saved;
+
+
+  const params =
+    new URLSearchParams(
+      location.search
+    );
+
+
+  const code =
+    params.get('room');
+
+
+  if(code){
+
+    $('roomCodeInput').value =
+      code.toUpperCase();
+
+
+    if(state.displayMode){
+
+      try{
+
+        await joinRoom(code);
+
+      }
+      catch{}
+    }
+  }
+
+})();
+
+</script>
+
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"7939e04a4baf43c8b86a560f74aac60e","spa":2}' crossorigin="anonymous"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"1c1c7799c54e46349cc23295b5e08299","spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>
