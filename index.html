@@ -4608,6 +4608,13 @@ function resizeCanvas(){
 
 function drawWorld(now){
 
+  // The game is hidden while room subscription is connecting.
+  // A hidden canvas has no drawable area.
+  if (canvas.clientWidth <= 0 || canvas.clientHeight <= 0) {
+    return;
+  }
+
+
   const W =
     canvas.clientWidth;
 
@@ -4887,11 +4894,8 @@ function drawScenery(
   );
 
 
-  for(
-    let x=0;
-    x<=W;
-    x+=W/6
-  ){
+  for (let hillIndex = 0; hillIndex <= 6; hillIndex++) {
+    const x = hillIndex * W / 6;
 
     ctx.quadraticCurveTo(
       x+W/12,
