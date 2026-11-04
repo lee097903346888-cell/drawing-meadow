@@ -1,0 +1,1304 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>圖畫草原書｜日夜生活的自然草原</title>
+<style>
+:root{--ink:#594d67;--muted:#887b92;--line:#eadbea}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;font-family:ui-rounded,"PingFang TC","Microsoft JhengHei",system-ui,sans-serif;color:var(--ink);background:#dff4ff;-webkit-tap-highlight-color:transparent}
+button,input{font:inherit}
+button{border:0;cursor:pointer;color:inherit}
+.hidden{display:none!important}
+#app{position:fixed;inset:0;overflow:hidden;background:linear-gradient(#c8edff 0 42%,#b6e493 42% 100%)}
+#world{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+.top{position:absolute;z-index:10;top:calc(9px + env(safe-area-inset-top));left:10px;right:10px;display:flex;align-items:center;gap:7px;pointer-events:none}
+.top>*{pointer-events:auto}
+.timeBadge{background:#ffffffeb;padding:8px 12px;border-radius:999px;font-weight:900;font-size:12px;box-shadow:0 5px 15px #76609c22;white-space:nowrap}
+.brand{margin-right:auto;background:rgba(255,255,255,.93);padding:8px 12px;border-radius:999px;font-weight:900;box-shadow:0 5px 15px #76609c22}
+.pill{background:rgba(255,255,255,.94);padding:8px 11px;border-radius:999px;font-size:12px;font-weight:900;box-shadow:0 5px 15px #76609c22}
+.danger{color:#a94355}
+.zoom{position:absolute;z-index:10;left:10px;top:50%;transform:translateY(-50%);display:grid;gap:7px}
+.round{width:43px;height:43px;border-radius:50%;background:#fff;font-size:20px;font-weight:900;box-shadow:0 5px 14px #5a497929}
+.explore{position:absolute;z-index:11;right:10px;top:50%;transform:translateY(-50%);display:grid;gap:7px}
+.upload{position:absolute;z-index:12;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(650px,calc(100% - 18px));background:rgba(255,255,255,.95);border:2px solid #fff;border-radius:24px;padding:9px;box-shadow:0 10px 30px #6c588c26;backdrop-filter:blur(8px)}
+.hint{text-align:center;font-size:12px;font-weight:900;color:var(--muted);margin:1px 0 7px}
+.kinds{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.kind{padding:9px 2px 8px;border-radius:16px;background:#eef8ff;border:2px solid #fff;box-shadow:inset 0 0 0 1px #e7dbe7}
+.kind:nth-child(2){background:#effbe7}
+.kind:nth-child(3){background:#fff8db}
+.kind:nth-child(4){background:#e8f7ff}
+.kind:nth-child(5){background:#fff0f5}
+.kind b{display:block;font-size:22px;line-height:1.1}
+.kind span{display:block;font-size:12px;font-weight:900;margin-top:3px}
+.toast{position:absolute;z-index:30;left:50%;top:78px;transform:translateX(-50%);padding:9px 14px;border-radius:999px;background:#fff;color:#6f6177;font-size:13px;font-weight:900;box-shadow:0 6px 18px #58496a2a;opacity:0;pointer-events:none;transition:.2s}
+.toast.show{opacity:1;transform:translate(-50%,4px)}
+.modalBack{position:fixed;z-index:50;inset:0;background:#44395070;display:grid;place-items:center;padding:12px;backdrop-filter:blur(4px)}
+.modal{width:min(720px,100%);max-height:94vh;overflow:auto;background:#fffafd;border:2px solid #fff;border-radius:25px;padding:16px;box-shadow:0 20px 60px #30263c4d}
+.modal h2{margin:0 0 8px;font-size:18px}
+.sub{font-size:12px;color:var(--muted);line-height:1.6;margin:0 0 8px}
+.tools{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.tool{padding:8px 11px;border-radius:12px;background:#f3eaf1;font-size:12px;font-weight:900}
+.tool.on{background:#dff3dd;color:#48704d}
+.sliderBox{display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:12px;background:#f8f3f7;font-size:12px;font-weight:900}
+.sliderBox input{width:120px}
+.stage{display:grid;place-items:center;min-height:260px;background-color:#fff;background-image:linear-gradient(45deg,#ddd 25%,transparent 25%),linear-gradient(-45deg,#ddd 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ddd 75%),linear-gradient(-45deg,transparent 75%,#ddd 75%);background-size:22px 22px;background-position:0 0,0 11px,11px -11px,-11px 0;border:2px solid #eadfea;border-radius:16px;overflow:hidden}
+.stage canvas{display:block;max-width:100%;max-height:57vh;touch-action:none}
+.help{font-size:12px;color:#756a79;line-height:1.55;margin:8px 1px 0}
+.actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:10px}
+.actions button{padding:10px 15px;border-radius:13px;background:#eee5ec;font-weight:900}
+.actions .ok{background:linear-gradient(145deg,#85d59b,#5ab879);color:#fff}
+#deleteBtn{position:absolute;z-index:15;display:none;padding:8px 11px;border-radius:12px;background:#e75d69;color:#fff;font-weight:900;box-shadow:0 6px 16px #9a3c4c4a}
+.empty{position:absolute;z-index:2;left:50%;top:42%;transform:translate(-50%,-50%);text-align:center;color:#61735599;font-weight:900;pointer-events:none}
+.empty b{display:block;font-size:34px;margin-bottom:4px}
+@media(max-width:560px){
+  .brand{display:none}
+  .pill{padding:8px 9px}
+  .kind b{font-size:20px}
+  .kind span{font-size:11px}
+  .modal{padding:13px}
+  .sliderBox{width:100%;justify-content:space-between}
+  .sliderBox input{flex:1}
+  .stage{min-height:220px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="world"></canvas>
+  <div id="empty" class="empty"><b>🌿</b>先畫一隻動物放進草原吧</div>
+
+  <div class="top">
+    <div class="brand">🌸 圖畫草原書</div>
+    <div id="timeBadge" class="timeBadge">🌅 早晨</div>
+    <button id="callBtn" class="pill">📣 號召</button>
+    <button id="fitBtn" class="pill">俯瞰</button>
+    <button id="clearBtn" class="pill danger">清空</button>
+    <button id="fsBtn" class="pill">⛶</button>
+  </div>
+
+  <div class="zoom">
+    <button id="zin" class="round">＋</button>
+    <button id="zout" class="round">－</button>
+  </div>
+
+  <button id="deleteBtn">🗑 刪除</button>
+  <div id="toast" class="toast"></div>
+
+  <div class="upload">
+    <div class="hint">選一類，再從相簿加入你的畫 🎨</div>
+    <div class="kinds">
+      <button class="kind" data-kind="bird"><b>🐦</b><span>鳥類</span></button>
+      <button class="kind" data-kind="land"><b>🐾</b><span>陸地</span></button>
+      <button class="kind" data-kind="reptile"><b>🦎</b><span>爬蟲</span></button>
+      <button class="kind" data-kind="fish"><b>🐟</b><span>魚類</span></button>
+      <button class="kind" data-kind="food"><b>🍎</b><span>食物</span></button>
+    </div>
+    <input id="fileInput" type="file" accept="image/*" class="hidden">
+  </div>
+</div>
+
+<div id="cutModal" class="modalBack hidden">
+  <div class="modal">
+    <h2>✂️ 作品去背</h2>
+    <p class="sub">先看自動結果；不理想就切「手動描邊」沿主體外緣畫一圈。棋盤格代表透明背景。</p>
+    <div class="tools">
+      <button id="autoBtn" class="tool on">✨ 自動去背</button>
+      <button id="traceBtn" class="tool">🖊️ 手動描邊</button>
+      <button id="originalBtn" class="tool">🖼️ 保留原圖</button>
+      <button id="redoTrace" class="tool hidden">↺ 重新描邊</button>
+      <div class="sliderBox">強度 <input id="strength" type="range" min="25" max="95" value="58"><span id="strengthVal">58</span></div>
+    </div>
+    <div class="stage"><canvas id="cutCanvas"></canvas></div>
+    <div id="cutHelp" class="help"></div>
+    <div class="actions">
+      <button id="cancelBtn">取消</button>
+      <button id="okBtn" class="ok">加入草原</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ========== 基本工具 ========== */
+const $  = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const world = $('#world');
+const ctx = world.getContext('2d');
+
+const STORE = 'drawing_meadow_simple_v1';
+const BASE  = { bird:92, land:118, reptile:104, fish:104, food:76 };
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+
+const state = {
+  items: [], images: new Map(), selected: null, kind: null,
+  cam: { x:0, y:30, zoom:1 }, last: performance.now()
+};
+
+let DPR = 1, toastTimer = 0;
+
+function uid(){
+  return crypto.randomUUID?.() || ('o' + Date.now() + Math.random().toString(36).slice(2));
+}
+function toast(t){
+  const e = $('#toast');
+  e.textContent = t;
+  e.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => e.classList.remove('show'), 1600);
+}
+
+/* ========== 本機儲存 ========== */
+function save(){
+  try{
+    localStorage.setItem(STORE, JSON.stringify(state.items.map(o => ({
+      id:o.id, kind:o.kind, x:o.x, y:o.y, vx:o.vx, vy:o.vy, phase:o.phase, data:o.data, size:o.size, zone:o.zone, bites:o.bites, forageKind:o.forageKind, forageZone:o.forageZone
+    }))));
+  }catch(e){
+    toast('本機空間已滿，請刪除一些作品');
+  }
+}
+function load(){
+  try{ state.items = JSON.parse(localStorage.getItem(STORE) || '[]') || []; }
+  catch{ state.items = []; }
+  state.items.forEach(o => { placeInHabitat(o); loadImg(o); });
+  updateEmpty();
+}
+function loadImg(o){
+  const im = new Image();
+  im.onload = () => state.images.set(o.id, im);
+  im.src = o.data;
+}
+function updateEmpty(){
+  $('#empty').classList.toggle('hidden', state.items.length > 0);
+}
+
+/* ========== 畫布與座標 ========== */
+function resize(){
+  DPR = Math.min(2, devicePixelRatio || 1);
+  world.width  = Math.round(innerWidth  * DPR);
+  world.height = Math.round(innerHeight * DPR);
+  world.style.width  = innerWidth  + 'px';
+  world.style.height = innerHeight + 'px';
+}
+addEventListener('resize', resize);
+resize();
+
+function screenToWorld(sx, sy){
+  return {
+    x: (sx - innerWidth / 2) / state.cam.zoom + state.cam.x,
+    y: (sy - innerHeight / 2) / state.cam.zoom + state.cam.y
+  };
+}
+function worldToScreen(x, y){
+  return {
+    x: (x - state.cam.x) * state.cam.zoom + innerWidth / 2,
+    y: (y - state.cam.y) * state.cam.zoom + innerHeight / 2
+  };
+}
+const WORLD_EDGE=1650;
+function clampCamera(){
+  const view=innerWidth/(2*state.cam.zoom);
+  const limit=Math.max(0,WORLD_EDGE-view);
+  state.cam.x=Math.max(-limit,Math.min(limit,state.cam.x));
+  const halfHeight=innerHeight/(2*state.cam.zoom);
+  const top=-450+halfHeight, bottom=680-halfHeight;
+  state.cam.y=top<=bottom?Math.max(top,Math.min(bottom,state.cam.y)):115;
+}
+function fit(){
+  state.cam = { x:0, y:30, zoom: Math.max(.62, Math.min(1.05, innerWidth / 900)) };
+  clampCamera();
+}
+fit();
+
+function zoom(f, sx = innerWidth / 2, sy = innerHeight / 2){
+  const before = screenToWorld(sx, sy);
+  state.cam.zoom = Math.max(.38, Math.min(2.6, state.cam.zoom * f));
+  const after = screenToWorld(sx, sy);
+  state.cam.x += before.x - after.x;
+  state.cam.y += before.y - after.y;
+  clampCamera();
+}
+
+/* ========== 自然棲地與日夜循環 ========== */
+// 三個時段各 100 秒，共 5 分鐘完成一次日夜輪替；夜間動物睡覺，白天才覓食。
+const DAY_PART=100000;
+const DAY_CYCLE=DAY_PART*3;
+const dayStart=performance.now();
+function dayPhase(now){return Math.floor(((now-dayStart)%DAY_CYCLE)/DAY_PART);}
+const phaseNames=['🌅 早晨','☀️ 中午','🌙 晚上・睡覺'];
+
+// 河在最下方，岸邊的沙土在河流上緣；魚全部在河中。
+const HABITATS={
+  // 同類動物可以跑遍整個自然棲地，不再被左、中、右小範圍限制。
+  bird:[{x0:-1580,x1:1580,y0:-345,y1:325}],
+  land:[
+    {x0:-1580,x1:1580,y0:88,y1:345},
+    {x0:-1580,x1:1580,y0:88,y1:345},
+    {x0:-1580,x1:1580,y0:88,y1:345}
+  ],
+  reptile:[
+    {x0:-1580,x1:1580,y0:330,y1:435},
+    {x0:-1580,x1:1580,y0:330,y1:435},
+    {x0:-1580,x1:1580,y0:330,y1:435}
+  ],
+  fish:[{x0:-1580,x1:1580,y0:475,y1:650}]
+};
+function habitat(kind,zone=0){
+  const areas=HABITATS[kind]||HABITATS.land;
+  return areas[Math.max(0,Math.min(areas.length-1,zone))];
+}
+function placeInHabitat(o){
+  o.size=Number.isFinite(o.size)?Math.max(1,o.size):1;
+  o.bites=Number.isFinite(o.bites)?o.bites:2;
+  if(o.kind==='food'){
+    // 舊作品中的食物若落在新河流上，讓它保持可被取用的位置。
+    if(!Number.isFinite(o.x))o.x=-120;
+    if(!Number.isFinite(o.y))o.y=260;
+    if(!o.forageKind){
+      o.forageKind=o.y>445?'fish':o.y>330?'reptile':'land';
+      o.forageZone=0;
+    }
+    o.vx=0;o.vy=0;return;
+  }
+  const areas=HABITATS[o.kind]||HABITATS.land;
+  if(!Number.isInteger(o.zone)||o.zone<0||o.zone>=areas.length){
+    o.zone=areas.findIndex(h=>Number.isFinite(o.x)&&o.x>=h.x0&&o.x<=h.x1);
+    if(o.zone<0)o.zone=0;
+  }
+  const h=habitat(o.kind,o.zone);
+  if(!Number.isFinite(o.x)||!Number.isFinite(o.y)||
+     o.x<h.x0||o.x>h.x1||o.y<h.y0||o.y>h.y1){
+    o.x=h.x0+36+Math.random()*(h.x1-h.x0-72);
+    o.y=h.y0+12+Math.random()*(h.y1-h.y0-24);
+  }
+  if(!Number.isFinite(o.vx))o.vx=0;
+  if(!Number.isFinite(o.vy))o.vy=0;
+}
+const particles=[];
+const growthBursts=[];
+let lastSavedGrowth=0;
+function sparkle(x,y){
+  for(let i=0;i<44;i++){
+    const a=Math.random()*Math.PI*2, speed=28+Math.random()*90;
+    particles.push({x,y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed-45,
+      life:1,shape:i%3===0?'★':'✦',color:i%2?'#ffe17d':'#fff8b5'});
+  }
+}
+function updateParticles(dt){
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];p.life-=dt*1.05;
+    p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=80*dt;
+    if(p.life<=0){particles.splice(i,1);continue;}
+    const pos=worldToScreen(p.x,p.y);
+    ctx.globalAlpha=Math.max(0,p.life);
+    ctx.fillStyle=p.color;
+    ctx.font=`${(16+15*(1-p.life))*state.cam.zoom}px sans-serif`;
+    ctx.textAlign='center';ctx.fillText(p.shape,pos.x,pos.y);
+  }
+  ctx.globalAlpha=1;
+}
+function drawGrowthBursts(now){
+  for(let i=growthBursts.length-1;i>=0;i--){
+    const b=growthBursts[i];
+    const t=(now-b.start)/1350;
+    if(t>=1){growthBursts.splice(i,1);continue;}
+    const p=worldToScreen(b.x,b.y);
+    ctx.save();
+    ctx.globalAlpha=(1-t)*.85;
+    ctx.strokeStyle=t<.5?'#fff6a8':'#f9b5f1';
+    ctx.lineWidth=(7-5*t)*state.cam.zoom;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,(14+150*t)*state.cam.zoom,0,Math.PI*2);
+    ctx.stroke();
+    ctx.font=`bold ${Math.max(14,26+18*Math.sin(Math.PI*t))*state.cam.zoom}px sans-serif`;
+    ctx.textAlign='center';
+    ctx.fillStyle='#fff1a0';
+    ctx.fillText('✨ 長大啦！ ✨',p.x,p.y-(70+75*t)*state.cam.zoom);
+    ctx.restore();
+  }
+}
+function eatFood(o,food,now){
+  food.bites--;
+  o.size=(o.size||1)*1.18;
+  o.growTime=now;
+  sparkle(o.x,o.y-45);
+  growthBursts.push({x:o.x,y:o.y-55,start:now,kind:o.kind});
+  if(food.bites<=0){
+    state.items=state.items.filter(item=>item!==food);
+    state.images.delete(food.id);
+    if(state.selected===food.id){state.selected=null;$('#deleteBtn').style.display='none';}
+    updateEmpty();
+  }
+  save();toast('✨ 吃飽長大了！');
+}
+function nearestFood(o){
+  let chosen=null,dist=Infinity;
+  for(const f of state.items){
+    if(f.kind!=='food'||f.bites<=0)continue;
+    // 同一生活區域的動物可以各自發現、分享一份食物。
+    if(f.forageKind!==o.kind||Number(f.forageZone||0)!==Number(o.zone||0))continue;
+    const d=Math.hypot(f.x-o.x,f.y-o.y);
+    if(d<dist){chosen=f;dist=d;}
+  }
+  return chosen;
+}
+function ellipse(x,y,rx,ry,color){
+  ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fill();
+}
+function drawTree(x,y,scale=1){
+  ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);
+  // 樹幹、樹冠和葉片自然疊合，不使用方格。
+  ctx.fillStyle='#92734c';ctx.beginPath();ctx.moveTo(-13,30);ctx.lineTo(-10,-90);
+  ctx.lineTo(10,-90);ctx.lineTo(15,30);ctx.closePath();ctx.fill();
+  ellipse(-33,-105,58,50,'#559f5d');
+  ellipse(30,-117,57,57,'#5eac67');
+  ellipse(-2,-145,65,56,'#72bf75');
+  ellipse(-30,-155,25,18,'#86ce7a');
+  ellipse(20,-163,28,18,'#8ccc7d');
+  ctx.restore();
+}
+function drawNature(now,phase){
+  ctx.save();
+  ctx.translate(innerWidth/2-state.cam.x*state.cam.zoom,
+                innerHeight/2-state.cam.y*state.cam.zoom);
+  ctx.scale(state.cam.zoom,state.cam.zoom);
+
+  // 整張地圖是一片連續的自然景觀，不是分類格子。
+  const sky=ctx.createLinearGradient(0,-500,0,80);
+  if(phase===2){
+    sky.addColorStop(0,'#15234e');sky.addColorStop(1,'#586e9c');
+  }else if(phase===1){
+    sky.addColorStop(0,'#6ec7f4');sky.addColorStop(1,'#e8faff');
+  }else{
+    sky.addColorStop(0,'#90bbeb');sky.addColorStop(1,'#ffebcb');
+  }
+  ctx.fillStyle=sky;ctx.fillRect(-1800,-750,3600,850);
+  // 太陽從東方地平線升起，經過中天再從西方落下；
+  // 5 分鐘輪替中，前 200 秒是日出到日落，後 100 秒是月夜。
+  // 天體固定在同一張地圖的世界座標，不受手指拖曳相機影響。
+  const cycleTime=((now-dayStart)%DAY_CYCLE+DAY_CYCLE)%DAY_CYCLE;
+  if(phase===2){
+    const moonT=(cycleTime-DAY_PART*2)/DAY_PART;
+    const moonX=-1250+2500*moonT;
+    const moonY=45-315*Math.sin(Math.PI*moonT);
+    ellipse(moonX,moonY,38,38,'#f5f5d2');
+    for(let i=0;i<80;i++){
+      const x=-1600+(i*191)%3200,y=-430+(i*73)%320;
+      ellipse(x,y,1.3+(i%3),1.3+(i%3),'#fffdeaaa');
+    }
+  }else{
+    const sunT=cycleTime/(DAY_PART*2);
+    const sunX=-1250+2500*sunT;
+    const sunY=55-385*Math.sin(Math.PI*sunT);
+    const sunR=43+10*Math.sin(Math.PI*sunT);
+    // 地平線附近帶有橘金色日出、夕陽光暈。
+    const glow=ctx.createRadialGradient(sunX,sunY,4,sunX,sunY,110);
+    glow.addColorStop(0,'#fff9c888');
+    glow.addColorStop(1,'#ffbf7200');
+    ctx.fillStyle=glow;
+    ctx.beginPath();ctx.arc(sunX,sunY,110,0,Math.PI*2);ctx.fill();
+    ellipse(sunX,sunY,sunR,sunR,
+      sunT>.15&&sunT<.85?'#fff4aa':'#ffcf91');
+  }
+  for(const [x,y,r] of [[-1380,-260,43],[-800,-235,47],[-310,-280,39],[170,-260,51],[920,-235,48],[1450,-282,43]]){
+    ellipse(x,y,r*1.5,r*.36,'#ffffff88');
+    ellipse(x-17,y-12,r*.63,r*.55,'#ffffffaa');
+    ellipse(x+18,y-9,r*.59,r*.49,'#ffffffaa');
+  }
+  ctx.fillStyle=phase===2?'#526b88':'#9ac7b4';
+  ctx.beginPath();ctx.moveTo(-1800,40);
+  for(let x=-1800;x<=1800;x+=200){ctx.lineTo(x,-8-35*Math.sin(x*.004));}
+  ctx.lineTo(1800,85);ctx.lineTo(-1800,85);ctx.fill();
+
+  const grass=ctx.createLinearGradient(0,55,0,610);
+  grass.addColorStop(0,phase===2?'#507e6c':'#a9dd8c');
+  grass.addColorStop(1,phase===2?'#416e60':'#78ba65');
+  ctx.fillStyle=grass;ctx.beginPath();ctx.moveTo(-1800,75);
+  for(let x=-1800;x<=1800;x+=140)ctx.lineTo(x,64+12*Math.sin(x*.009));
+  ctx.lineTo(1800,700);ctx.lineTo(-1800,700);ctx.fill();
+
+  // 兩岸相連的森林、草叢、野花。
+  for(const [x,y,z] of [
+    [-1520,172,1.05],[-1350,157,.8],[-1130,182,.9],[-940,155,.83],
+    [-740,145,.72],[-585,135,.9],[-420,153,.8],[-250,155,.65],
+    [700,151,.79],[875,162,1],[1060,174,.75],[1360,147,.95]
+  ])drawTree(x,y,z);
+  for(let i=0;i<220;i++){
+    const x=-1600+(i*137)%3200,y=155+(i*71)%190;
+    ctx.strokeStyle=i%3?'#61a659':'#50994f';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(x,y+8);ctx.lineTo(x-4,y);
+    ctx.moveTo(x,y+8);ctx.lineTo(x+5,y-4);ctx.stroke();
+    if(i%11===0)ellipse(x,y-5,3,3,i%2?'#ffdae2':'#f7f2ab');
+  }
+
+  // 河流沿著整張地圖最下方延伸；上方是自然彎曲的沙石河岸。
+  // 可見的沙石區從 340 到 435，水面從約 430 開始。
+  ctx.fillStyle='#d9c08e';ctx.beginPath();ctx.moveTo(-1800,358);
+  for(let x=-1800;x<=1800;x+=75)ctx.lineTo(x,358+14*Math.sin(x*.008));
+  ctx.lineTo(1800,475);ctx.lineTo(-1800,475);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#ead4a6';ctx.beginPath();ctx.moveTo(-1800,375);
+  for(let x=-1800;x<=1800;x+=75)ctx.lineTo(x,373+10*Math.sin(x*.009));
+  for(let x=1800;x>=-1800;x-=75)ctx.lineTo(x,426+10*Math.sin(x*.007));
+  ctx.closePath();ctx.fill();
+  for(let i=0;i<125;i++){
+    const x=-1590+(i*173)%3180,y=375+(i*37)%62;
+    ellipse(x,y,7+(i%4)*4,3+(i%3)*2,i%3?'#a9957e':'#c7b39a');
+  }
+  const river=ctx.createLinearGradient(0,430,0,680);
+  river.addColorStop(0,phase===2?'#2c6688':'#a2e9ed');
+  river.addColorStop(1,phase===2?'#123d73':'#48a5d1');
+  ctx.fillStyle=river;ctx.beginPath();ctx.moveTo(-1800,445);
+  for(let x=-1800;x<=1800;x+=60)ctx.lineTo(x,445+11*Math.sin(x*.008));
+  ctx.lineTo(1800,680);ctx.lineTo(-1800,680);ctx.closePath();ctx.fill();
+  for(let i=0;i<76;i++){
+    const x=-1570+(i*191)%3140,y=480+(i*47)%170;
+    ctx.strokeStyle=phase===2?'#aed5f388':'#e8ffffbb';
+    ctx.lineWidth=2;ctx.beginPath();
+    ctx.ellipse(x,y,18+(i%3)*8,4,0,0,Math.PI*2);ctx.stroke();
+  }
+  // 河邊的蘆葦與水草。
+  for(let i=0;i<52;i++){
+    const x=-1560+i*61,y=450+8*Math.sin(x*.008);
+    ctx.strokeStyle='#4c9567';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(x,y+5);ctx.quadraticCurveTo(x-16,y-24,x-4,y-49);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x+7,y+5);ctx.quadraticCurveTo(x+21,y-24,x+10,y-38);ctx.stroke();
+  }
+  ctx.restore();
+}
+/* ========== 背景 ========== */
+function drawGrass(){
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.clearRect(0,0,innerWidth,innerHeight);
+  ctx.fillStyle='#a7dbf4';ctx.fillRect(0,0,innerWidth,innerHeight);
+}
+
+/* ========== 開心玩耍：定期選新目的地，沿地圖大範圍奔跑 ========== */
+function movePlayfully(o,dt,now,home){
+  // 一次可跨越相當長的距離，不只是原地抖動。
+  if(!o.playTarget||now>(o.playUntil||0)||
+     Math.hypot(o.playTarget.x-o.x,o.playTarget.y-o.y)<25){
+    const far=Math.random()<.55;
+    const tx=far?(Math.random()<.5?home.x0+50:home.x1-50)
+      :home.x0+40+Math.random()*(home.x1-home.x0-80);
+    const ty=home.y0+16+Math.random()*(home.y1-home.y0-32);
+    o.playTarget={x:tx,y:ty};
+    o.playUntil=now+4500+Math.random()*11000;
+  }
+  const dx=o.playTarget.x-o.x,dy=o.playTarget.y-o.y;
+  const d=Math.hypot(dx,dy);
+  if(d<1)return;
+  const speed=o.kind==='bird'?185:o.kind==='fish'?132:
+    o.kind==='reptile'?100:155;
+  // 歡快地左右奔跑、上下探索，接近目標時切換新路線。
+  o.vx=dx/d*speed;
+  o.vy=dy/d*speed;
+  o.x+=o.vx*dt;
+  o.y+=o.vy*dt;
+}
+
+/* ========== 動物相遇：開心聚會、追逐及跳跳舞 ========== */
+// 只在白天、沒有遊行時進行；不干擾原本覓食與夜晚休息。
+let lastMeetCheck=0;
+function seekPlayFriends(now){
+  if(now-lastMeetCheck<2300 || parade.active || dayPhase(now)===2)return;
+  lastMeetCheck=now;
+  const animals=state.items.filter(o=>o.kind!=='food' &&
+    (!o.groupPlayUntil || now>=o.groupPlayUntil) &&
+    (!o.playCooldown || now>=o.playCooldown) &&
+    !nearestFood(o));
+  // 遇到兩隻以上同類、同自然環境的動物，就可能一起玩。
+  for(const a of animals){
+    if(a.groupPlayUntil>now || Math.random()>.58)continue;
+    const friends=animals.filter(b=>b!==a && b.kind===a.kind &&
+      (!b.groupPlayUntil||now>=b.groupPlayUntil) &&
+      Math.hypot(a.x-b.x,a.y-b.y)<170).slice(0,3);
+    if(!friends.length)continue;
+    const members=[a,...friends];
+    const home=habitat(a.kind,a.zone);
+    const cx=clamp(members.reduce((sum,v)=>sum+v.x,0)/members.length,home.x0+35,home.x1-35);
+    const cy=clamp(members.reduce((sum,v)=>sum+v.y,0)/members.length,home.y0+24,home.y1-24);
+    const until=now+5400;
+    members.forEach((o,i)=>{
+      o.groupPlayUntil=until;
+      o.playCooldown=until+10000+Math.random()*12000;
+      o.playSpot={x:cx,y:cy,angle:Math.PI*2*i/members.length};
+      o.playTarget=null;
+    });
+    sparkle(cx,cy-30);
+    break;
+  }
+}
+function moveWithFriends(o,dt,now){
+  if(!o.playSpot || !(o.groupPlayUntil>now))return false;
+  const t=now*.0023+o.playSpot.angle;
+  const radius=o.kind==='fish'?34:47;
+  const tx=o.playSpot.x+Math.cos(t)*radius;
+  const ty=o.playSpot.y+Math.sin(t)*Math.min(23,radius*.53);
+  const area=habitat(o.kind,o.zone);
+  moveToward(o,clamp(tx,area.x0,area.x1),clamp(ty,area.y0,area.y1),dt,170);
+  return true;
+}
+function drawFriendsEffect(o,p,w,h,now){
+  if(!(o.groupPlayUntil>now) || parade.active)return;
+  ctx.save();
+  ctx.textAlign='center';
+  ctx.font=`${Math.max(15,23*state.cam.zoom)}px sans-serif`;
+  const hearts=['💛','✨','💕'];
+  for(let i=0;i<2;i++){
+    const t=now*.003+i*2+o.phase;
+    ctx.globalAlpha=.7+.25*Math.sin(t);
+    ctx.fillText(hearts[i],p.x+Math.cos(t)*w*.40,
+      p.y-h-18*state.cam.zoom-Math.sin(t)*9*state.cam.zoom);
+  }
+  ctx.restore();
+}
+
+/* ========== 📣 號召：最大動物帶隊繞世界 60 秒，然後各自回家 ========== */
+const PARADE_DURATION=60000;
+const parade={active:false,returning:false,start:0,leaderId:null,members:[],angle:0};
+
+function paradeAnimals(){
+  return state.items.filter(o=>o.kind!=='food');
+}
+function beginParade(){
+  if(parade.active)return;
+  const animals=paradeAnimals();
+  if(!animals.length){toast('請先加入動物再號召！');return;}
+  // 由實際吃得最大（size 最大）的動物擔任領頭羊。
+  const leader=[...animals].sort((a,b)=>(b.size||1)-(a.size||1))[0];
+  const followers=animals.filter(o=>o!==leader).sort((a,b)=>
+    Math.hypot(a.x-leader.x,a.y-leader.y)-Math.hypot(b.x-leader.x,b.y-leader.y));
+  parade.active=true;
+  parade.returning=false;
+  parade.start=performance.now();
+  parade.leaderId=leader.id;
+  parade.members=[leader,...followers].map(o=>({
+    id:o.id,homeX:o.x,homeY:o.y,homeZone:o.zone,arrived:false
+  }));
+  parade.angle=Math.atan2((leader.y-195)/155,leader.x/1320);
+  $('#callBtn').disabled=true;
+  $('#callBtn').textContent='📣 排隊 60秒';
+  toast('📣 領頭羊集合！大家出發繞草原！');
+}
+function stopParade(){
+  parade.active=false;
+  parade.returning=false;
+  parade.members=[];
+  parade.leaderId=null;
+  $('#callBtn').disabled=false;
+  $('#callBtn').textContent='📣 號召';
+}
+function moveToward(o,x,y,dt,speed){
+  const dx=x-o.x,dy=y-o.y,d=Math.hypot(dx,dy);
+  if(d<.001){o.vx=0;o.vy=0;return d;}
+  const step=Math.min(d,speed*dt);
+  o.vx=dx/d*speed;
+  o.vy=dy/d*speed;
+  o.x+=dx/d*step;
+  o.y+=dy/d*step;
+  return d;
+}
+function updateParade(now,dt){
+  if(!parade.active)return;
+  const live=new Map(paradeAnimals().map(o=>[o.id,o]));
+  parade.members=parade.members.filter(m=>live.has(m.id));
+  if(!parade.members.length){stopParade();return;}
+  if(!live.has(parade.leaderId))parade.leaderId=parade.members[0].id;
+  const members=[parade.members.find(m=>m.id===parade.leaderId),
+    ...parade.members.filter(m=>m.id!==parade.leaderId)];
+  const elapsed=now-parade.start;
+  if(!parade.returning&&elapsed>=PARADE_DURATION){
+    parade.returning=true;
+    toast('🏡 遊行結束！大家回家繼續生活！');
+  }
+  if(parade.returning){
+    let allArrived=true;
+    for(const m of members){
+      const o=live.get(m.id);
+      if(!m.arrived){
+        const d=moveToward(o,m.homeX,m.homeY,dt,280);
+        if(d<15){
+          o.x=m.homeX;o.y=m.homeY;o.zone=m.homeZone;
+          o.playTarget=null;o.playUntil=0;
+          m.arrived=true;
+        }
+      }
+      if(!m.arrived)allArrived=false;
+    }
+    $('#callBtn').textContent='🏡 回家中';
+    if(allArrived){stopParade();save();toast('🌿 全員回家，繼續自由生活！');}
+    return;
+  }
+  $('#callBtn').textContent='📣 '+Math.max(0,Math.ceil((PARADE_DURATION-elapsed)/1000))+'秒';
+  const leader=live.get(parade.leaderId);
+  // 在同一張大地圖上繞圈：從草地、河岸旁走過，畫面可手動跟隨。
+  parade.angle+=dt*(Math.PI*2/46);
+  const tx=1320*Math.cos(parade.angle);
+  const ty=195+155*Math.sin(parade.angle);
+  moveToward(leader,tx,ty,dt,320);
+  let ahead=leader;
+  for(const m of members.slice(1)){
+    const o=live.get(m.id);
+    const dx=ahead.x-o.x,dy=ahead.y-o.y;
+    const distance=Math.hypot(dx,dy);
+    // 保持隊形間距，避免全部疊在一起。
+    const spacing=105;
+    if(distance>spacing){
+      const targetX=ahead.x-dx/distance*spacing;
+      const targetY=ahead.y-dy/distance*spacing;
+      moveToward(o,targetX,targetY,dt,340);
+    }else{o.vx=0;o.vy=0;}
+    ahead=o;
+  }
+}
+function drawParadeBadge(o,p,w,h,now){
+  if(!parade.active)return;
+  ctx.save();
+  ctx.textAlign='center';
+  if(o.id===parade.leaderId){
+    ctx.font=`${Math.max(20,33*state.cam.zoom)}px sans-serif`;
+    ctx.fillText('👑',p.x,p.y-h-12*state.cam.zoom);
+  }else if(o.kind==='fish'){
+    // 魚加入特別遊行時，以魔法泡泡伴隨牠穿過草地。
+    ctx.strokeStyle='#b9f8ff';ctx.lineWidth=3;
+    ctx.globalAlpha=.7;
+    ctx.beginPath();ctx.ellipse(p.x,p.y-h/2,w*.65,h*.72,0,0,Math.PI*2);ctx.stroke();
+  }
+  ctx.restore();
+}
+
+$('#callBtn').onclick=beginParade;
+
+/* ========== 水中魚兒：藍色水光、波紋、游動氣泡 ========== */
+function drawFishWater(o,p,w,h,now,phase){
+  const z=state.cam.zoom;
+  ctx.save();
+  // 柔和水下光暈：不是蓋一整塊生硬的矩形。
+  const halo=ctx.createRadialGradient(p.x,p.y-h*.55,w*.06,p.x,p.y-h*.55,Math.max(w,h)*.85);
+  halo.addColorStop(0,phase===2?'#78b8ff35':'#a7ffff55');
+  halo.addColorStop(1,'#a7ffff00');
+  ctx.fillStyle=halo;
+  ctx.beginPath();
+  ctx.ellipse(p.x,p.y-h*.55,Math.max(20,w*.85),Math.max(20,h*.9),0,0,Math.PI*2);
+  ctx.fill();
+  // 水面折射的流動光絲。
+  ctx.lineWidth=Math.max(.9,1.7*z);
+  for(let i=0;i<3;i++){
+    ctx.globalAlpha=phase===2?.25:.43;
+    ctx.strokeStyle=i%2?'#f4ffff':'#a2efff';
+    const yy=p.y-h*(.2+i*.23);
+    ctx.beginPath();
+    ctx.ellipse(p.x+Math.sin(now*.001+i+o.phase)*w*.17,yy,
+      w*(.17+i*.035),Math.max(2,h*.036),-.09,0,Math.PI*2);
+    ctx.stroke();
+  }
+  // 有透明內部、亮邊、反光點的玻璃泡泡，大小不一並左右搖曳。
+  for(let i=0;i<12;i++){
+    const seed=i*1.618+o.phase;
+    const u=((now*(.000065+(i%4)*.000013)+i/12+o.phase/7)%1+1)%1;
+    const bx=p.x+Math.sin(now*.0013+seed)*w*.32+
+      Math.cos(i*2.45)*w*.21;
+    const by=p.y+8*z-u*Math.max(100,h*2.1);
+    const r=(2.4+(i*7%9)*.8)*z;
+    ctx.globalAlpha=(1-u)*.85;
+    const bubble=ctx.createRadialGradient(bx-r*.35,by-r*.4,r*.06,bx,by,r);
+    bubble.addColorStop(0,'#ffffffc0');
+    bubble.addColorStop(.42,'#caffff36');
+    bubble.addColorStop(1,'#75cfff12');
+    ctx.fillStyle=bubble;
+    ctx.strokeStyle=phase===2?'#c0eaffb5':'#eaffffcc';
+    ctx.lineWidth=Math.max(.7,1.1*z);
+    ctx.beginPath();ctx.arc(bx,by,r,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#ffffffdd';
+    ctx.beginPath();ctx.arc(bx-r*.3,by-r*.34,Math.max(.5,r*.19),0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
+
+/* ========== 主迴圈 ========== */
+function animate(now){
+  const dt=Math.min(.04,(now-state.last)/1000);
+  state.last=now;
+  const phase=dayPhase(now),sleeping=phase===2;
+  const label=$('#timeBadge');
+  if(label.dataset.phase!==String(phase)){
+    label.dataset.phase=String(phase);
+    label.textContent=phaseNames[phase];
+  }
+  drawGrass();drawNature(now,phase);
+  updateParade(now,dt);
+  seekPlayFriends(now);
+  const ordered=[...state.items].sort((a,b)=>a.y-b.y);
+  for(const o of ordered){
+    if(o.kind==='food'&&!state.items.includes(o))continue;
+    if(o.kind!=='food' && !(parade.active && parade.members.some(m=>m.id===o.id))){
+      const home=habitat(o.kind,o.zone);
+      const food=sleeping?null:nearestFood(o);
+      if(!sleeping&&food){
+        // 食物放在環境中；動物必須自己跑過去才吃得到。
+        const dx=food.x-o.x,dy=food.y-o.y,d=Math.hypot(dx,dy);
+        if(d<23){
+          if(!o.nextBite||now>=o.nextBite){o.nextBite=now+1000;eatFood(o,food,now);}
+        }else if(d>0){
+          const speed=o.kind==='bird'?205:o.kind==='fish'?142:o.kind==='reptile'?115:170;
+          o.vx=dx/d*speed;o.vy=dy/d*speed;
+          o.x+=o.vx*dt;o.y+=o.vy*dt;
+        }
+      }else if(!sleeping){
+        if(!moveWithFriends(o,dt,now))movePlayfully(o,dt,now,home);
+      }else{
+        // 夜晚睡覺，不移動，也不進食。
+        o.vx=o.vx||0;
+      }
+      // 鳥在進食時可從天空降到草地，吃完會飛回空中。
+      const area=(o.kind==='bird'&&food&&!sleeping)
+        ?{...home,y1:325}:home;
+      if(o.x<area.x0||o.x>area.x1){
+        o.x=Math.max(area.x0,Math.min(area.x1,o.x));o.vx*=-1;
+      }
+      if(o.y<area.y0||o.y>area.y1){
+        o.y=Math.max(area.y0,Math.min(area.y1,o.y));o.vy*=-1;
+      }
+      if(o.kind==='bird'&&!food&&!sleeping&&o.y>home.y1){
+        o.y=Math.max(home.y1,o.y-65*dt);
+      }
+    }
+    const im=state.images.get(o.id);
+    if(!im)continue;
+    const p=worldToScreen(o.x,o.y);
+    const growing=o.growTime?Math.max(0,1-(now-o.growTime)/850):0;
+    const pulse=1+growing*.25*Math.sin((1-growing)*Math.PI*2);
+    const w=(BASE[o.kind]||100)*(o.size||1)*pulse*state.cam.zoom;
+    const h=w*(im.naturalHeight/im.naturalWidth);
+    let bob=0;
+    if(!sleeping||parade.active){
+      if(o.kind==='bird')bob=Math.sin(now/430+o.phase)*12*state.cam.zoom;
+      else if(o.kind!=='food')bob=-Math.abs(Math.sin(now/260+o.phase))*3*state.cam.zoom;
+    }
+    ctx.fillStyle='rgba(65,79,62,.16)';ctx.beginPath();
+    ctx.ellipse(p.x,p.y+3,w*.30,w*.10,0,0,Math.PI*2);ctx.fill();
+    ctx.save();ctx.translate(p.x,p.y+bob);
+    ctx.rotate(sleeping&&!parade.active?0:Math.sin(now/450+o.phase)*.035);
+    ctx.scale(o.vx<0?-1:1,1);
+    ctx.drawImage(im,-w/2,-h,w,h);ctx.restore();
+    if(o.kind==='fish')drawFishWater(o,p,w,h,now,phase);
+    drawParadeBadge(o,p,w,h,now);
+    drawFriendsEffect(o,p,w,h,now);
+    o.box={x:p.x-w/2,y:p.y+bob-h,w,h};
+    if(sleeping&&!parade.active&&o.kind!=='food'){
+      ctx.save();ctx.font=`bold ${Math.max(13,22*state.cam.zoom)}px sans-serif`;
+      ctx.fillStyle='#e9f4ff';ctx.shadowColor='#18395a';ctx.shadowBlur=5;
+      ctx.textAlign='center';
+      ctx.fillText('Z z z',p.x+w*.20,p.y-h-14*state.cam.zoom+Math.sin(now/700+o.phase)*4);
+      ctx.restore();
+    }
+    if(state.selected===o.id){
+      ctx.strokeStyle='#ff6da4';ctx.lineWidth=3;
+      ctx.strokeRect(o.box.x-4,o.box.y-4,o.box.w+8,o.box.h+8);
+    }
+  }
+  updateParticles(dt);drawGrowthBursts(now);
+  // 每一幀更新刪除按鈕，跟著動物跑、跟著相機移動及縮放。
+  const chosen=state.items.find(o=>o.id===state.selected);
+  if(chosen && chosen.box)showDelete(chosen);
+  else $('#deleteBtn').style.display='none';
+  requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+
+/* ========== 手指滑動探索同一張大地圖；點動物只選取，不拖動動物 ========== */
+function pick(x,y){
+  for(const o of [...state.items].reverse()){
+    const b=o.box;
+    if(b&&x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h)return o;
+  }
+  return null;
+}
+let gesture=null;
+world.addEventListener('pointerdown',e=>{
+  if(!e.isPrimary||e.button>0)return;
+  gesture={id:e.pointerId,sx:e.clientX,sy:e.clientY,
+    cx:state.cam.x,cy:state.cam.y,moved:false,
+    target:pick(e.clientX,e.clientY)};
+  try{world.setPointerCapture(e.pointerId)}catch{}
+});
+world.addEventListener('pointermove',e=>{
+  if(!gesture||gesture.id!==e.pointerId)return;
+  const dx=e.clientX-gesture.sx,dy=e.clientY-gesture.sy;
+  // 滑動超過 9 像素才移動地圖，防止誤觸。
+  if(Math.hypot(dx,dy)>9)gesture.moved=true;
+  if(!gesture.moved)return;
+  state.cam.x=gesture.cx-dx/state.cam.zoom;
+  state.cam.y=gesture.cy-dy/state.cam.zoom;
+  clampCamera();
+  state.selected=null;
+  $('#deleteBtn').style.display='none';
+  world.style.cursor='grabbing';
+});
+world.addEventListener('pointerup',e=>{
+  if(!gesture||gesture.id!==e.pointerId)return;
+  if(!gesture.moved){
+    const o=gesture.target;
+    state.selected=o?o.id:null;
+    if(o)showDelete(o);
+    else $('#deleteBtn').style.display='none';
+  }
+  gesture=null;
+  world.style.cursor='grab';
+});
+world.addEventListener('pointercancel',()=>{
+  gesture=null;
+  world.style.cursor='grab';
+});
+world.addEventListener('wheel', e => {
+  e.preventDefault();
+  zoom(e.deltaY < 0 ? 1.15 : .87, e.clientX, e.clientY);
+}, { passive:false });
+
+function showDelete(o){
+  const b=o.box,btn=$('#deleteBtn');
+  if(!b || b.x+b.w<0 || b.x>innerWidth || b.y+b.h<0 || b.y>innerHeight){
+    btn.style.display='none';
+    return;
+  }
+  btn.style.display='block';
+  btn.style.left=clamp(b.x+b.w/2-btn.offsetWidth/2,8,
+    Math.max(8,innerWidth-btn.offsetWidth-8))+'px';
+  btn.style.top=clamp(b.y-42,55,Math.max(55,innerHeight-150))+'px';
+}
+
+/* ========== 工具列 ========== */
+$('#deleteBtn').onclick = () => {
+  const i = state.items.findIndex(o => o.id === state.selected);
+  if(i < 0) return;
+  state.images.delete(state.selected);
+  state.items.splice(i, 1);
+  state.selected = null;
+  $('#deleteBtn').style.display = 'none';
+  save(); updateEmpty(); toast('已刪除');
+};
+$('#zin').onclick  = () => zoom(1.25);
+$('#zout').onclick = () => zoom(.8);
+$('#fitBtn').onclick = fit;
+$('#clearBtn').onclick = () => {
+  if(!confirm('確定清空這台裝置上的所有作品？')) return;
+  stopParade();
+  state.items = [];
+  state.images.clear();
+  save(); updateEmpty(); toast('草原已清空');
+};
+$('#fsBtn').onclick = async () => {
+  try{
+    if(!document.fullscreenElement) await document.documentElement.requestFullscreen?.();
+    else await document.exitFullscreen?.();
+  }catch{}
+};
+
+/* ========== 上傳 ========== */
+$$('.kind').forEach(b => b.onclick = () => {
+  state.kind = b.dataset.kind;
+  $('#fileInput').click();
+});
+$('#fileInput').onchange = async e => {
+  const f = e.target.files?.[0];
+  e.target.value = '';
+  if(!f) return;
+  try{
+    const data = await editCutout(f);
+    if(data) addItem(data, state.kind);
+  }catch(err){
+    alert('圖片處理失敗：' + (err?.message || err));
+  }
+};
+function addItem(data,kind){
+  let o;
+  if(kind==='food'){
+    const animals=state.items.filter(v=>v.kind!=='food');
+    const target=animals.length?animals[Math.floor(Math.random()*animals.length)]:null;
+    const forageKind=target?target.kind:'land';
+    const forageZone=target?target.zone:1;
+    const h=habitat(forageKind,forageZone);
+    let x,y;
+    // 隨機在環境內找一塊空地；至少離動物一段距離，不直接掉在身上。
+    for(let attempt=0;attempt<80;attempt++){
+      x=h.x0+32+Math.random()*(h.x1-h.x0-64);
+      y=forageKind==='fish'?490+Math.random()*65
+        :forageKind==='reptile'?365+Math.random()*20
+        :230+Math.random()*82;
+      const nearby=animals.some(a=>Math.hypot(a.x-x,a.y-y)<115);
+      if(!nearby)break;
+    }
+    // 如果區域較窄，仍確保離目標有距離。
+    if(target&&Math.hypot(target.x-x,target.y-y)<65){
+      x=target.x<(h.x0+h.x1)/2?h.x1-30:h.x0+30;
+    }
+    o={id:uid(),kind,data,x,y,vx:0,vy:0,phase:0,size:1,bites:2,
+       forageKind,forageZone};
+    state.cam.x=x;state.cam.y=y;clampCamera();
+  }else{
+    const areas=HABITATS[kind]||HABITATS.land;
+    const zone=Math.floor(Math.random()*areas.length);
+    const h=habitat(kind,zone);
+    o={id:uid(),kind,data,zone,size:1,bites:2,
+      x:h.x0+30+Math.random()*(h.x1-h.x0-60),
+      y:h.y0+12+Math.random()*(h.y1-h.y0-24),
+      vx:(Math.random()-.5)*20,vy:(Math.random()-.5)*6,
+      phase:Math.random()*Math.PI*2};
+    state.cam.x=o.x;state.cam.y=o.y;clampCamera();
+  }
+  state.items.push(o);loadImg(o);save();updateEmpty();
+  toast(kind==='food'?'🍎 食物放好了，動物會自己來吃！':'加入成功！');
+}
+
+/* ========== 圖片解碼 ========== */
+async function decode(file, max = 1100){
+  if(file.size > 25 * 1024 * 1024) throw new Error('請使用 25MB 以下的圖片');
+
+  let src = null;
+  if('createImageBitmap' in window){
+    try{ src = await createImageBitmap(file); }catch{}
+  }
+  if(!src){
+    const url = URL.createObjectURL(file);
+    try{
+      src = await new Promise((ok, no) => {
+        const im = new Image();
+        im.onload = () => ok(im);
+        im.onerror = () => no(new Error('瀏覽器無法讀取這張圖片'));
+        im.src = url;
+      });
+    }finally{ URL.revokeObjectURL(url); }
+  }
+
+  const k = Math.min(1, max / Math.max(src.width, src.height));
+  const c = document.createElement('canvas');
+  c.width  = Math.max(1, Math.round(src.width  * k));
+  c.height = Math.max(1, Math.round(src.height * k));
+  c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+  src.close?.();
+  return c;
+}
+
+/* ========== 自動去背 ========== */
+function median(a){ a.sort((x, y) => x - y); return a[(a.length / 2) | 0] || 0; }
+
+function prototypes(d, w, h){
+  const step = Math.max(1, Math.floor(Math.min(w, h) / 80));
+  const pts = [];
+  for(let x = 0; x < w; x += step){ pts.push(x, (h - 1) * w + x); }
+  for(let y = 0; y < h; y += step){ pts.push(y * w, y * w + w - 1); }
+
+  const samples = pts.map(p => [d[p*4], d[p*4+1], d[p*4+2]]);
+  const all = [
+    median(samples.map(v => v[0])),
+    median(samples.map(v => v[1])),
+    median(samples.map(v => v[2]))
+  ];
+
+  const corners = [];
+  const s = Math.max(2, Math.floor(Math.min(w, h) * .07));
+  for(const [x0, y0] of [[0,0],[w-s,0],[0,h-s],[w-s,h-s]]){
+    const rs = [], gs = [], bs = [];
+    const stepIn = Math.max(1, s >> 3);
+    for(let y = y0; y < Math.min(h, y0 + s); y += stepIn){
+      for(let x = x0; x < Math.min(w, x0 + s); x += stepIn){
+        const j = (y * w + x) * 4;
+        rs.push(d[j]); gs.push(d[j+1]); bs.push(d[j+2]);
+      }
+    }
+    if(rs.length) corners.push([median(rs), median(gs), median(bs)]);
+  }
+  return [all, ...corners];
+}
+
+function colorDist(r, g, b, p){
+  const dr = r - p[0], dg = g - p[1], db = b - p[2];
+  return Math.sqrt(dr*dr*.30 + dg*dg*.45 + db*db*.25);
+}
+
+function autoCut(source, strength){
+  const w = source.width, h = source.height, N = w * h;
+  const cx = source.getContext('2d', { willReadFrequently:true });
+  const frame = cx.getImageData(0, 0, w, h), d = frame.data;
+  if(!w || !h) return null;
+
+  const ps  = prototypes(d, w, h);
+  const thr = 20 + strength * .72;
+  const seen = new Uint8Array(N), bg = new Uint8Array(N), q = new Int32Array(N);
+  let a = 0, b = 0;
+
+  function similar(p){
+    const j = p * 4;
+    if(d[j+3] < 10) return true;
+    const r = d[j], g = d[j+1], bl = d[j+2];
+    let md = 999;
+    for(const pr of ps) md = Math.min(md, colorDist(r, g, bl, pr));
+    const lum = .2126*r + .7152*g + .0722*bl;
+    const sat = Math.max(r, g, bl) - Math.min(r, g, bl);
+    return md < thr || (lum > 210 && sat < 28 && md < thr * 1.55);
+  }
+  function push(p){
+    if(p >= 0 && p < N && !seen[p] && similar(p)){
+      seen[p] = 1; bg[p] = 1; q[b++] = p;
+    }
+  }
+
+  for(let x = 0; x < w; x++){ push(x); push((h - 1) * w + x); }
+  for(let y = 0; y < h; y++){ push(y * w); push(y * w + w - 1); }
+
+  while(a < b){
+    const v = q[a++], x = v % w, y = (v / w) | 0;
+    if(x) push(v - 1);
+    if(x < w - 1) push(v + 1);
+    if(y) push(v - w);
+    if(y < h - 1) push(v + w);
+  }
+
+  const out = document.createElement('canvas');
+  out.width = w; out.height = h;
+  const o = out.getContext('2d'), im = o.createImageData(w, h);
+  let kept = 0;
+
+  for(let p = 0; p < N; p++){
+    const j = p * 4;
+    im.data[j]   = d[j];
+    im.data[j+1] = d[j+1];
+    im.data[j+2] = d[j+2];
+
+    if(bg[p]){
+      im.data[j+3] = 0;
+    }else{
+      const x = p % w, y = (p / w) | 0;
+      let edge = 0;
+      for(let dy = -1; dy <= 1; dy++){
+        for(let dx = -1; dx <= 1; dx++){
+          if(!dx && !dy) continue;
+          const nx = x + dx, ny = y + dy;
+          if(nx >= 0 && nx < w && ny >= 0 && ny < h && bg[ny * w + nx]) edge++;
+        }
+      }
+      im.data[j+3] = edge >= 5 ? 165 : d[j+3];
+      kept++;
+    }
+  }
+
+  if(kept < N * .004 || kept > N * .97) return null;
+  o.putImageData(im, 0, 0);
+  return trim(out);
+}
+
+function trim(c){
+  const w = c.width, h = c.height;
+  const d = c.getContext('2d').getImageData(0, 0, w, h).data;
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for(let y = 0; y < h; y++){
+    for(let x = 0; x < w; x++){
+      if(d[(y * w + x) * 4 + 3] > 12){
+        if(x < x0) x0 = x;
+        if(y < y0) y0 = y;
+        if(x > x1) x1 = x;
+        if(y > y1) y1 = y;
+      }
+    }
+  }
+  if(x1 < 0) return c;
+  const pad = 8;
+  x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad);
+  x1 = Math.min(w - 1, x1 + pad); y1 = Math.min(h - 1, y1 + pad);
+  const o = document.createElement('canvas');
+  o.width  = x1 - x0 + 1;
+  o.height = y1 - y0 + 1;
+  o.getContext('2d').drawImage(c, x0, y0, o.width, o.height, 0, 0, o.width, o.height);
+  return o;
+}
+
+/* ========== 手動描邊 ========== */
+function polygon(source, pts){
+  if(pts.length < 3) return null;
+  const o = document.createElement('canvas');
+  o.width = source.width; o.height = source.height;
+  const x = o.getContext('2d');
+  x.save();
+  x.beginPath();
+  pts.forEach((p, i) => i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1]));
+  x.closePath();
+  x.clip();
+  x.drawImage(source, 0, 0);
+  x.restore();
+  return trim(o);
+}
+
+/* ========== 輸出 ========== */
+function exportData(c){
+  const max = 420;
+  const k = Math.min(1, max / Math.max(c.width, c.height));
+  const o = document.createElement('canvas');
+  o.width  = Math.max(1, Math.round(c.width  * k));
+  o.height = Math.max(1, Math.round(c.height * k));
+  o.getContext('2d').drawImage(c, 0, 0, o.width, o.height);
+
+  let d = '';
+  try{ d = o.toDataURL('image/webp', .88); }catch{}
+  if(!d || d === 'data:,') d = o.toDataURL('image/png');
+  return d;
+}
+
+/* ========== 去背編輯視窗 ========== */
+async function editCutout(file){
+  const original = await decode(file);
+  const modal = $('#cutModal');
+  const pre = $('#cutCanvas');
+  const px = pre.getContext('2d');
+
+  let strength  = +$('#strength').value;
+  let automatic = autoCut(original, strength);
+  let mode      = automatic ? 'auto' : 'trace';
+  let pts = [], trace = null, drawing = false, pid = null;
+  const minStep = Math.max(2, Math.min(original.width, original.height) / 450);
+
+  function buttons(){
+    ['#autoBtn','#traceBtn','#originalBtn'].forEach(s => $(s).classList.remove('on'));
+    $({ auto:'#autoBtn', trace:'#traceBtn', original:'#originalBtn' }[mode]).classList.add('on');
+  }
+
+  function redraw(){
+    const draw = mode === 'auto'    ? (automatic || original)
+               : mode === 'original' ? original
+               : (trace && !drawing) ? trace
+               : original;
+
+    if(pre.width !== draw.width)  pre.width  = draw.width;
+    if(pre.height !== draw.height) pre.height = draw.height;
+
+    px.clearRect(0, 0, pre.width, pre.height);
+    px.drawImage(draw, 0, 0);
+
+    if(mode === 'trace' && drawing && pts.length){
+      px.save();
+      px.strokeStyle = '#00a7e8';
+      px.lineWidth = Math.max(4, original.width / 170);
+      px.lineJoin = px.lineCap = 'round';
+      px.shadowColor = '#fff';
+      px.shadowBlur = 3;
+      px.beginPath();
+      pts.forEach((p, i) => i ? px.lineTo(p[0], p[1]) : px.moveTo(p[0], p[1]));
+      px.stroke();
+      px.restore();
+    }
+
+    buttons();
+    $('#redoTrace').classList.toggle('hidden', mode !== 'trace' || (!trace && pts.length === 0));
+
+    $('#cutHelp').textContent =
+      mode === 'auto'     ? '如果主體完整、背景乾淨，直接加入即可；若背景殘留，調高強度或改手動描邊。'
+    : mode === 'original' ? '目前會保留整張圖片，不移除背景。'
+    : drawing             ? '沿著主體最外緣持續畫一圈，放開後會自動閉合。'
+    : trace               ? '描邊完成。棋盤格為透明區域；不滿意可按「重新描邊」。'
+    :                       '按住滑鼠或手指，沿主體最外緣完整描一圈。';
+  }
+
+  function toPoint(e){
+    const r = pre.getBoundingClientRect();
+    return [
+      Math.max(0, Math.min(original.width,  (e.clientX - r.left) / r.width  * original.width)),
+      Math.max(0, Math.min(original.height, (e.clientY - r.top)  / r.height * original.height))
+    ];
+  }
+  function addPoint(e){
+    const p = toPoint(e), z = pts.at(-1);
+    if(!z || Math.hypot(p[0] - z[0], p[1] - z[1]) >= minStep) pts.push(p);
+  }
+
+  function down(e){
+    if(mode !== 'trace' || drawing || !e.isPrimary) return;
+    e.preventDefault();
+    drawing = true; pid = e.pointerId;
+    pts = []; trace = null;
+    pre.setPointerCapture?.(pid);
+    addPoint(e);
+    redraw();
+  }
+  function move(e){
+    if(!drawing || e.pointerId !== pid) return;
+    e.preventDefault();
+    for(const z of (e.getCoalescedEvents?.() || [e])) addPoint(z);
+    redraw();
+  }
+  function up(e){
+    if(!drawing || e.pointerId !== pid) return;
+    e.preventDefault();
+    addPoint(e);
+    drawing = false; pid = null;
+
+    const len = pts.reduce((s, p, i) =>
+      i ? s + Math.hypot(p[0] - pts[i-1][0], p[1] - pts[i-1][1]) : 0, 0);
+
+    if(pts.length > 6 && len > Math.min(original.width, original.height) * .18){
+      trace = polygon(original, pts);
+    }else{
+      pts = []; trace = null;
+      toast('描邊太短，請畫完整一圈');
+    }
+    redraw();
+  }
+
+  pre.addEventListener('pointerdown', down);
+  pre.addEventListener('pointermove', move);
+  pre.addEventListener('pointerup', up);
+  pre.addEventListener('pointercancel', up);
+
+  $('#strengthVal').textContent = strength;
+  $('#autoBtn').onclick     = () => { mode = automatic ? 'auto' : 'trace'; redraw(); };
+  $('#traceBtn').onclick    = () => { mode = 'trace'; redraw(); };
+  $('#originalBtn').onclick = () => { mode = 'original'; redraw(); };
+  $('#redoTrace').onclick   = () => { mode = 'trace'; pts = []; trace = null; redraw(); };
+  $('#strength').oninput = e => {
+    strength = +e.target.value;
+    $('#strengthVal').textContent = strength;
+    automatic = autoCut(original, strength);
+    mode = automatic ? 'auto' : 'trace';
+    redraw();
+  };
+
+  modal.classList.remove('hidden');
+  redraw();
+
+  return await new Promise(resolve => {
+    function done(v){
+      pre.removeEventListener('pointerdown', down);
+      pre.removeEventListener('pointermove', move);
+      pre.removeEventListener('pointerup', up);
+      pre.removeEventListener('pointercancel', up);
+      modal.classList.add('hidden');
+      resolve(v);
+    }
+    $('#cancelBtn').onclick = () => done(null);
+    $('#okBtn').onclick = () => {
+      if(mode === 'trace' && !trace){
+        alert('請先沿主體外緣完整描一圈。');
+        return;
+      }
+      const c = mode === 'trace'    ? trace
+              : mode === 'auto'     ? (automatic || original)
+              :                       original;
+      done(exportData(c));
+    };
+  });
+}
+
+/* ========== 啟動 ========== */
+load();
+// 已新增的動物、食物與尺寸照舊即時儲存；位置也定期儲存。
+setInterval(()=>{if(state.items.length)save();},15000);
+addEventListener('pagehide',save);
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden')save();
+});
+</script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"7939e04a4baf43c8b86a560f74aac60e","spa":2}' crossorigin="anonymous"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"1c1c7799c54e46349cc23295b5e08299","spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>
