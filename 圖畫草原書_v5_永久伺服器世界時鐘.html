@@ -1,0 +1,2039 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#FFD5E8" />
+<title>圖畫草原書｜夢幻童話草原</title>
+<style>
+:root{--card:#FFFDF8;--ink:#3D3A31;--muted:#8C8577;--line:#E8DEC8;--gold:#F0B840}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:ui-rounded,"PingFang TC","Microsoft JhengHei",system-ui,sans-serif;color:var(--ink);background:linear-gradient(180deg,#FDFAF3,#F7F0E2);-webkit-tap-highlight-color:transparent}
+body.inGame{overflow:hidden;overscroll-behavior:none}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,select{font:inherit}
+.hidden{display:none!important}
+
+/* 首頁 */
+.start{min-height:100%;display:flex;align-items:center;justify-content:center;padding:26px 16px 40px}
+.startInner{width:min(460px,100%)}
+.heroTop{text-align:center;margin-bottom:20px}
+.isleMark{width:86px;height:86px;margin:0 auto 12px;border-radius:26px;background:linear-gradient(160deg,#B6E08A,#7CC05E);box-shadow:0 10px 26px rgba(110,160,90,.32);display:grid;place-items:center;font-size:42px}
+.heroTitle{font-size:30px;font-weight:900;margin:0 0 6px}
+.heroSub{margin:0;color:var(--muted);font-weight:700;font-size:14px;line-height:1.6}
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:26px;padding:20px;box-shadow:0 8px 26px rgba(150,135,105,.10)}
+.fieldLabel{display:block;font-size:13px;font-weight:800;color:#6B6455;margin:0 2px 7px}
+.tInput{width:100%;padding:14px 16px;border-radius:16px;border:1.8px solid #E6DECC;background:#FEFCF7;font-weight:800;color:var(--ink);outline:none}
+.tInput:focus{border-color:#A8CE7E;box-shadow:0 0 0 4px rgba(168,206,126,.18)}
+.btnRow{display:grid;gap:10px;margin-top:16px}
+.bigBtn{width:100%;padding:15px;border-radius:18px;font-weight:900;font-size:16px;color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.10);transition:transform .1s}
+.bigBtn:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.10)}
+.btnGreen{background:linear-gradient(160deg,#8FCF63,#5FA843)}
+.btnBlue{background:linear-gradient(160deg,#7BA6F5,#4C7DE8)}
+.joinBox{margin-top:14px;padding-top:14px;border-top:1.5px dashed var(--line)}
+.tinyNote{display:flex;gap:8px;margin-top:14px;padding:11px 12px;background:#F7F3E9;border-radius:14px;font-size:12px;line-height:1.55;color:#7D7666}
+.errMsg{margin-top:10px;color:#C0392B;font-weight:800;font-size:13px;white-space:pre-wrap}
+
+/* 遊戲：全螢幕 */
+#game{position:fixed;inset:0;height:100dvh;overflow:hidden}
+.stageCard{position:absolute;inset:0;background:#9BC482}
+#world{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+#world:active{cursor:grabbing}
+.gameTop{position:absolute;z-index:20;left:0;right:0;top:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;pointer-events:none;
+  padding:calc(8px + env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) 0 max(10px,env(safe-area-inset-left))}
+.gameTop>*{pointer-events:auto;box-shadow:0 3px 10px rgba(150,135,105,.18)}
+.brandChip{margin-right:auto;font-weight:900;font-size:14px;background:rgba(255,253,248,.92);padding:6px 11px;border-radius:999px;border:1.4px solid var(--line)}
+.chip,.chipBtn{background:#FFFDF8;border:1.4px solid var(--line);padding:6px 11px;border-radius:999px;font-size:12px;font-weight:800;color:#6B6455;white-space:nowrap}
+.chip.gold{background:#FFF6DC;border-color:#F1E1B6;color:#9A7524}
+.weatherPill{position:absolute;top:calc(56px + env(safe-area-inset-top));right:12px;z-index:6;background:#FFFDF8;border:1.5px solid var(--line);padding:7px 13px;border-radius:999px;font-size:13px;font-weight:900;box-shadow:0 4px 12px rgba(150,135,105,.16);pointer-events:none}
+.zonePill{position:absolute;left:12px;top:calc(56px + env(safe-area-inset-top));z-index:6;display:flex;gap:4px;background:#FFFDF8;padding:5px;border-radius:999px;border:1.5px solid var(--line);box-shadow:0 4px 12px rgba(150,135,105,.16)}
+.zoneChip{padding:6px 11px;border-radius:999px;font-size:12px;font-weight:800;color:#7D7666}
+.zoneChip.on{background:#EAF5DD;color:#4E7A34}
+.fab{position:absolute;right:14px;width:54px;height:54px;border-radius:50%;color:#fff;font-weight:900;font-size:17px;display:grid;place-items:center;box-shadow:0 7px 18px rgba(0,0,0,.20);transition:transform .12s;z-index:6}
+.fab:active{transform:scale(.93)}
+.fab.pink{top:36%;background:linear-gradient(160deg,#FF9BB9,#F45C8C)}
+.fab.blue{top:50%;background:linear-gradient(160deg,#8FB4F7,#4C7DE8)}
+.floating2{position:absolute;left:50%;top:calc(104px + env(safe-area-inset-top));transform:translateX(-50%);padding:8px 14px;border-radius:999px;background:rgba(255,253,248,.96);font-weight:900;font-size:13px;pointer-events:none;opacity:0;transition:.22s;box-shadow:0 5px 16px rgba(0,0,0,.14);z-index:25;border:1.5px solid var(--line);white-space:nowrap}
+.floating2.show{opacity:1;transform:translate(-50%,4px)}
+#deleteFloating{position:absolute;z-index:8;background:#E4574F;color:#fff;padding:8px 12px;border-radius:12px;font-weight:900;font-size:13px;box-shadow:0 6px 16px rgba(150,50,45,.30);display:none}
+.zoomRow{position:absolute;z-index:10;left:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px}
+.zoomBtn{background:#FFFDF8;border:1.5px solid var(--line);padding:10px 12px;border-radius:999px;font-size:13px;font-weight:800;color:#6B6455;box-shadow:0 3px 10px rgba(150,135,105,.14)}
+.zoomBtn:active{background:#F7F1E4}
+.uploadCard{position:absolute;z-index:15;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));width:min(620px,calc(100% - 20px));padding:8px;border-radius:22px;background:rgba(255,253,248,.94);backdrop-filter:blur(8px);border:1.5px solid var(--line);box-shadow:0 8px 26px rgba(150,135,105,.18)}
+.uploadTitle{margin:0 0 6px;font-size:12px;font-weight:900;text-align:center;color:var(--muted)}
+.kindGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.kindCard{border-radius:14px;padding:8px 2px;display:flex;flex-direction:column;align-items:center;gap:2px;border:2px solid #DCE9F7;background:#EDF6FF;transition:border-color .15s,transform .1s}
+.kindCard:active{transform:scale(.96)}
+.kindEmoji{font-size:22px;line-height:1.1}
+.kindName{font-size:13px;font-weight:900}
+.kindCard.land{background:#F1F8E8;border-color:#DFEBCF}
+.kindCard.reptile{background:#F4F8E6;border-color:#E4EACD}
+.kindCard.fish{background:#EAF6FF;border-color:#D6E9F8}
+.kindCard.food{background:#FFF7E3;border-color:#F2E4C2}
+.kindCard.on{border-color:var(--gold);box-shadow:0 0 0 3px rgba(240,184,64,.24)}
+.kindCard:disabled{opacity:.42}
+.displayMode .uploadCard,.displayMode .zoomRow,.displayMode .fab,.displayMode .zonePill{display:none}
+.ended{position:absolute;inset:0;z-index:30;background:rgba(60,55,42,.62);display:grid;place-items:center;color:#fff;text-align:center;padding:20px}
+.endedBox{font-size:22px;font-weight:900;background:rgba(50,45,34,.80);padding:20px 26px;border-radius:22px}
+
+/* modal */
+.modalBackdrop{position:fixed;inset:0;background:rgba(60,55,42,.50);display:grid;place-items:center;padding:14px;z-index:40;backdrop-filter:blur(4px)}
+.modal{width:min(560px,100%);max-height:90vh;overflow:auto;background:var(--card);border-radius:26px;padding:20px;border:1.5px solid var(--line);box-shadow:0 22px 60px rgba(0,0,0,.24)}
+.modal h2{margin:0 0 12px;font-size:19px}
+.close{float:right;width:36px;height:36px;border-radius:12px;background:#F2ECE0;font-size:17px;font-weight:900}
+.roomCode{font-size:38px;font-weight:900;letter-spacing:.16em;color:#4E8B3A;margin:8px 0 14px;text-align:center}
+.shareGrid{display:grid;grid-template-columns:180px 1fr;gap:16px;align-items:center}
+.qrBox{width:170px;height:170px;background:#fff;border:7px solid #fff;border-radius:18px;box-shadow:0 0 0 1.5px var(--line);display:grid;place-items:center;overflow:hidden}
+.shareLink{width:100%;padding:11px;border:1.5px solid #E6DECC;border-radius:12px;background:#FDFAF3;font-size:12px}
+.adminGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.setting{background:#F9F5EA;border:1.2px solid #EDE4D2;border-radius:15px;padding:11px}
+.setting label{display:flex;justify-content:space-between;gap:8px;font-weight:800;font-size:13px;margin-bottom:7px}
+.setting input[type=range]{width:100%}
+.setting input[type=number],.setting select{width:100%;padding:9px;border:1.2px solid #DED4BE;border-radius:10px;background:#fff}
+.switch{display:flex;align-items:center;gap:8px}
+.adminActions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.smallBtn{padding:10px 13px;border-radius:12px;font-weight:900;font-size:13px;background:#F0EADA;color:#5C5747}
+.smallBtn.blue{background:#E3EEFF;color:#3A5FA8}
+.smallBtn.red{background:#FFE6E3;color:#A33B33}
+.smallBtn.gold{background:#FFF0C6;color:#96701B}
+.log{background:#2B2820;color:#EAE2CE;border-radius:14px;padding:10px;height:120px;overflow:auto;font:11.5px/1.5 ui-monospace,monospace;white-space:pre-wrap;margin-top:10px}
+.memberList{display:flex;flex-wrap:wrap;gap:6px}
+.memberChip{background:#F1EBDB;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800}
+
+@media(max-width:560px){
+  .shareGrid{grid-template-columns:1fr}
+  .qrBox{margin:auto}
+  .adminGrid{grid-template-columns:1fr}
+  .heroTitle{font-size:26px}
+  .brandChip{display:none}
+}
+
+/* 去背預覽：操作只影響新上傳的作品 */
+.cutoutModal{width:min(680px,100%)}
+.cutoutTools{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.cutoutTools button{padding:9px 12px;border-radius:12px;background:#F0EADA;font-size:13px;font-weight:800}
+.cutoutTools button.on{background:#DFF0D3;color:#406C2E}
+.cutoutTools button:disabled{opacity:.4;cursor:default}
+.cutoutStage{background-color:#fff;background-image:linear-gradient(45deg,#ddd 25%,transparent 25%),linear-gradient(-45deg,#ddd 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ddd 75%),linear-gradient(-45deg,transparent 75%,#ddd 75%);background-size:22px 22px;background-position:0 0,0 11px,11px -11px,-11px 0;display:grid;place-items:center;border:1px solid #ddd;border-radius:14px;overflow:hidden}
+#cutoutCanvas{display:block;width:auto;height:auto;max-width:100%;max-height:52vh;touch-action:none}
+.cutoutHelp{font-size:12px;color:#736C5E;line-height:1.65;margin:8px 0}
+.cutoutActions{display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px}
+.cutoutActions button{padding:11px 17px;border-radius:12px;font-weight:900;background:#EAE4D7}
+.cutoutActions #cutoutConfirm{background:#65A84A;color:white}
+
+
+/* ===== 夢幻童話草原：粉嫩圓潤視覺 ===== */
+:root{
+  --card:#FFF9FC;--ink:#574A66;--muted:#8D7E97;--line:#EFDCE9;--gold:#FFD667;
+  --pink:#FF91BF;--pink2:#FFD2E5;--sky:#A9DFFF;--mint:#AEE8B8;--lav:#CDBDFF;--cream:#FFF1C0;
+}
+html,body{
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 16% 11%,rgba(255,209,231,.52),transparent 25%),
+    radial-gradient(circle at 84% 14%,rgba(174,226,255,.52),transparent 27%),
+    linear-gradient(180deg,#C6EDFF 0%,#EAF8FF 40%,#FFF4D8 100%);
+}
+.start{position:relative;overflow:hidden;background:
+  radial-gradient(circle at 16% 16%,rgba(255,255,255,.85) 0 35px,transparent 37px),
+  radial-gradient(circle at 82% 11%,rgba(255,221,239,.72) 0 66px,transparent 68px),
+  linear-gradient(180deg,#BDEAFF 0%,#E8F7FF 46%,#FFF0D1 100%)}
+.startInner{position:relative}
+.startInner:before,.startInner:after{content:"";position:absolute;pointer-events:none;z-index:-1}
+.startInner:before{width:116px;height:36px;left:-38px;top:24px;border-radius:999px;background:#fff;opacity:.82;box-shadow:34px -12px 0 4px #fff,72px 3px 0 -4px #fff}
+.startInner:after{width:9px;height:9px;right:6px;top:102px;border-radius:50%;background:#fff;box-shadow:-38px 22px 0 #FFD3E7,25px 39px 0 #fff,45px -24px 0 #FFF0A4,-74px -31px 0 #fff}
+.isleMark{width:98px;height:98px;border-radius:36px;background:linear-gradient(145deg,#FFB4D6 0%,#FFD978 48%,#A6E1FF 100%);border:5px solid rgba(255,255,255,.94);box-shadow:0 12px 0 rgba(120,100,145,.08),0 20px 38px rgba(130,105,150,.18),inset 0 4px 0 rgba(255,255,255,.55);font-size:44px;transform:rotate(-3deg)}
+.heroTitle{color:#5C4D78;letter-spacing:.035em;text-shadow:0 3px 0 rgba(255,255,255,.92)}
+.heroSub{color:#897A94}
+.card,.modal,.uploadCard{background:linear-gradient(180deg,rgba(255,255,255,.97),rgba(255,248,252,.95))!important;border:2px solid rgba(255,255,255,.96)!important;box-shadow:0 15px 40px rgba(116,91,137,.14),inset 0 0 0 1.5px #EEDDEA!important}
+.card{border-radius:31px}.modal{border-radius:30px}.uploadCard{border-radius:28px!important}
+.fieldLabel{color:#75657E}.tInput,.shareLink,.setting input[type=number],.setting select{background:#FFFBFD!important;border:2px solid #ECD8E7!important;color:#5B4C68!important}
+.tInput:focus{border-color:#C9B2F5!important;box-shadow:0 0 0 5px rgba(201,178,245,.22)!important}
+.tinyNote{background:#FFF2F8;border:1.5px solid #F2DCE8;color:#7E6E85}
+.bigBtn,.smallBtn,.chip,.chipBtn,.zoomBtn,.zonePill,.weatherPill,.fab,.kindCard{box-shadow:0 7px 16px rgba(102,83,121,.14),inset 0 2px 0 rgba(255,255,255,.38)!important;transition:transform .14s ease,filter .14s ease,box-shadow .14s ease}
+.bigBtn:hover,.smallBtn:hover,.chipBtn:hover,.zoomBtn:hover,.kindCard:hover{transform:translateY(-2px);filter:saturate(1.08)}
+.btnGreen{background:linear-gradient(145deg,#98E7B2,#64CFA3)!important;box-shadow:0 6px 0 #4EB388,0 12px 22px rgba(75,174,127,.16)!important}
+.btnBlue{background:linear-gradient(145deg,#A9DFFF,#7DA7F7)!important;box-shadow:0 6px 0 #687FD4,0 12px 22px rgba(100,120,212,.16)!important}
+.stageCard{background:linear-gradient(180deg,#BFEA97 0%,#AEE58B 52%,#98D77F 100%)}
+.gameTop>*{box-shadow:0 5px 15px rgba(105,86,126,.14)!important}
+.brandChip,.chip,.chipBtn,.weatherPill,.zonePill,.zoomBtn{background:rgba(255,251,254,.94)!important;border:2px solid rgba(255,255,255,.94)!important;box-shadow:0 5px 16px rgba(101,82,124,.14),inset 0 0 0 1px #EEDCEA!important;color:#6B5C78!important;backdrop-filter:blur(10px)}
+.chip.gold{background:linear-gradient(180deg,#FFF8D7,#FFF0B4)!important;color:#8C6D2F!important}
+.weatherPill{padding:9px 15px!important;background:linear-gradient(145deg,rgba(255,250,253,.97),rgba(238,248,255,.96))!important}
+.zoneChip{color:#88798F}.zoneChip.on{background:linear-gradient(145deg,#E7FFD9,#DDF5FF)!important;color:#4E7D65!important;box-shadow:inset 0 0 0 1px #C5E6BD}
+.fab{border:4px solid rgba(255,255,255,.92)!important;box-shadow:0 7px 0 rgba(88,70,112,.13),0 14px 24px rgba(88,70,112,.18)!important}.fab.pink{background:linear-gradient(145deg,#FFACCF,#FF70AF)!important}.fab.blue{background:linear-gradient(145deg,#A8E3FF,#779DF9)!important}
+.uploadTitle{color:#8A7A93!important}.kindGrid{gap:8px!important}.kindCard{border-radius:18px!important;padding:10px 3px!important;border:2px solid rgba(255,255,255,.96)!important}.kindCard.bird{background:linear-gradient(180deg,#EFF9FF,#DCEFFF)!important}.kindCard.land{background:linear-gradient(180deg,#F1FFE8,#DFF3D2)!important}.kindCard.reptile{background:linear-gradient(180deg,#FFF9DA,#F0EEC8)!important}.kindCard.fish{background:linear-gradient(180deg,#E7FAFF,#CEEEFF)!important}.kindCard.food{background:linear-gradient(180deg,#FFF1F6,#FFDDEB)!important}.kindCard.on{border-color:#FFD56A!important;box-shadow:0 0 0 4px rgba(255,213,106,.25),0 8px 18px rgba(108,88,135,.13)!important}.kindEmoji{filter:drop-shadow(0 2px 0 rgba(255,255,255,.8));transform:scale(1.06)}
+.setting{background:linear-gradient(180deg,#FFFCFD,#FFF5F9)!important;border:1.5px solid #EFDDE8!important;border-radius:17px!important}.smallBtn{border-radius:14px!important;background:#F8ECF3!important;color:#6B5B72!important}.smallBtn.blue{background:#E7F2FF!important;color:#536EA6!important}.smallBtn.red{background:#FFE7EE!important;color:#A84D68!important}.smallBtn.gold{background:#FFF2C6!important;color:#927135!important}.close{background:#FCEAF2!important;color:#826273!important;border-radius:14px!important}
+.modalBackdrop{background:rgba(76,64,99,.38)!important}.ended{background:radial-gradient(circle at 50% 30%,rgba(113,92,154,.25),rgba(50,44,71,.68))!important}.endedBox{background:rgba(78,65,108,.84)!important;border:2px solid rgba(255,255,255,.22);box-shadow:0 16px 42px rgba(45,37,68,.28)}
+.floating2{background:rgba(255,250,253,.97)!important;border:2px solid #EED8E7!important;color:#6E5D78!important}.cutoutStage{border:2px solid #E8D8E8!important}.cutoutTools button.on{background:#E7F6DA!important;color:#517248!important}.cutoutActions #cutoutConfirm{background:linear-gradient(145deg,#88D899,#61B97A)!important}
+#world{filter:saturate(1.10) brightness(1.035) contrast(.96)}
+
+
+/* ===== v2：拍照 / 相簿來源選擇 ===== */
+.sourcePickerModal{width:min(460px,100%)}
+.sourceHint{margin:0 0 14px;color:#8B7B94;font-size:13px;font-weight:700;line-height:1.65}
+.sourceChoiceGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sourceChoice{
+  min-height:145px;padding:18px 12px;border-radius:24px!important;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+  border:2px solid rgba(255,255,255,.95)!important;
+  box-shadow:0 10px 24px rgba(112,88,128,.14),inset 0 0 0 1.5px rgba(130,99,145,.08);
+  transition:transform .12s ease,filter .12s ease;
+}
+.sourceChoice:active{transform:scale(.97)}
+.sourceChoiceIcon{font-size:36px;line-height:1}
+.sourceChoice b{font-size:16px;color:#5E506B}
+.sourceChoice small{font-size:11px;color:#918399;line-height:1.5}
+.cameraChoice{background:linear-gradient(160deg,#FFF0F7,#FFDCEB)}
+.galleryChoice{background:linear-gradient(160deg,#EDF8FF,#DCEEFF)}
+@media(max-width:430px){
+  .sourceChoiceGrid{grid-template-columns:1fr}
+  .sourceChoice{min-height:112px}
+}
+
+/* ===== v2：全螢幕 / iPhone 沉浸模式 ===== */
+body.immersiveMode{
+  position:fixed!important;inset:0!important;
+  width:100%!important;height:100dvh!important;
+  overflow:hidden!important;background:#000!important;
+}
+body.immersiveMode #game{
+  position:fixed!important;inset:0!important;
+  width:100vw!important;height:100dvh!important;
+}
+body.immersiveMode .stageCard{inset:0!important}
+body.immersiveMode #world{width:100vw!important;height:100dvh!important}
+
+
+/* ===== v4：單一共同世界 ===== */
+.globalWorldTitle{
+  letter-spacing:.04em!important;
+  font-size:27px!important;
+  color:#6D5B7D!important;
+}
+#roomPill{background:linear-gradient(145deg,#EDFFE8,#E5F5FF)!important;color:#567565!important}
+
+</style>
+</head>
+
+<body>
+
+<!-- 首頁 -->
+<section id="startScreen" class="start">
+  <div class="startInner">
+    <div class="heroTop">
+      <div class="isleMark">🌸</div>
+      <h1 class="heroTitle">圖畫草原書</h1>
+      <p class="heroSub">畫下你的動物與食物，讓大家住進同一片夢幻草原。<br>所有玩家一起長大、散步、吃飯，也一起看天氣變化。</p>
+    </div>
+    <div class="card">
+      <label class="fieldLabel" for="nickname">你的暱稱</label>
+      <input id="nickname" class="tInput" maxlength="24" placeholder="例如：小安" autocomplete="nickname" />
+      <div class="btnRow"><button id="enterWorldBtn" class="bigBtn btnGreen">🌍 進入共同草原</button></div>
+      <div class="tinyNote"><span>🌱</span><div><b>所有人都在同一個世界。</b>不用建立房間，也不用輸入房間碼；打開同一個網址就會進入同一片草原。</div></div>
+      <div id="startError" class="errMsg"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 遊戲 -->
+<section id="game" class="hidden">
+  <div class="stageCard" id="stageWrap">
+    <canvas id="world"></canvas>
+    <div class="weatherPill" id="weatherPill">☀️ 晴朗</div>
+    <div class="zonePill">
+      <button class="zoneChip" data-zone="sky">🕊️ 空中</button>
+      <button class="zoneChip" data-zone="land">🐾 草地</button>
+      <button class="zoneChip" data-zone="river">🐟 河川</button>
+    </div>
+    <button class="fab pink" id="cycleBtn">換</button>
+    <button class="fab blue" id="gotoBtn">導</button>
+    <div id="toast" class="floating2"></div>
+    <button id="deleteFloating">🗑 刪除</button>
+    <div id="endedOverlay" class="ended hidden">
+      <div class="endedBox">🌙 這座小島已經休息了<br><small style="font-size:14px;font-weight:700">謝謝一起畫畫！</small></div>
+    </div>
+  </div>
+
+  <div class="gameTop">
+    <div class="brandChip">🌸 無邊界童話草原</div>
+    <div id="roomPill" class="chip">🌍 同一世界</div>
+    <div id="onlinePill" class="chip">👥 1</div>
+    <div id="timePill" class="chip gold">☀️ 09:00</div>
+    <button id="shareBtn" class="chipBtn">🔗 分享</button>
+    <button id="gearBtn" class="chipBtn hidden">⚙️</button>
+    <button id="fsBtn" class="chipBtn">⛶</button>
+  </div>
+
+  <div class="zoomRow">
+    <button id="zoomIn" class="zoomBtn">＋</button>
+    <button id="zoomFit" class="zoomBtn">地圖</button>
+    <button id="zoomOut" class="zoomBtn">－</button>
+  </div>
+
+  <div class="uploadCard">
+    <h3 class="uploadTitle">先選他是哪一類，再選擇拍照或相簿 🎨</h3>
+    <div class="kindGrid" id="kindGrid">
+      <button class="kindCard bird" data-kind="bird"><span class="kindEmoji">🐦</span><span class="kindName">鳥類</span></button>
+      <button class="kindCard land" data-kind="land"><span class="kindEmoji">🐾</span><span class="kindName">陸地</span></button>
+      <button class="kindCard reptile" data-kind="reptile"><span class="kindEmoji">🦎</span><span class="kindName">爬蟲</span></button>
+      <button class="kindCard fish" data-kind="fish"><span class="kindEmoji">🐟</span><span class="kindName">魚類</span></button>
+      <button class="kindCard food" data-kind="food"><span class="kindEmoji">🍎</span><span class="kindName">食物</span></button>
+    </div>
+    <input id="cameraInput" type="file" accept="image/*" capture="environment" class="hidden" />
+    <input id="galleryInput" type="file" accept="image/*" class="hidden" />
+  </div>
+</section>
+
+
+<!-- 選擇作品來源 -->
+<div id="sourceModal" class="modalBackdrop hidden">
+  <div class="modal sourcePickerModal">
+    <button class="close" data-close="sourceModal">✕</button>
+    <h2>🎨 選擇作品來源</h2>
+    <p class="sourceHint">你可以現在拍下作品，也可以直接從手機相簿選擇已經拍好的圖。</p>
+    <div class="sourceChoiceGrid">
+      <button id="takePhotoBtn" class="sourceChoice cameraChoice">
+        <span class="sourceChoiceIcon">📷</span>
+        <b>即時拍照</b>
+        <small>開啟後鏡頭拍攝作品</small>
+      </button>
+      <button id="choosePhotoBtn" class="sourceChoice galleryChoice">
+        <span class="sourceChoiceIcon">🖼️</span>
+        <b>從相簿選擇</b>
+        <small>選擇手機裡已有的照片</small>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 新上傳畫作去背確認：手指／滑鼠畫筆連續描邊 -->
+<div id="cutoutModal" class="modalBackdrop hidden">
+  <div class="modal cutoutModal">
+    <h2>✂️ 作品去背確認</h2>
+    <div class="cutoutTools">
+      <button id="cutoutAuto" class="on">✨ 自動去背</button>
+      <button id="cutoutTrace">🖊️ 畫筆描邊</button>
+      <button id="cutoutUndo">↶ 撤銷描邊</button>
+      <button id="cutoutReset">⟲ 重新描邊</button>
+      <button id="cutoutOriginal">🖼️ 保留原圖</button>
+    </div>
+    <div class="cutoutStage"><canvas id="cutoutCanvas"></canvas></div>
+    <p id="cutoutHelp" class="cutoutHelp">透明區域是棋盤格。確認主角完整後再上傳；若雜點太多，選「畫筆描邊」，沿主角外緣畫一圈。</p>
+    <div class="cutoutActions"><button id="cutoutCancel">取消上傳</button><button id="cutoutConfirm">✅ 確認並上傳</button></div>
+  </div>
+</div>
+
+<!-- 邀請 -->
+<div id="shareModal" class="modalBackdrop hidden">
+  <div class="modal">
+    <button class="close" data-close="shareModal">✕</button>
+    <h2>🔗 分享共同草原</h2>
+    <div class="roomCode globalWorldTitle" id="shareCode">共同草原</div>
+    <div class="shareGrid">
+      <div id="qrBox" class="qrBox"></div>
+      <div>
+        <p style="margin:0 0 10px;font-size:13px;line-height:1.6;color:#7D7666">掃 QR Code 或打開這個網址，就會進入同一個共同世界。</p>
+        <input id="shareLink" class="shareLink" readonly />
+        <div class="adminActions">
+          <button id="copyLinkBtn" class="smallBtn blue">🔗 複製連結</button>
+          <button id="copyCodeBtn" class="smallBtn">🌍 複製世界名稱</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 後台 -->
+<div id="adminModal" class="modalBackdrop hidden">
+  <div class="modal">
+    <button class="close" data-close="adminModal">✕</button>
+    <h2>⚙️ 大人後台</h2>
+    <div style="font-size:12px;color:#8C8577;line-height:1.6">管理設定會同步給所有人。世界時間由 Supabase 伺服器永久計算；沒有人在線時時間也會繼續前進。角色動畫仍在各裝置本地播放。</div>
+    <div id="memberList" class="memberList" style="margin:10px 0"></div>
+    <div class="adminGrid">
+      <div class="setting"><label>智慧去背強度 <b id="cutoutVal">120</b></label><input id="cutoutStrength" type="range" min="80" max="160" step="1" value="120" /></div>
+      <div class="setting"><label>色彩濃度 <b id="satVal">1.10×</b></label><input id="visualSaturation" type="range" min="0.8" max="1.5" step="0.05" value="1.1" /></div>
+      <div class="setting"><label>一整天幾分鐘</label><input id="dayMinutes" type="number" min="2" max="60" step="1" value="8" /></div>
+      <div class="setting"><label>世界速度</label>
+        <select id="worldSpeed"><option value="0.5">0.5× 慢慢玩</option><option value="1">1× 悠閒</option><option value="4">4× 快轉</option><option value="12">12× 展示</option></select></div>
+      <div class="setting"><label>起床</label><input id="wakeHour" type="number" min="0" max="23.5" step="0.5" value="6.5" /></div>
+      <div class="setting"><label>睡覺</label><input id="sleepHour" type="number" min="0" max="23.5" step="0.5" value="21.5" /></div>
+      <div class="setting"><label>早餐</label><input id="breakfastHour" type="number" min="0" max="23.5" step="0.5" value="8" /></div>
+      <div class="setting"><label>午餐</label><input id="lunchHour" type="number" min="0" max="23.5" step="0.5" value="12.5" /></div>
+      <div class="setting"><label>晚餐</label><input id="dinnerHour" type="number" min="0" max="23.5" step="0.5" value="18.5" /></div>
+      <div class="setting"><label>每餐持續（小時）</label><input id="mealDuration" type="number" min="0.25" max="3" step="0.25" value="1" /></div>
+      <div class="setting"><label>每餐長大速度 <b id="growthVal">0.08</b></label><input id="growthStep" type="range" min="0.02" max="0.30" step="0.01" value="0.08" /></div>
+      <div class="setting"><label>天氣</label>
+        <select id="weather"><option value="sunny">☀️ 晴朗</option><option value="cloudy">☁️ 多雲</option><option value="rain">🌧️ 下雨</option><option value="snow">❄️ 下雪</option></select></div>
+      <div class="setting"><label class="switch"><input id="infiniteGrowth" type="checkbox" checked> ♾️ 無限長大</label><div style="font-size:11px;color:#8C8577">關閉時只顯示到約 1.35×</div></div>
+      <div class="setting"><label class="switch"><input id="weatherEnabled" type="checkbox" checked> 自動天氣變化</label></div>
+      <div class="setting"><label class="switch"><input id="showNames" type="checkbox" checked> 顯示名字</label></div>
+      <div class="setting"><label class="switch"><input id="uploadEnabled" type="checkbox" checked> 允許上傳</label></div>
+    </div>
+    <div class="adminActions">
+      <button class="smallBtn gold quickTime" data-hour="10">☀️ 白天</button>
+      <button class="smallBtn quickTime" data-hour="23">🌙 夜晚</button>
+      <button class="smallBtn quickTime" data-hour="8.1">🥣 早餐</button>
+      <button class="smallBtn quickTime" data-hour="12.6">🍱 午餐</button>
+      <button class="smallBtn quickTime" data-hour="18.6">🍲 晚餐</button>
+      <button id="displayBtn" class="smallBtn blue">📺 大螢幕</button>
+      <button id="clearBtn" class="smallBtn red">🧹 清空共同世界</button>
+    </div>
+    <div id="adminLog" class="log"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+'use strict';
+
+/* ===== 等角世界參數 ===== */
+const WS = 2.6;                 // 世界放大倍數（想更大就調這裡）
+const ISLE = 1000 * WS;         // 僅作鏡頭/初始座標參考；實際地圖為無邊界連續草原
+const ISLE_DEPTH = 0;           // 連續草原沒有漂浮島厚度
+const RIVER_Y0 = 760 * WS;
+const RIVER_Y1 = ISLE;
+const KX = 0.7071, KY = 0.35355;
+
+// 非洲稀樹草原：場景連續延伸，不使用角色碰撞盒或移動邊界。
+const WORLD_SCALE = WS;
+const HABITATS = {
+  bird:{z0:260*1.6,z1:480*1.6}, land:{z0:0,z1:0},
+  reptile:{z0:0,z1:0},fish:{z0:6,z1:6}, food:{z0:0,z1:0}
+};
+const KIND_BASE  = { bird:120, land:150, reptile:120, fish:110, food:88 };
+const KIND_SPEED = { bird:171, land:58, reptile:30, fish:100, food:0 };
+for(const k in KIND_BASE) KIND_BASE[k] *= 1.6;
+
+// 水域為連通的蜿蜒河道；魚類可沿整條河移動，無固定活動區間。
+function riverCenter(x){
+  return WS*(760 + 108*Math.sin(x/(620*WS)) + 46*Math.sin(x/(230*WS)+1.2));
+}
+function riverHalfWidth(x){return WS*(66 + 20*(.5+.5*Math.sin(x/(350*WS)+.8)));}
+function habitatPoint(kind, u, v){
+  const x = (u*.92+.04)*ISLE;
+  if(kind==='fish') return {wx:x,wy:riverCenter(x)+(v-.5)*riverHalfWidth(x)*1.3};
+  if(kind==='reptile') return {wx:x,wy:riverCenter(x)-WS*(85+v*180)};
+  if(kind==='bird') return {wx:x,wy:(.1+v*.75)*ISLE};
+  return {wx:x,wy:(.08+v*.68)*ISLE};
+}
+
+const cam = { cx:0, cy:395, zoom:0.5, vw:800, vh:520 };
+let fitZoom = 0.5, viewIndex = 0;
+
+const isoX = (wx,wy)=>(wx - wy) * KX;
+const isoY = (wx,wy,wz)=>(wx + wy) * KY - (wz || 0);
+function toScreen(wx,wy,wz){
+  return { x:(isoX(wx,wy) - cam.cx) * cam.zoom + cam.vw/2,
+           y:(isoY(wx,wy,wz) - cam.cy) * cam.zoom + cam.vh/2 };
+}
+
+/* ===== Supabase / 狀態 ===== */
+const SUPABASE_URL = 'https://pceikeksfakzmeigzopr.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_cLZISWRMCVtp-Pjg_rhYow_llMEsFRb';
+const GLOBAL_WORLD_CODE = 'WORLD1'; // 所有玩家固定加入這個永久世界
+const sb = window.supabase?.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY,
+  { auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:false } });
+
+const $ = id => document.getElementById(id);
+
+const state = {
+  user:null, room:null, nickname:'', isHost:false,
+  channel:null, presence:{},
+  objects:new Map(), images:new Map(),
+  selectedId:null, selectedKind:null,
+  displayMode: new URLSearchParams(location.search).get('display') === '1',
+  serverClock:{ absHours:null, syncedPerf:performance.now(), lastSyncAt:0, syncing:false },
+  lastMealAttempt:'', logs:[], lastWorldTime:null
+};
+
+const defaultSettings = {
+  cutout_strength:120, visual_saturation:1.10, show_names:true,
+  day_minutes:8, world_speed:1, wake_hour:6.5, sleep_hour:21.5,
+  breakfast_hour:8, lunch_hour:12.5, dinner_hour:18.5,
+  meal_duration:1, growth_step:.08, infinite_growth:true, weather_enabled:true
+};
+
+function log(msg){
+  const t = new Date().toLocaleTimeString('zh-TW',{hour12:false});
+  state.logs.push(`${t} ${msg}`);
+  state.logs = state.logs.slice(-80);
+  $('adminLog').textContent = state.logs.join('\n');
+  $('adminLog').scrollTop = $('adminLog').scrollHeight;
+}
+function showError(msg){ $('startError').textContent = msg || ''; }
+function toast(msg, ms=2200){
+  const e = $('toast');
+  e.textContent = msg;
+  e.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>e.classList.remove('show'), ms);
+}
+function settings(){ return { ...defaultSettings, ...(state.room?.settings || {}) }; }
+
+function sleepMode(hour){
+  const s = settings();
+  return s.sleep_hour > s.wake_hour
+    ? (hour >= s.sleep_hour || hour < s.wake_hour)
+    : (hour >= s.sleep_hour && hour < s.wake_hour);
+}
+function seasonFor(day){ return ['春天','夏天','秋天','冬天'][Math.floor(((Math.max(1,day)-1)%28)/7)]; }
+function weatherLabel(w){ return ({sunny:'☀️ 晴朗', cloudy:'☁️ 多雲', rain:'🌧️ 下雨', snow:'❄️ 下雪'})[w] || '☀️ 晴朗'; }
+
+function modeAt(hour){
+  const s = settings();
+  const dur = +s.meal_duration || 1;
+  const meals = [['🥣 早餐','breakfast',+s.breakfast_hour],['🍱 午餐','lunch',+s.lunch_hour],['🍲 晚餐','dinner',+s.dinner_hour]];
+  for(const [label,key,h] of meals){ if(hour >= h && hour < h + dur) return {label,key}; }
+  return sleepMode(hour) ? {label:'💤 睡覺',key:'sleep'} : {label:'🎈 玩耍',key:'play'};
+}
+function fmtHour(h){
+  h = ((h%24)+24)%24;
+  const hh = Math.floor(h), mm = Math.floor((h-hh)*60);
+  return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+}
+function randomPos(){ return { x:Math.random(), y:Math.random() }; }
+function growthScale(o){
+  if(o.kind === 'food') return 1;
+  const s = settings();
+  const m = Math.max(0, o.growth_meals || 0);
+  let g = 1 + (+s.growth_step || .08) * Math.pow(m,.72);
+  if(!s.infinite_growth) g = Math.min(g,1.35);
+  return g;
+}
+function safeName(kind){
+  return ({bird:'天空朋友', land:'草原朋友', reptile:'爬爬朋友', fish:'河川朋友', food:'好吃的'})[kind] || '新朋友';
+}
+function hash01(str){
+  let h = 2166136261;
+  for(let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h,16777619); }
+  return (h>>>0) / 4294967295;
+}
+function kindIcon(k){ return ({bird:'🐦',land:'🐾',reptile:'🦎',fish:'🐟',food:'🍎'})[k] || '🎨'; }
+
+/* ===== 認證 / 房間 ===== */
+async function ensureAuth(){
+  if(!sb) throw new Error('Supabase 程式庫載入失敗，請確認網路可連到 jsDelivr。');
+  const { data:{session} } = await sb.auth.getSession();
+  if(session?.user){ state.user = session.user; return; }
+  const { data, error } = await sb.auth.signInAnonymously({ options:{ data:{ app:'drawing-meadow-isle' } } });
+  if(error){
+    if(/anonymous|disabled|provider/i.test(error.message || '')){
+      throw new Error('Supabase 匿名登入尚未開啟。\n請到 Dashboard → Authentication → Providers，啟用 Anonymous Sign-Ins。\n\n原始錯誤：' + error.message);
+    }
+    throw error;
+  }
+  state.user = data.user;
+}
+
+
+async function enterGlobalWorld(){
+  try{
+    showError('');
+    await ensureAuth();
+
+    const nick = state.displayMode ? '展示螢幕' : ($('nickname').value.trim() || '小朋友');
+    state.nickname = nick;
+    localStorage.setItem('meadow_nickname', nick);
+
+    // 平常情況：直接加入唯一的 WORLD1。
+    let joined = await sb.rpc('join_room', {
+      p_code: GLOBAL_WORLD_CODE,
+      p_nickname: nick
+    });
+
+    if(!joined.error && joined.data?.[0]){
+      const row = joined.data[0];
+      await enterRoom(row.room_id, row.is_host, GLOBAL_WORLD_CODE);
+      return;
+    }
+
+    const msg = joined.error?.message || '';
+    if(!/ROOM_NOT_FOUND/i.test(msg)){
+      throw joined.error || new Error('共同世界暫時無法加入');
+    }
+
+    // 只有第一次：共同世界不存在時自動建立。
+    // 若兩位玩家同時第一次進入，唯一 code 約束會讓其中一位建立成功；
+    // 另一位再重新 join WORLD1 即可。
+    const created = await sb.rpc('create_room', { p_nickname:nick });
+    if(created.error) throw created.error;
+    const newRow = created.data?.[0];
+    if(!newRow) throw new Error('建立共同世界失敗');
+
+    const rename = await sb.from('rooms').update({
+      code: GLOBAL_WORLD_CODE,
+      status:'open',
+      locked:false,
+      upload_enabled:true
+    }).eq('id', newRow.room_id);
+
+    if(!rename.error){
+      await enterRoom(newRow.room_id, true, GLOBAL_WORLD_CODE);
+      toast('🌍 共同草原已建立！', 2800);
+      return;
+    }
+
+    // 可能是另一位玩家剛好先建立成功，再加入既有共同世界。
+    joined = await sb.rpc('join_room', {
+      p_code: GLOBAL_WORLD_CODE,
+      p_nickname: nick
+    });
+    if(joined.error) throw rename.error || joined.error;
+
+    const row = joined.data?.[0];
+    if(!row) throw new Error('共同世界建立完成，但加入失敗');
+    await enterRoom(row.room_id, row.is_host, GLOBAL_WORLD_CODE);
+  }catch(e){
+    showError(friendlyError(e));
+  }
+}
+
+async function createRoom(){
+  try{
+    showError('');
+    await ensureAuth();
+    const nick = $('nickname').value.trim() || '小朋友';
+    state.nickname = nick;
+    localStorage.setItem('meadow_nickname', nick);
+    const { data, error } = await sb.rpc('create_room', { p_nickname: nick });
+    if(error) throw error;
+    const row = data?.[0];
+    if(!row) throw new Error('建立房間失敗');
+    await enterRoom(row.room_id, true, row.room_code);
+    openShare();
+  }catch(e){ showError(friendlyError(e)); }
+}
+
+async function joinRoom(codeOverride){
+  try{
+    showError('');
+    await ensureAuth();
+    const nick = state.displayMode ? '展示螢幕' : ($('nickname').value.trim() || '小朋友');
+    state.nickname = nick;
+    localStorage.setItem('meadow_nickname', nick);
+    const code = (codeOverride || $('roomCodeInput').value).trim().toUpperCase();
+    if(code.length !== 6) throw new Error('請輸入 6 位房間碼');
+    const { data, error } = await sb.rpc('join_room', { p_code: code, p_nickname: nick });
+    if(error) throw error;
+    const row = data?.[0];
+    if(!row) throw new Error('找不到房間');
+    await enterRoom(row.room_id, row.is_host, row.room_code);
+  }catch(e){ showError(friendlyError(e)); }
+}
+
+function friendlyError(e){
+  const m = e?.message || String(e);
+  if(/ROOM_NOT_FOUND/.test(m)) return '找不到這個房間，請確認房間碼。';
+  if(/ROOM_LOCKED/.test(m))    return '這個房間已鎖定，暫時不能加入。';
+  if(/ROOM_FULL/.test(m))      return '這個房間已達 50 人上限。';
+  if(/relation .* does not exist|function .* does not exist|schema cache/i.test(m))
+    return 'Supabase 還沒初始化。請先在 SQL Editor 執行 supabase_setup.sql。\n\n' + m;
+  return m;
+}
+
+async function enterRoom(roomId, isHost, code){
+  state.isHost = !!isHost;
+  const { data:room, error:rErr } = await sb.from('rooms').select('*').eq('id', roomId).single();
+  if(rErr) throw rErr;
+  state.room = room;
+  state.room.code = code || room.code;
+
+  const { data:objs, error:oErr } = await sb.from('objects').select('*').eq('room_id', roomId).order('created_at');
+  if(oErr) throw oErr;
+
+  state.objects.clear();
+  for(const o of objs || []) state.objects.set(o.id, makeRuntimeObject(o));
+  await Promise.all((objs || []).map(loadObjectImage));
+
+  state.lastWorldTime = +room.world_time || 0;
+
+  // 先向 Supabase 伺服器取一次永久世界時間，再進入 Realtime。
+  await syncServerWorldClock(true);
+
+  await subscribeRoom();
+
+  $('startScreen').classList.add('hidden');
+  $('game').classList.remove('hidden');
+  document.body.classList.add('inGame');
+  $('gearBtn').classList.toggle('hidden', !state.isHost || state.displayMode);
+  $('roomPill').textContent = '🌍 同一世界';
+  if(state.displayMode) document.body.classList.add('displayMode');
+
+  syncAdminUI();
+  updateUploadButtons();
+  log(`進入共同世界${state.isHost?'（世界管理者）':''}`);
+
+  requestAnimationFrame(()=>{ resizeCanvas(); fitIsland(); });
+}
+
+/* ===== 物件 ===== */
+function makeRuntimeObject(o){
+  const seed = hash01(o.id);
+  const h = HABITATS[o.kind] || HABITATS.land;
+  const pos = habitatPoint(o.kind, o.x ?? seed, o.y ?? hash01(o.id+'y'));
+  const spd = KIND_SPEED[o.kind] ?? 45;
+  const heading = seed*Math.PI*2;
+  return { ...o, wx:pos.wx, wy:pos.wy, wz:h.z0+seed*(h.z1-h.z0),
+    vx:Math.cos(heading)*spd, vy:Math.sin(heading)*spd,
+    wanderAngle:heading, nextWander:0,
+    phase:seed*Math.PI*2, lastGrowth:o.growth_meals||0, _box:null };
+}
+
+async function loadObjectImage(o){
+  if(!o?.image_path || state.images.has(o.id)) return;
+  const { data, error } = await sb.storage.from('drawings').download(o.image_path);
+  if(error){ log(`圖片下載失敗 ${o.name}: ${error.message}`); return; }
+  const url = URL.createObjectURL(data);
+  const img = new Image();
+  img.onload  = ()=>{ state.images.set(o.id, {img, url}); };
+  img.onerror = ()=>{ URL.revokeObjectURL(url); };
+  img.src = url;
+}
+function releaseImage(id){
+  const v = state.images.get(id);
+  if(v?.url) URL.revokeObjectURL(v.url);
+  state.images.delete(id);
+}
+
+/* ===== Realtime ===== */
+async function subscribeRoom(){
+  if(state.channel) await sb.removeChannel(state.channel);
+  const ch = sb.channel(`meadow:${state.room.code}`, { config:{ presence:{ key: state.user.id } } });
+  state.channel = ch;
+
+  const sync = ()=>{ state.presence = ch.presenceState(); renderPresence(); };
+  ch.on('presence', {event:'sync'}, sync)
+    .on('presence', {event:'join'}, sync)
+    .on('presence', {event:'leave'}, sync)
+
+    .on('postgres_changes',
+      { event:'*', schema:'public', table:'objects', filter:`room_id=eq.${state.room.id}` },
+      async payload=>{
+        if(payload.eventType === 'INSERT'){
+          const o = makeRuntimeObject(payload.new);
+          state.objects.set(o.id, o);
+          await loadObjectImage(o);
+          toast(`${kindIcon(o.kind)} ${o.owner_nickname} 的作品來了！`);
+        }
+        else if(payload.eventType === 'UPDATE'){
+          const old = state.objects.get(payload.new.id);
+          const o = Object.assign(old || makeRuntimeObject(payload.new), payload.new);
+          if((old?.lastGrowth ?? old?.growth_meals ?? 0) < payload.new.growth_meals){
+            o.lastGrowth = payload.new.growth_meals;
+            o.growPulse = performance.now();
+            toast(`🌱 ${o.name} 又長大了！`);
+          }
+          state.objects.set(o.id, o);
+        }
+        else if(payload.eventType === 'DELETE'){
+          releaseImage(payload.old.id);
+          state.objects.delete(payload.old.id);
+          if(state.selectedId === payload.old.id) clearSelection();
+        }
+      })
+
+    .on('postgres_changes',
+      { event:'UPDATE', schema:'public', table:'rooms', filter:`id=eq.${state.room.id}` },
+      payload=>{
+        const prev = state.room;
+        state.room = { ...state.room, ...payload.new };
+        // 世界時間由伺服器 RPC 計算；若設定被管理者修改，立即重新向伺服器校時。
+        if(payload.new.settings || payload.new.world_clock_anchor_at || payload.new.world_clock_anchor_hours !== undefined){
+          syncServerWorldClock(true).catch(err=>log('伺服器校時失敗：'+err.message));
+        }
+        syncAdminUI();
+        updateUploadButtons();
+        if(prev?.status !== 'ended' && state.room.status === 'ended') toast('🌙 房主結束了這座小島');
+      });
+
+  await new Promise((resolve, reject)=>{
+    ch.subscribe(async status=>{
+      if(status === 'SUBSCRIBED'){
+        await ch.track({ user_id:state.user.id, nickname:state.nickname,
+          role: state.isHost ? 'host' : 'player', joined_at:new Date().toISOString() });
+        resolve();
+      }else if(status === 'CHANNEL_ERROR' || status === 'TIMED_OUT'){
+        reject(new Error('Realtime 連線失敗：' + status));
+      }
+    });
+  });
+}
+
+function renderPresence(){
+  const all = [];
+  for(const arr of Object.values(state.presence || {})) for(const p of arr) all.push(p);
+  const unique = [...new Map(all.map(p=>[p.user_id, p])).values()];
+  $('onlinePill').textContent = `👥 ${unique.length || 1}`;
+  $('memberList').innerHTML = unique.map(p=>
+    `<span class="memberChip">${p.role==='host'?'👑':'👤'} ${escapeHtml(p.nickname || '小朋友')}</span>`).join('');
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>'"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'})[c]);
+}
+
+/* ===== 分享 / 後台 ===== */
+function openShare(){
+  const url = location.origin + location.pathname;
+  $('shareCode').textContent = '共同草原';
+  $('shareLink').value = url;
+  $('shareModal').classList.remove('hidden');
+  const box = $('qrBox');
+  box.innerHTML = '';
+  if(window.QRCode){
+    new QRCode(box, { text:url, width:156, height:156, colorDark:'#5B4B67', colorLight:'#ffffff', correctLevel:QRCode.CorrectLevel.M });
+  }else box.textContent = 'QR 載入失敗';
+}
+function closeModal(id){ $(id).classList.add('hidden'); }
+async function copyText(t){
+  try{ await navigator.clipboard.writeText(t); toast('已複製 ✅'); }
+  catch{ prompt('請手動複製：', t); }
+}
+
+function syncAdminUI(){
+  if(!state.room) return;
+  const s = settings();
+  const set = (id,v)=>{
+    const e = $(id);
+    if(!e) return;
+    if(e.type === 'checkbox') e.checked = !!v; else e.value = v;
+  };
+  set('cutoutStrength', s.cutout_strength);   set('visualSaturation', s.visual_saturation);
+  set('dayMinutes', s.day_minutes);           set('worldSpeed', s.world_speed);
+  set('wakeHour', s.wake_hour);               set('sleepHour', s.sleep_hour);
+  set('breakfastHour', s.breakfast_hour);     set('lunchHour', s.lunch_hour);
+  set('dinnerHour', s.dinner_hour);           set('mealDuration', s.meal_duration);
+  set('growthStep', s.growth_step);           set('weather', state.room.weather);
+  set('infiniteGrowth', s.infinite_growth);   set('weatherEnabled', s.weather_enabled);
+  set('showNames', s.show_names);
+  set('uploadEnabled', state.room.upload_enabled);
+  $('cutoutVal').textContent = s.cutout_strength;
+  $('satVal').textContent = (+s.visual_saturation).toFixed(2) + '×';
+  $('growthVal').textContent = (+s.growth_step).toFixed(2);
+  $('world').style.filter = `saturate(${(+s.visual_saturation || 1)*1.06}) brightness(1.035) contrast(.96)`;
+}
+
+let saveTimer;
+function scheduleSettingsSave(){
+  if(!state.isHost) return;
+  syncAdminLabels();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveAdminSettings, 350);
+}
+function syncAdminLabels(){
+  $('cutoutVal').textContent = $('cutoutStrength').value;
+  $('satVal').textContent = (+$('visualSaturation').value).toFixed(2) + '×';
+  $('growthVal').textContent = (+$('growthStep').value).toFixed(2);
+}
+
+async function saveAdminSettings(){
+  if(!state.isHost) return;
+  const newSettings={
+    ...settings(),
+    cutout_strength:+$('cutoutStrength').value,
+    visual_saturation:+$('visualSaturation').value,
+    day_minutes:+$('dayMinutes').value,
+    world_speed:+$('worldSpeed').value,
+    wake_hour:+$('wakeHour').value,
+    sleep_hour:+$('sleepHour').value,
+    breakfast_hour:+$('breakfastHour').value,
+    lunch_hour:+$('lunchHour').value,
+    dinner_hour:+$('dinnerHour').value,
+    meal_duration:+$('mealDuration').value,
+    growth_step:+$('growthStep').value,
+    infinite_growth:$('infiniteGrowth').checked,
+    weather_enabled:$('weatherEnabled').checked,
+    show_names:$('showNames').checked,
+    show_weather:true
+  };
+
+  const {data,error}=await sb.rpc('update_world_settings',{
+    p_room_id:state.room.id,
+    p_settings:newSettings,
+    p_weather:$('weather').value,
+    p_upload_enabled:$('uploadEnabled').checked
+  });
+
+  if(error){
+    log('儲存設定失敗：'+error.message);
+    return;
+  }
+
+  if(data && typeof data==='object') state.room={...state.room,...data};
+  log('後台設定已同步，世界時鐘已重新錨定');
+  updateUploadButtons();
+  syncAdminUI();
+  await syncServerWorldClock(true);
+}
+
+function updateUploadButtons(){
+  const allowed = state.room?.status === 'open' && state.room?.upload_enabled !== false;
+  document.querySelectorAll('.kindCard').forEach(b=> b.disabled = !allowed || state.displayMode);
+  $('endedOverlay').classList.toggle('hidden', state.room?.status !== 'ended');
+}
+
+/* ===== 上傳 / 去背：自動主體分離 + 畫筆連續描邊 ===== */
+async function uploadSelected(file, kind){
+  if(!file || !state.room || !kind) return;
+  try{
+    toast('✂️ 正在辨識畫作…', 3500);
+    const blob = await smartCutout(file, +settings().cutout_strength || 120);
+    if(!blob){ toast('已取消上傳'); return; }
+    toast('正在上傳畫作…', 4500);
+    const id = crypto.randomUUID();
+    const path = `${state.room.id}/${state.user.id}/${id}.webp`;
+    const { error:upErr } = await sb.storage.from('drawings').upload(path, blob,
+      { contentType:blob.type || 'image/webp', upsert:false, cacheControl:'3600' });
+    if(upErr) throw upErr;
+    const pos = randomPos();
+    const payload = { id, room_id:state.room.id, owner_user_id:state.user.id,
+      owner_nickname:state.nickname, kind, name:safeName(kind), image_path:path, x:pos.x, y:pos.y };
+    const { error:dbErr } = await sb.from('objects').insert(payload);
+    if(dbErr){ await sb.storage.from('drawings').remove([path]); throw dbErr; }
+    toast(`${kindIcon(kind)} 上傳成功！`);
+    log(`${state.nickname} 上傳 ${kind}`);
+    // 上傳後維持目前視角，不自動追蹤新角色；需要時可手動按「導」。
+  }catch(e){
+    toast('上傳失敗');
+    log('上傳失敗：' + e.message);
+    alert('上傳失敗：\n' + friendlyError(e));
+  }finally{
+    if($('cameraInput')) $('cameraInput').value = '';
+    if($('galleryInput')) $('galleryInput').value = '';
+  }
+}
+
+function imgToCanvas(bitmap, maxSide=900){
+  const k = Math.min(1,maxSide/Math.max(bitmap.width,bitmap.height));
+  const c = document.createElement('canvas');
+  c.width=Math.max(1,Math.round(bitmap.width*k));
+  c.height=Math.max(1,Math.round(bitmap.height*k));
+  c.getContext('2d').drawImage(bitmap,0,0,c.width,c.height);
+  return c;
+}
+
+/* 提取紙張上最主要的連通色塊；不是以照片邊緣推測背景顏色。
+   先移除接近白色的紙面，再連接輪廓、挑選中央大主體，
+   避免背景上數十個分離的彩色點一起變成角色。 */
+function autoArtworkCutout(source,strength){
+  const w=source.width,h=source.height,N=w*h;
+  const cx=source.getContext('2d',{willReadFrequently:true});
+  const frame=cx.getImageData(0,0,w,h), d=frame.data;
+  const ink=new Uint8Array(N), expanded=new Uint8Array(N), visited=new Uint8Array(N);
+  const whiteLimit=Math.max(208,Math.min(245,232-(strength-120)*.26));
+  for(let i=0;i<N;i++){
+    const j=i*4,r=d[j],g=d[j+1],b=d[j+2],mx=Math.max(r,g,b),mn=Math.min(r,g,b);
+    const sat=mx-mn,lum=.2126*r+.7152*g+.0722*b;
+    // 暗色墨線、顏色鮮明的色塊保留；亮灰紙張與反光清除。
+    ink[i] = (lum<whiteLimit && (lum<190 || sat>26)) || (sat>48 && lum<248) ? 1:0;
+  }
+  // 小範圍膨脹，讓手繪主體中近接的筆畫接合。
+  const radius=Math.max(2,Math.round(Math.min(w,h)*.010));
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+    const p=y*w+x;if(!ink[p])continue;
+    const y0=Math.max(0,y-radius),y1=Math.min(h-1,y+radius);
+    for(let yy=y0;yy<=y1;yy++){
+      const dx=Math.floor(Math.sqrt(radius*radius-(yy-y)*(yy-y)));
+      expanded.fill(1,yy*w+Math.max(0,x-dx),yy*w+Math.min(w,x+dx+1));
+    }
+  }
+  const q=new Int32Array(N), comps=[];
+  for(let p=0;p<N;p++){
+    if(!expanded[p]||visited[p])continue;
+    let a=0,b=1,sumX=0,sumY=0,valid=0,minX=w,minY=h,maxX=0,maxY=0;
+    q[0]=p;visited[p]=1;
+    while(a<b){
+      const v=q[a++],x=v%w,y=(v/w)|0;
+      if(ink[v]){ valid++;sumX+=x;sumY+=y;minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y); }
+      for(const n of [x>0?v-1:-1,x<w-1?v+1:-1,y>0?v-w:-1,y<h-1?v+w:-1]){
+        if(n>=0 && expanded[n]&&!visited[n]){visited[n]=1;q[b++]=n;}
+      }
+    }
+    if(valid>Math.max(40,N*.00035)){
+      const midX=sumX/valid,midY=sumY/valid;
+      const dist=Math.hypot((midX/w-.5)*1.1,(midY/h-.52)*1.1);
+      const touchesEdge=minX<2 || minY<2 || maxX>=w-2 || maxY>=h-2;
+      comps.push({seed:p,valid,minX,minY,maxX,maxY,score:valid*Math.max(.25,1-dist)*(touchesEdge?.015:1)});
+    }
+  }
+  comps.sort((a,b)=>b.score-a.score);
+  const choice=comps[0];
+  if(!choice||choice.valid<N*.006) return null;
+  // 以主體所在連通區產生遮罩，不把其他分離彩點當成主體。
+  const mask=new Uint8Array(N), queue=new Int32Array(N);
+  let a=0,b=1;queue[0]=choice.seed;mask[choice.seed]=1;
+  while(a<b){
+    const v=queue[a++],x=v%w,y=(v/w)|0;
+    for(const n of [x>0?v-1:-1,x<w-1?v+1:-1,y>0?v-w:-1,y<h-1?v+w:-1]){
+      if(n>=0&&expanded[n]&&!mask[n]){mask[n]=1;queue[b++]=n;}
+    }
+  }
+  // 在主體 bounding box 裡保留被輪廓包住的白色部分（例如眼睛/空白色塊）。
+  // 只填封閉洞，不把外圍白紙恢復。
+  const exterior=new Uint8Array(N);a=0;b=0;
+  function start(v){if(!mask[v]&&!exterior[v]){exterior[v]=1;queue[b++]=v;}}
+  for(let x=0;x<w;x++){start(x);start((h-1)*w+x);}
+  for(let y=0;y<h;y++){start(y*w);start(y*w+w-1);}
+  while(a<b){
+    const v=queue[a++],x=v%w,y=(v/w)|0;
+    for(const n of [x>0?v-1:-1,x<w-1?v+1:-1,y>0?v-w:-1,y<h-1?v+w:-1]){
+      if(n>=0&&!mask[n]&&!exterior[n]){exterior[n]=1;queue[b++]=n;}
+    }
+  }
+  const out=document.createElement('canvas');out.width=w;out.height=h;
+  const o=out.getContext('2d'),im=o.createImageData(w,h);
+  for(let p=0;p<N;p++){
+    const v=p*4;
+    im.data[v]=d[v];im.data[v+1]=d[v+1];im.data[v+2]=d[v+2];
+    // 主體聯通遮罩內有墨線的像素 + 封閉空隙；其他透明。
+    im.data[v+3]=(mask[p] && ink[p]) || (!exterior[p] && !mask[p]) ? d[v+3]:0;
+  }
+  o.putImageData(im,0,0);
+  return trimTransparent(out);
+}
+
+function trimTransparent(canvas){
+  const w=canvas.width,h=canvas.height,im=canvas.getContext('2d').getImageData(0,0,w,h).data;
+  let x0=w,y0=h,x1=-1,y1=-1;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(im[(y*w+x)*4+3]>12){
+    x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);
+  }
+  if(x1<0)return canvas;
+  const pad=7; x0=Math.max(0,x0-pad);y0=Math.max(0,y0-pad);
+  x1=Math.min(w-1,x1+pad);y1=Math.min(h-1,y1+pad);
+  const out=document.createElement('canvas');out.width=x1-x0+1;out.height=y1-y0+1;
+  out.getContext('2d').drawImage(canvas,x0,y0,out.width,out.height,0,0,out.width,out.height);
+  return out;
+}
+
+function polygonCutout(source,points){
+  if(points.length<3) return null;
+  const out=document.createElement('canvas');out.width=source.width;out.height=source.height;
+  const o=out.getContext('2d');o.save();o.beginPath();
+  points.forEach(([x,y],i)=>i?o.lineTo(x,y):o.moveTo(x,y));
+  o.closePath();o.clip();o.drawImage(source,0,0);o.restore();
+  return trimTransparent(out);
+}
+
+function canvasBlob(canvas){return new Promise((resolve,reject)=>
+  canvas.toBlob(b=>b?resolve(b):reject(new Error('圖片處理失敗')),'image/webp',.92));}
+
+async function smartCutout(file,strength=120){
+  const bmp=await createImageBitmap(file);
+  const original=imgToCanvas(bmp);bmp.close?.();
+  let automatic;
+  try{automatic=autoArtworkCutout(original,strength);}catch(err){console.warn('Auto cutout failed',err);}
+  return new Promise(resolve=>{
+    const modal=$('cutoutModal'),preview=$('cutoutCanvas'),ctx2=preview.getContext('2d');
+    let mode=automatic?'auto':'trace';
+    let points=[], priorPoints=[], drawing=false, activePointer=null, traceResult=null;
+    const minStep=Math.max(1.5,Math.min(original.width,original.height)/500);
+    function modeButton(){
+      ['cutoutAuto','cutoutTrace','cutoutOriginal'].forEach(id=>$(id).classList.remove('on'));
+      $(({auto:'cutoutAuto',trace:'cutoutTrace',original:'cutoutOriginal'})[mode]).classList.add('on');
+    }
+    function redraw(){
+      // 描畫完成後直接展示真正的去背結果；按重新描邊可再畫一次。
+      const draw=mode==='auto'?(automatic||original):mode==='original'?original:
+        (traceResult&&!drawing?traceResult:original);
+      if(preview.width!==draw.width) preview.width=draw.width;
+      if(preview.height!==draw.height) preview.height=draw.height;
+      ctx2.clearRect(0,0,preview.width,preview.height);
+      ctx2.drawImage(draw,0,0);
+      if(mode==='trace'&&drawing&&points.length){
+        ctx2.save();
+        ctx2.strokeStyle='#0BA8E9';ctx2.lineWidth=Math.max(4,original.width/180);
+        ctx2.lineJoin='round';ctx2.lineCap='round';
+        ctx2.shadowColor='rgba(0,0,0,.55)';ctx2.shadowBlur=3;
+        ctx2.beginPath();
+        points.forEach(([x,y],i)=>i?ctx2.lineTo(x,y):ctx2.moveTo(x,y));
+        ctx2.stroke();ctx2.restore();
+      }
+      $('cutoutUndo').disabled=!(mode==='trace'&&(points.length||priorPoints.length));
+      $('cutoutHelp').textContent=mode==='trace'
+        ?drawing?'繼續按住畫筆，沿著主角邊緣畫一圈，放開後自動閉合。'
+          :traceResult?'描邊完成！棋盤格是已去除的背景。可直接上傳，或按「重新描邊」。'
+          :'🖊️ 用手指或滑鼠按住畫面，沿主角最外緣連續描一圈；放開就會自動閉合、立即預覽。'
+        :mode==='original'?'目前保留整張照片，沒有去背。'
+        :'棋盤格代表透明。若有多餘雜點或主角缺損，請改用「畫筆描邊」。';
+      modeButton();
+    }
+    function toImagePoint(e){
+      const r=preview.getBoundingClientRect();
+      return [Math.max(0,Math.min(original.width,(e.clientX-r.left)/r.width*original.width)),
+        Math.max(0,Math.min(original.height,(e.clientY-r.top)/r.height*original.height))];
+    }
+    function addPoint(e){
+      const p=toImagePoint(e),prev=points[points.length-1];
+      if(!prev||Math.hypot(p[0]-prev[0],p[1]-prev[1])>=minStep)points.push(p);
+    }
+    function startPen(e){
+      if(mode!=='trace'||drawing||!e.isPrimary)return;
+      e.preventDefault();
+      drawing=true;activePointer=e.pointerId;
+      priorPoints=points.slice();points=[];traceResult=null;
+      preview.setPointerCapture?.(e.pointerId);
+      addPoint(e);redraw();
+    }
+    function movePen(e){
+      if(!drawing||e.pointerId!==activePointer)return;
+      e.preventDefault();
+      // 支援有高頻筆跡事件的觸控筆與滑鼠。
+      const events=e.getCoalescedEvents?.()||[e];
+      for(const evt of events)addPoint(evt);
+      redraw();
+    }
+    function stopPen(e){
+      if(!drawing||e.pointerId!==activePointer)return;
+      e.preventDefault();addPoint(e);
+      drawing=false;activePointer=null;
+      try{preview.releasePointerCapture?.(e.pointerId);}catch{}
+      const length=points.reduce((total,p,i)=>i?total+Math.hypot(p[0]-points[i-1][0],p[1]-points[i-1][1]):0,0);
+      if(points.length>=3&&length>Math.min(original.width,original.height)*.12){
+        traceResult=polygonCutout(original,points);
+      }else{
+        points=priorPoints.slice();
+        traceResult=points.length>=3?polygonCutout(original,points):null;
+        $('cutoutHelp').textContent='描邊太短，請重新沿主角畫一整圈。';
+      }
+      redraw();
+    }
+    function cancelPen(e){
+      if(!drawing||e.pointerId!==activePointer)return;
+      drawing=false;activePointer=null;
+      try{preview.releasePointerCapture?.(e.pointerId);}catch{}
+      points=priorPoints.slice();
+      traceResult=points.length>=3?polygonCutout(original,points):null;
+      redraw();
+    }
+    function finish(value){
+      preview.removeEventListener('pointerdown',startPen);
+      preview.removeEventListener('pointermove',movePen);
+      preview.removeEventListener('pointerup',stopPen);
+      preview.removeEventListener('pointercancel',cancelPen);
+      $('cutoutAuto').onclick=$('cutoutTrace').onclick=$('cutoutUndo').onclick=null;
+      $('cutoutReset').onclick=$('cutoutOriginal').onclick=$('cutoutCancel').onclick=$('cutoutConfirm').onclick=null;
+      modal.classList.add('hidden');resolve(value);
+    }
+    preview.addEventListener('pointerdown',startPen);
+    preview.addEventListener('pointermove',movePen);
+    preview.addEventListener('pointerup',stopPen);
+    preview.addEventListener('pointercancel',cancelPen);
+    $('cutoutAuto').onclick=()=>{if(drawing)return;mode=automatic?'auto':'trace';redraw();};
+    $('cutoutTrace').onclick=()=>{if(drawing)return;mode='trace';redraw();};
+    $('cutoutOriginal').onclick=()=>{if(drawing)return;mode='original';redraw();};
+    $('cutoutUndo').onclick=()=>{
+      if(drawing)return;
+      points=priorPoints.slice();priorPoints=[];
+      traceResult=points.length>=3?polygonCutout(original,points):null;
+      mode='trace';redraw();
+    };
+    $('cutoutReset').onclick=()=>{if(drawing)return;points=[];priorPoints=[];traceResult=null;mode='trace';redraw();};
+    $('cutoutCancel').onclick=()=>finish(null);
+    $('cutoutConfirm').onclick=async()=>{
+      if(drawing){alert('請先放開畫筆，完成描邊。');return;}
+      if(mode==='trace'&&!traceResult){alert('請用畫筆沿主角輪廓描一整圈，放開後才可上傳。');return;}
+      $('cutoutConfirm').disabled=true;
+      try{
+        const result=mode==='trace'?traceResult:mode==='auto'?(automatic||original):original;
+        finish(await canvasBlob(result));
+      }catch(err){alert('去背失敗：'+err.message);}
+      finally{$('cutoutConfirm').disabled=false;}
+    };
+    modal.classList.remove('hidden');redraw();
+  });
+}
+
+/* ===== 刪除 / 清空 / 結束 ===== */
+async function deleteObject(id){
+  const o = state.objects.get(id);
+  if(!o) return;
+  if(!(state.isHost || o.owner_user_id === state.user.id)){ toast('只能刪除自己的作品'); return; }
+  if(!confirm(`刪除「${o.name}」嗎？`)) return;
+  try{
+    await sb.storage.from('drawings').remove([o.image_path]);
+    const { error } = await sb.from('objects').delete().eq('id', id);
+    if(error) throw error;
+    clearSelection();
+  }catch(e){ alert('刪除失敗：' + e.message); }
+}
+function clearSelection(){ state.selectedId = null; $('deleteFloating').style.display = 'none'; }
+
+async function clearRoom(){
+  if(!state.isHost || !confirm('確定清空共同世界的所有角色與食物？')) return;
+  const paths = [...state.objects.values()].map(o=>o.image_path).filter(Boolean);
+  if(paths.length) await sb.storage.from('drawings').remove(paths);
+  const { error } = await sb.from('objects').delete().eq('room_id', state.room.id);
+  if(error) alert(error.message); else toast('共同世界已清空');
+}
+async function endRoom(){
+  if(!state.isHost || !confirm('確定結束房間？結束後不能再上傳。')) return;
+  const { error } = await sb.from('rooms').update({ status:'ended', upload_enabled:false, locked:true }).eq('id', state.room.id);
+  if(error) alert(error.message);
+}
+
+/* ===== 永久伺服器世界時鐘 =====
+   Supabase 保存「世界絕對小時 + 伺服器時間錨點」。
+   沒有人在線時不需要任何房主持續寫入；下一位玩家進入時直接由 PostgreSQL now() 算出正確時間。 */
+
+function worldRate(){
+  const s=settings();
+  const dayMinutes=Math.max(1,+s.day_minutes||8);
+  const speed=Math.max(.05,+s.world_speed||1);
+  return (24/(dayMinutes*60))*speed; // 每真實秒推進多少世界小時
+}
+
+function effectiveWeather(day){
+  const s=settings();
+  if(!s.weather_enabled) return state.room?.weather || 'sunny';
+
+  // 自動天氣由「房間ID + 世界日」決定，所有玩家看到完全相同，
+  // 即使整天沒有人在線，也不需要房主替世界換天氣。
+  const list=['sunny','sunny','cloudy','rain','snow'];
+  const seed=`server-weather:${state.room?.id||GLOBAL_WORLD_CODE}:${Math.max(1,Math.floor(day||1))}`;
+  return list[Math.min(list.length-1,Math.floor(hash01(seed)*list.length))];
+}
+
+async function syncServerWorldClock(force=false){
+  if(!state.room) return;
+  const c=state.serverClock;
+  const nowPerf=performance.now();
+
+  if(c.syncing) return;
+  if(!force && nowPerf-c.lastSyncAt<15000) return;
+
+  c.syncing=true;
+  c.lastSyncAt=nowPerf;
+  try{
+    const {data,error}=await sb.rpc('get_world_clock',{p_room_id:state.room.id});
+    if(error) throw error;
+
+    const snap=Array.isArray(data)?data[0]:data;
+    if(!snap || !Number.isFinite(+snap.abs_hours)) throw new Error('伺服器沒有回傳有效世界時間');
+
+    c.absHours=+snap.abs_hours;
+    c.syncedPerf=performance.now();
+
+    state.lastWorldTime=+snap.hour;
+    state.room.world_time=+snap.hour;
+    state.room.world_day=+snap.day;
+
+    // 若剛好位於用餐時段，任何在線玩家都可以嘗試呼叫；
+    // process_meal 本身以「世界日:餐別」作唯一鍵，避免重複成長。
+    processMealIfNeeded(+snap.hour,+snap.day).catch(err=>{
+      if(!/permission|policy|not allowed/i.test(err?.message||'')) log('用餐同步失敗：'+err.message);
+    });
+  }finally{
+    c.syncing=false;
+  }
+}
+
+function maybeSyncServerClock(now){
+  const c=state.serverClock;
+  if(!state.room || c.syncing) return;
+  if(now-c.lastSyncAt>=15000){
+    syncServerWorldClock(false).catch(err=>{
+      log('伺服器校時失敗：'+err.message);
+      c.lastSyncAt=performance.now()-10000;
+    });
+  }
+}
+
+async function quickTime(h){
+  if(!state.isHost) return;
+  const {data,error}=await sb.rpc('set_world_clock_hour',{
+    p_room_id:state.room.id,
+    p_hour:+h
+  });
+  if(error){log('調整世界時間失敗：'+error.message);return;}
+  if(data && typeof data==='object') state.room={...state.room,...data};
+  await syncServerWorldClock(true);
+}
+
+async function processMealIfNeeded(hour,day){
+  if(!state.room || state.room.status!=='open') return;
+  const m=modeAt(hour);
+  if(!['breakfast','lunch','dinner'].includes(m.key)) return;
+
+  const key=`${Math.max(1,Math.floor(day||1))}:${m.key}`;
+  if(state.lastMealAttempt===key) return;
+  state.lastMealAttempt=key;
+
+  const {data,error}=await sb.rpc('process_meal',{
+    p_room_id:state.room.id,
+    p_meal_key:key
+  });
+  if(error){
+    // 失敗時允許下次校時再次嘗試，不永久跳過這餐。
+    state.lastMealAttempt='';
+    throw error;
+  }
+
+  if(data?.processed){
+    const paths=data.removed_paths||[];
+    if(paths.length) await sb.storage.from('drawings').remove(paths);
+    if((data.fed_ids||[]).length) toast(`${m.label}時間！大家吃飽又長大了 🌟`,3200);
+    else toast(`${m.label}時間～還沒有食物可以吃`,2300);
+  }
+}
+
+function displayClock(){
+  if(!state.room) return {hour:9,day:1};
+
+  const c=state.serverClock;
+  if(Number.isFinite(c.absHours)){
+    const elapsed=(performance.now()-c.syncedPerf)/1000;
+    const abs=Math.max(0,c.absHours+elapsed*worldRate());
+    const day=Math.floor(abs/24)+1;
+    const hour=((abs%24)+24)%24;
+    return {hour,day,absHours:abs};
+  }
+
+  // SQL 尚未安裝時的安全 fallback，只供錯誤畫面之前短暫顯示。
+  return {hour:+state.room.world_time||9,day:+state.room.world_day||1};
+}
+
+/* ===== Canvas / 相機 ===== */
+const canvas = $('world');
+const ctx = canvas.getContext('2d');
+let DPR = 1;
+
+function resizeCanvas(){
+  const r = $('stageWrap').getBoundingClientRect();
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.max(200, Math.floor(r.width));
+  const h = Math.max(200, Math.floor(r.height));
+  canvas.width = w * DPR;
+  canvas.height = h * DPR;
+  cam.vw = w; cam.vh = h;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.imageSmoothingQuality = 'high';
+}
+
+function fitIsland(){
+  // 這是地形視角，不是把一塊菱形島塞進畫面。
+  // 使用與螢幕比例相適應的倍率，所有可見位置均有草地。
+  const mapSpanX = ISLE * 2 * KX;
+  const mapSpanY = ISLE * 2 * KY;
+  fitZoom = Math.max(.27, Math.min(.9,
+    Math.max(cam.vw / (mapSpanX * .68), cam.vh / (mapSpanY * .9))));
+  cam.zoom = fitZoom;
+  cam.cx = 0;
+  cam.cy = ISLE * KY;
+  viewIndex = 0;
+  setZoneChip(null);
+}
+
+const VIEWS = [
+  { name:'草原全景', wx:ISLE/2,  wy:ISLE/2,  z:1.00 },
+  { name:'草原', wx:560*WS,  wy:340*WS,  z:3.2 },
+  { name:'河川', wx:380*WS,  wy:riverCenter(380*WS),  z:2.2 },
+  { name:'空中', wx:ISLE/2,  wy:200*WS,  z:2.6 }
+];
+
+function applyView(i){
+  if(i === 0){ fitIsland(); return; }
+  const v = VIEWS[i];
+  cam.zoom = fitZoom * v.z;
+  cam.cx = isoX(v.wx, v.wy);
+  cam.cy = isoY(v.wx, v.wy, 0) - 30;
+  viewIndex = i;
+}
+function setZoneChip(zone){
+  document.querySelectorAll('.zoneChip').forEach(c=>c.classList.toggle('on', c.dataset.zone === zone));
+}
+function zoomAt(factor, sx, sy){
+  const nz = Math.max(fitZoom * .55, Math.min(fitZoom * 7, cam.zoom * factor));
+  const px = sx === undefined ? cam.vw/2 : sx;
+  const py = sy === undefined ? cam.vh/2 : sy;
+  const wx = (px - cam.vw/2) / cam.zoom + cam.cx;
+  const wy = (py - cam.vh/2) / cam.zoom + cam.cy;
+  cam.zoom = nz;
+  cam.cx = wx - (px - cam.vw/2) / cam.zoom;
+  cam.cy = wy - (py - cam.vh/2) / cam.zoom;
+}
+function gotoMine(silent){
+  const mine = [...state.objects.values()].filter(o=>o.owner_user_id === state.user?.id);
+  if(!mine.length){ if(!silent) toast('你還沒有上傳作品'); return; }
+  const last = mine[mine.length - 1];
+  cam.zoom = Math.max(fitZoom * 3.4, cam.zoom);
+  cam.cx = isoX(last.wx, last.wy);
+  cam.cy = isoY(last.wx, last.wy, 0) - 40;
+  state.selectedId = last.id;
+  if(!silent) toast(`找到「${last.name}」了 🎯`);
+}
+
+/* ===== 非洲草原：滿版、無邊界、連續地形 ===== */
+function drawBackdrop(W,H,night){
+  // 整個視窗都是連續草原，不畫天空、地平線、島嶼外緣或漂浮平台。
+  const g=ctx.createLinearGradient(0,0,W,H);
+  if(night){
+    g.addColorStop(0,'#4E786F');
+    g.addColorStop(.48,'#527D70');
+    g.addColorStop(1,'#466E65');
+  }else{
+    g.addColorStop(0,'#BFEA97');
+    g.addColorStop(.46,'#AEE58B');
+    g.addColorStop(1,'#98D77F');
+  }
+  ctx.fillStyle=g;
+  ctx.fillRect(0,0,W,H);
+
+  // 只放非常淡的童話光斑，仍然視為地表紋理，不形成天空感。
+  ctx.save();
+  for(let i=0;i<18;i++){
+    const x=hash01('groundGlowX'+i)*W;
+    const y=hash01('groundGlowY'+i)*H;
+    const r=18+hash01('groundGlowR'+i)*46;
+    ctx.globalAlpha=night ? .035 : .055;
+    ctx.fillStyle=i%3===0 ? '#FFE3EF' : (i%3===1 ? '#FFF2B8' : '#E7FFD8');
+    ctx.beginPath();
+    ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  // 少量小光點，像草地上的露珠，而不是星空。
+  if(!night){
+    for(let i=0;i<20;i++){
+      const x=hash01('dewX'+i)*W;
+      const y=hash01('dewY'+i)*H;
+      const r=1+hash01('dewR'+i)*1.5;
+      ctx.globalAlpha=.22;
+      ctx.fillStyle='#FFFFFF';
+      ctx.beginPath();
+      ctx.arc(x,y,r,0,Math.PI*2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+function tracePoly(pts){ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();}
+function drawIslandShadow(){}
+function drawIslandSides(){}
+const BIOME_COLORS = {
+  dry:['#F8DCA4','#F2CB91','#FFE8B8'],
+  grass:['#AAE987','#C2F19A','#90DC80'],
+  wooded:['#7FD38F','#9BE39C','#6FCB8A'],
+  bush:['#E3ED9A','#D0E98C','#EFF2B1'],
+  rock:['#D8C6EE','#EADBF5','#C8B8E5'],
+  wet:['#8BE4B6','#A7ECC7','#76D8AF']
+};
+// 分段連續場域，沒有塊狀邊界，左右拖動仍能生成相同景物。
+function biomeAt(x,y){
+  const shore=Math.abs(y-riverCenter(x));
+  if(shore<riverHalfWidth(x)+105*WS)return 'wet';
+  const n=.44*Math.sin(x/(490*WS)+.4)+.30*Math.cos(y/(390*WS)-.5)+
+          .19*Math.sin((x+y)/(240*WS)+.8)+.16*Math.cos((x-y)/(170*WS));
+  if(n>.52)return 'wooded';
+  if(n>.19)return 'grass';
+  if(n<-.54)return 'rock';
+  if(n<-.22)return 'dry';
+  return 'bush';
+}
+function visibleGroundBounds(margin=0){
+  // 逆等角投影，從四個角求出實際畫面所需的世界座標。
+  const out=[];
+  for(const px of [-margin,cam.vw+margin])for(const py of [-margin,cam.vh+margin]){
+    const ix=(px-cam.vw/2)/cam.zoom+cam.cx;
+    const iy=(py-cam.vh/2)/cam.zoom+cam.cy;
+    out.push([(ix/KX+iy/KY)/2, (iy/KY-ix/KX)/2]);
+  }
+  return {x0:Math.min(...out.map(p=>p[0])),x1:Math.max(...out.map(p=>p[0])),
+    y0:Math.min(...out.map(p=>p[1])),y1:Math.max(...out.map(p=>p[1]))};
+}
+function groundEllipse(x,y,rx,ry,color,angle=0){
+  const p=toScreen(x,y,0);
+  const a=rx*cam.zoom*KX,b=ry*cam.zoom*KX;
+  ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(p.x,p.y,Math.max(1,a),Math.max(1,b),angle,0,Math.PI*2);ctx.fill();
+}
+function drawIslandTop(W,H,night,now){
+  const bounds=visibleGroundBounds(500);
+  const tile=220*WS;
+  // 每格畫出環境底色，色彩取決於草原地貌；覆蓋到畫面四角。
+  const xStart=Math.floor(bounds.x0/tile)-2,xEnd=Math.ceil(bounds.x1/tile)+2;
+  const yStart=Math.floor(bounds.y0/tile)-2,yEnd=Math.ceil(bounds.y1/tile)+2;
+  // 大型柔和地貌暈染，避免重複方格圖案。
+  for(let gx=xStart;gx<=xEnd;gx++)for(let gy=yStart;gy<=yEnd;gy++){
+    const x=(gx+.5)*tile,y=(gy+.5)*tile;
+    const biome=biomeAt(x,y),palette=BIOME_COLORS[biome];
+    const h=hash01('ground'+gx+','+gy);
+    ctx.globalAlpha=night?.19:.35;
+    groundEllipse(x+(h-.5)*tile*.25,y+(hash01('gy'+gx+','+gy)-.5)*tile*.25,
+      tile*(.54+h*.18),tile*(.54+h*.18),palette[Math.floor(h*3)],-.46);
+  }
+  ctx.globalAlpha=1;
+  // 常年流動的河川：沿世界 x 軸延伸到鏡頭外，非原本的筆直色帶。
+  const x0=bounds.x0-300*WS,x1=bounds.x1+300*WS;
+  const steps=Math.max(22,Math.min(110,Math.ceil((x1-x0)/(55*WS))));
+  const bankA=[],bankB=[];
+  for(let i=0;i<=steps;i++){
+    const x=x0+(x1-x0)*i/steps,center=riverCenter(x),r=riverHalfWidth(x);
+    bankA.push(toScreen(x,center-r,0));bankB.push(toScreen(x,center+r,0));
+  }
+  ctx.save();ctx.lineJoin='round';
+  tracePoly([...bankA,...bankB.reverse()]);
+  ctx.fillStyle=night?'#567FB4':'#5CCEF4';ctx.fill();
+  ctx.strokeStyle=night?'rgba(188,216,255,.50)':'rgba(255,245,192,.95)';
+  ctx.lineWidth=Math.max(2,9*WS*cam.zoom);ctx.stroke();
+  // 水面中間柔和反光
+  ctx.strokeStyle=night?'rgba(210,226,255,.28)':'rgba(255,255,255,.76)';
+  ctx.lineWidth=Math.max(1,13*cam.zoom);
+  ctx.beginPath();
+  for(let i=0;i<=steps;i++){
+    const x=x0+(x1-x0)*i/steps,p=toScreen(x,riverCenter(x),0);
+    if(i)ctx.lineTo(p.x,p.y);else ctx.moveTo(p.x,p.y);
+  }
+  ctx.stroke();ctx.restore();
+  // 土色動物小徑只在草原上，沿用自然曲線而非人工直線。
+  ctx.save();ctx.strokeStyle=night?'rgba(188,166,117,.12)':'rgba(229,200,145,.34)';
+  ctx.lineWidth=Math.max(2,18*WS*cam.zoom);ctx.lineCap='round';
+  for(let k=0;k<2;k++){
+    ctx.beginPath();
+    for(let i=0;i<=55;i++){
+      const x=x0+(x1-x0)*i/55,y=WS*(220+210*k+48*Math.sin(x/(340*WS)+k*2));
+      const p=toScreen(x,y,0);
+      if(i)ctx.lineTo(p.x,p.y);else ctx.moveTo(p.x,p.y);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+// 在世界座標中重複生成稀樹、猴麵包樹、灌叢、巨岩、白蟻丘、草叢。
+// 僅渲染畫面附近的格子，避免無限地圖造成效能問題。
+function drawSavannaDetails(now,night){
+  const bounds=visibleGroundBounds(250);
+  const grid=95*WS;
+  const x0=Math.floor(bounds.x0/grid)-1,x1=Math.ceil(bounds.x1/grid)+1;
+  const y0=Math.floor(bounds.y0/grid)-1,y1=Math.ceil(bounds.y1/grid)+1;
+  const items=[];
+  for(let ix=x0;ix<=x1;ix++)for(let iy=y0;iy<=y1;iy++){
+    const h=hash01('savanna'+ix+':'+iy),density=hash01('savan2'+ix+':'+iy);
+    const x=(ix+.15+.7*hash01('ax'+ix+','+iy))*grid;
+    const y=(iy+.15+.7*hash01('ay'+ix+','+iy))*grid;
+    const biome=biomeAt(x,y);
+    if(Math.abs(y-riverCenter(x))<riverHalfWidth(x)+18*WS)continue;
+    const keep=biome==='wooded'?.23:biome==='grass'?.17:biome==='wet'?.22:biome==='dry'?.13:.16;
+    if(h>keep)continue;
+    let type='grass';
+    if(biome==='rock')type=density<.65?'rock':'termite';
+    else if(biome==='wooded')type=density<.64?'acacia':density<.79?'baobab':'bush';
+    else if(biome==='wet')type=density<.6?'bush':'reed';
+    else if(biome==='dry')type=density<.45?'termite':density<.7?'rock':'grass';
+    else type=density<.23?'acacia':density<.32?'baobab':density<.65?'bush':'grass';
+    items.push({type,wx:x,wy:y,s:.75+hash01('size'+ix+','+iy)*.65,shade:hash01('tone'+ix+','+iy)});
+  }
+  return items;
+}
+function drawSavannaFeature(d,night,now){
+  const p=toScreen(d.wx,d.wy,0),z=cam.zoom*d.s*WS;
+  if(p.x<-210||p.x>cam.vw+210||p.y<-250||p.y>cam.vh+190)return;
+  ctx.save();
+  ctx.globalAlpha=night?.16:.14;ctx.fillStyle=night?'#263c52':'#637d63';
+  ctx.beginPath();ctx.ellipse(p.x,p.y+1*z,22*z,7*z,-.16,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+
+  if(d.type==='acacia'){
+    ctx.strokeStyle=night?'#6F6175':'#9B765C';ctx.lineWidth=Math.max(2,7*z);ctx.lineCap='round';ctx.lineJoin='round';
+    ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+1*z,p.y-54*z);ctx.stroke();
+    ctx.lineWidth=Math.max(1,4*z);ctx.beginPath();ctx.moveTo(p.x,p.y-42*z);ctx.lineTo(p.x-24*z,p.y-59*z);ctx.moveTo(p.x+1*z,p.y-44*z);ctx.lineTo(p.x+26*z,p.y-59*z);ctx.stroke();
+    const crown=night?'#55797B':d.shade>.5?'#71D98C':'#85E58E';ctx.fillStyle=crown;
+    for(const [dx,dy,rx,ry] of [[-29,-67,28,17],[0,-73,38,20],[31,-67,28,17]]){ctx.beginPath();ctx.ellipse(p.x+dx*z,p.y+dy*z,rx*z,ry*z,0,0,Math.PI*2);ctx.fill();}
+    ctx.fillStyle=night?'#698A88':'#B8F293';ctx.beginPath();ctx.ellipse(p.x-7*z,p.y-80*z,29*z,9*z,0,0,Math.PI*2);ctx.fill();
+    if(!night){ctx.fillStyle='#FFD2E5';for(const [dx,dy] of [[-28,-69],[10,-77],[31,-66]]){ctx.beginPath();ctx.arc(p.x+dx*z,p.y+dy*z,2.6*z,0,Math.PI*2);ctx.fill();}}
+  }else if(d.type==='baobab'){
+    const trunk=night?'#786A77':'#B9977E';ctx.fillStyle=trunk;ctx.beginPath();ctx.moveTo(p.x-15*z,p.y);
+    ctx.bezierCurveTo(p.x-19*z,p.y-25*z,p.x-18*z,p.y-61*z,p.x-8*z,p.y-77*z);ctx.bezierCurveTo(p.x-2*z,p.y-86*z,p.x+9*z,p.y-84*z,p.x+13*z,p.y-72*z);ctx.bezierCurveTo(p.x+20*z,p.y-46*z,p.x+18*z,p.y-18*z,p.x+15*z,p.y);ctx.closePath();ctx.fill();
+    ctx.strokeStyle=trunk;ctx.lineWidth=Math.max(2,6*z);ctx.lineCap='round';ctx.beginPath();ctx.moveTo(p.x-2*z,p.y-73*z);ctx.lineTo(p.x-26*z,p.y-93*z);ctx.moveTo(p.x+4*z,p.y-73*z);ctx.lineTo(p.x+29*z,p.y-91*z);ctx.stroke();
+    ctx.fillStyle=night?'#527A75':'#79DC91';for(const [dx,dy,r] of [[-27,-96,17],[0,-106,21],[27,-94,18],[-7,-91,19]]){ctx.beginPath();ctx.arc(p.x+dx*z,p.y+dy*z,r*z,0,Math.PI*2);ctx.fill();}
+    if(!night){ctx.fillStyle='#FFF0A8';ctx.beginPath();ctx.arc(p.x+9*z,p.y-108*z,3*z,0,Math.PI*2);ctx.fill();}
+  }else if(d.type==='rock'){
+    const grad=ctx.createLinearGradient(p.x,p.y-28*z,p.x,p.y);grad.addColorStop(0,night?'#A59ABB':'#EADCF8');grad.addColorStop(1,night?'#746C91':'#C8B5E5');ctx.fillStyle=grad;
+    ctx.beginPath();ctx.moveTo(p.x-24*z,p.y);ctx.quadraticCurveTo(p.x-25*z,p.y-17*z,p.x-10*z,p.y-25*z);ctx.quadraticCurveTo(p.x+2*z,p.y-34*z,p.x+15*z,p.y-23*z);ctx.quadraticCurveTo(p.x+29*z,p.y-17*z,p.x+23*z,p.y);ctx.closePath();ctx.fill();
+    ctx.globalAlpha=.55;ctx.fillStyle=night?'#C1B9D3':'#FFFFFF';ctx.beginPath();ctx.ellipse(p.x-6*z,p.y-22*z,9*z,4*z,-.25,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+  }else if(d.type==='termite'){
+    const g=ctx.createLinearGradient(p.x,p.y-42*z,p.x,p.y);g.addColorStop(0,night?'#B98888':'#FFC99A');g.addColorStop(1,night?'#8D6F7C':'#E8A97C');ctx.fillStyle=g;
+    ctx.beginPath();ctx.moveTo(p.x-14*z,p.y);ctx.bezierCurveTo(p.x-11*z,p.y-18*z,p.x-7*z,p.y-37*z,p.x,p.y-42*z);ctx.bezierCurveTo(p.x+9*z,p.y-34*z,p.x+12*z,p.y-15*z,p.x+15*z,p.y);ctx.closePath();ctx.fill();
+    ctx.fillStyle='rgba(108,69,70,.18)';for(const [dx,dy,r] of [[-3,-16,2],[4,-27,1.8],[6,-11,1.5]]){ctx.beginPath();ctx.arc(p.x+dx*z,p.y+dy*z,r*z,0,Math.PI*2);ctx.fill();}
+  }else if(d.type==='bush'){
+    const col=night?'#4D7771':d.shade>.5?'#70DA91':'#8BE39A';ctx.fillStyle=col;for(const [dx,dy,r] of [[-15,-9,15],[11,-10,17],[-1,-20,19]]){ctx.beginPath();ctx.arc(p.x+dx*z,p.y+dy*z,r*z,0,Math.PI*2);ctx.fill();}
+    ctx.globalAlpha=.35;ctx.fillStyle='#FFFFFF';ctx.beginPath();ctx.ellipse(p.x-7*z,p.y-25*z,8*z,4*z,-.2,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+  }else if(d.type==='reed'){
+    ctx.strokeStyle=night?'#69A89A':'#65CBA2';ctx.lineWidth=Math.max(1,2.6*z);ctx.lineCap='round';
+    for(let j=-3;j<=3;j++){const h=(16+8*hash01('fairyreed'+j+d.wx))*z;ctx.beginPath();ctx.moveTo(p.x+j*4*z,p.y);ctx.quadraticCurveTo(p.x+(j*4-5)*z,p.y-h*.55,p.x+(j*4-2)*z,p.y-h);ctx.stroke();if(j%2===0){ctx.fillStyle=night?'#96B7A8':'#D7E89A';ctx.beginPath();ctx.ellipse(p.x+(j*4-2)*z,p.y-h,2.2*z,5*z,-.3,0,Math.PI*2);ctx.fill();}}
+  }else{
+    ctx.strokeStyle=night?'#7CA67A':d.shade>.5?'#7BD36F':'#9BE47C';ctx.lineWidth=Math.max(1,2.4*z);ctx.lineCap='round';
+    for(let j=-3;j<=3;j++){const hh=(8+9*hash01('fairyblade'+j+d.wx))*z;ctx.beginPath();ctx.moveTo(p.x+j*3*z,p.y);ctx.quadraticCurveTo(p.x+(j*3-3)*z,p.y-hh*.55,p.x+(j*3-1)*z,p.y-hh);ctx.stroke();}
+  }
+  if(!night&&(d.type==='grass'||d.type==='bush'||d.type==='reed')&&d.shade>.55){
+    const flowers=[['#FF9FC5',-15,-4],['#FFF0A0',13,-7],['#BCA8FF',2,-11]];
+    for(const [col,dx,dy] of flowers){if(hash01(col+d.wx+d.wy)<.42)continue;const fx=p.x+dx*z,fy=p.y+dy*z,rr=Math.max(1.2,2.2*z);ctx.fillStyle=col;for(let k=0;k<5;k++){const a=k*Math.PI*2/5;ctx.beginPath();ctx.arc(fx+Math.cos(a)*rr*1.25,fy+Math.sin(a)*rr*1.25,rr*.75,0,Math.PI*2);ctx.fill();}ctx.fillStyle='#FFF8D3';ctx.beginPath();ctx.arc(fx,fy,rr*.6,0,Math.PI*2);ctx.fill();}
+  }
+  ctx.restore();
+}
+
+/* ===== 物件移動與繪製 ===== */
+function updateObjectMotion(o,dt,night){
+  if(o.kind==='food')return;
+  // 不設移動範圍與邊界反彈，僅由環境與習性影響方向。
+  if(o.nextWander===undefined)o.nextWander=0;
+  o.nextWander-=dt;
+  const speed=KIND_SPEED[o.kind]||40;
+  if(o.nextWander<=0){
+    o.wanderAngle=(o.wanderAngle??Math.atan2(o.vy,o.vx))+(hash01(o.id+':'+Math.floor(performance.now()/1800))-.5)*1.7;
+    o.nextWander=2+hash01(o.id+'wander'+Math.floor(performance.now()/1000))*4;
+  }
+  let desired=o.wanderAngle;
+  if(o.kind==='fish'){
+    // 河流無限向兩側延伸。魚會順水或逆水巡游，並柔和地回到水道中央。
+    const center=riverCenter(o.wx),half=riverHalfWidth(o.wx);
+    const direction=Math.cos(desired)>=0?1:-1;
+    desired=Math.atan2((riverCenter(o.wx+direction*40*WS)-center)*.6-(o.wy-center)*.8,
+      direction*70*WS);
+    if(Math.abs(o.wy-center)>half*.75)desired=Math.atan2((center-o.wy)*2,direction*40*WS);
+  }else if(o.kind==='reptile'){
+    // 偏好河岸、岩石、灌叢，但允許自由探索全部陸地。
+    const preferred=riverCenter(o.wx)-WS*(160+180*hash01(o.id));
+    desired=Math.atan2(Math.sin(desired)*100+(preferred-o.wy)*.08,Math.cos(desired)*100);
+  }else if(o.kind==='land'){
+    // 草原動物偏好開闊草地；靠近河流時傾向停留在岸邊而非跑到河中。
+    const center=riverCenter(o.wx),diff=o.wy-center;
+    if(Math.abs(diff)<riverHalfWidth(o.wx)+25*WS)
+      desired=Math.atan2(Math.sin(desired)*80+(diff<0?-1:1)*140,Math.cos(desired)*80);
+  }
+  const cur=Math.atan2(o.vy||0,o.vx||1);
+  const delta=Math.atan2(Math.sin(desired-cur),Math.cos(desired-cur));
+  const angle=cur+Math.max(-dt*.55,Math.min(dt*.55,delta));
+  const pace=night&&o.kind!=='bird'?.3:1;
+  o.vx=Math.cos(angle)*speed*pace;o.vy=Math.sin(angle)*speed*pace;
+  o.wx+=o.vx*dt;o.wy+=o.vy*dt;
+  if(o.kind==='bird'){
+    o.wz=(HABITATS.bird.z0 + (Math.sin(performance.now()/1800+o.phase)+1)*.5*(HABITATS.bird.z1-HABITATS.bird.z0));
+  }
+}
+
+let lastFrame = performance.now();
+
+function drawEntities(now, night){
+  const dt = Math.min(.05, (now - lastFrame) / 1000);
+  lastFrame = now;
+
+  const birds = [];
+  for(const o of state.objects.values()){
+    updateObjectMotion(o, dt, night);
+    if(o.kind === 'bird') birds.push(o);
+  }
+
+  const items = [];
+  for(const d of drawSavannaDetails(now,night)){
+    items.push({depth:d.wx+d.wy,fn:()=>drawSavannaFeature(d,night,now)});
+  }
+  for(const o of state.objects.values()){
+    if(o.kind === 'bird') continue;
+    items.push({ depth:o.wx + o.wy, fn:()=>drawObject(o, night, now, false) });
+  }
+  items.sort((a,b)=> a.depth - b.depth);
+  for(const it of items) it.fn();
+
+  birds.sort((a,b)=> (b.wz||0) - (a.wz||0));
+  for(const o of birds) drawObject(o, night, now, true);
+}
+
+function drawObject(o, night, now, isBird){
+  const rec=state.images.get(o.id);if(!rec?.img){o._box=null;return;}const img=rec.img;
+  const groundPt=toScreen(o.wx,o.wy,0),bodyPt=toScreen(o.wx,o.wy,o.wz);
+  const base=(KIND_BASE[o.kind]||130),gs=growthScale(o);
+  const growAge=o.growPulse?now-o.growPulse:99999;
+  const pulse=growAge<1300?(1+Math.sin(growAge/1300*Math.PI)*.20):1;
+  const ww=base*gs*pulse*cam.zoom,hh=ww*(img.naturalHeight/img.naturalWidth);
+
+  // 依角色類型加入輕量動畫，不改世界座標與多人同步。
+  let bob=0,tilt=0,squashX=1,squashY=1;
+  const moving=Math.hypot(o.vx||0,o.vy||0)>2;
+  if(o.kind==='bird'){
+    bob=Math.sin(now/430+o.phase)*12*cam.zoom;
+    tilt=Math.sin(now/360+o.phase)*.045;
+  }else if(o.kind==='fish'){
+    bob=Math.sin(now/260+o.phase)*4.5*cam.zoom;
+    tilt=Math.sin(now/210+o.phase)*.055;
+    squashX=1+Math.sin(now/190+o.phase)*.025;
+  }else if(o.kind==='land'&&moving&&!night){
+    const hop=Math.abs(Math.sin(now/150+o.phase));bob=-hop*6.5*cam.zoom;
+    squashX=1+(1-hop)*.025;squashY=1-(1-hop)*.025;
+  }else if(o.kind==='reptile'&&moving&&!night){
+    bob=-Math.abs(Math.sin(now/230+o.phase))*2.4*cam.zoom;
+    tilt=Math.sin(now/270+o.phase)*.035;
+  }else if(o.kind==='food'){
+    bob=Math.sin(now/900+o.phase)*1.8*cam.zoom;
+  }
+  if(night&&o.kind!=='bird'&&o.kind!=='food'){bob*=.3;tilt*=.25;}
+  const bx=bodyPt.x,by=bodyPt.y+bob;
+
+  ctx.fillStyle=isBird?'rgba(69,78,89,.10)':'rgba(67,82,65,.18)';ctx.beginPath();
+  ctx.ellipse(groundPt.x,groundPt.y+2*cam.zoom,ww*(isBird?.20:.32),ww*(isBird?.08:.12),0,0,Math.PI*2);ctx.fill();
+
+  ctx.save();ctx.translate(bx,by);ctx.rotate(tilt);
+  const face=o.vx<0?-1:1;ctx.scale(face*squashX,squashY);
+  ctx.drawImage(img,-ww/2,-hh,ww,hh);ctx.restore();
+
+  o._box={x:bx-ww/2,y:by-hh,w:ww,h:hh};
+
+  // 吃飽長大：短暫跳出愛心與星星。
+  if(growAge<1700&&o.kind!=='food'){
+    const t=growAge/1700;
+    ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.globalAlpha=Math.max(0,1-t);
+    const icons=['💗','⭐','✨','💛'];
+    for(let i=0;i<6;i++){
+      const a=-Math.PI*.85+(Math.PI*1.7)*(i/5),dist=(18+46*t)*cam.zoom;
+      const px=bx+Math.cos(a+o.phase*.12)*dist,py=by-hh*.72+Math.sin(a)*dist-18*t*cam.zoom;
+      ctx.font=`${Math.max(11,16*cam.zoom)}px sans-serif`;ctx.fillText(icons[i%icons.length],px,py);
+    }
+    ctx.restore();
+  }
+
+  if(night&&o.kind!=='food'){
+    ctx.font=`bold ${Math.max(11,20*cam.zoom*1.4)}px sans-serif`;ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.fillText('💤',bx+ww*.24,by-hh*.86+Math.sin(now/450+o.phase)*5);
+  }
+  const s=settings();
+  if(s.show_names&&o.kind!=='food'){
+    const fs=Math.max(9,13*Math.max(.7,cam.zoom*1.35));ctx.font=`800 ${fs}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    const tw=ctx.measureText(o.name).width+fs*1.5;ctx.fillStyle='rgba(255,250,253,.95)';roundRect(ctx,bx-tw/2,by+5*cam.zoom,tw,fs*1.75,fs*.88);ctx.fill();
+    ctx.strokeStyle='rgba(103,78,119,.08)';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle='#594B65';ctx.fillText(o.name,bx,by+5*cam.zoom+fs*.90);
+  }
+}
+
+function roundRect(c, x, y, w, h, r){
+  c.beginPath();
+  c.moveTo(x+r, y);
+  c.arcTo(x+w, y, x+w, y+h, r);
+  c.arcTo(x+w, y+h, x, y+h, r);
+  c.arcTo(x, y+h, x, y, r);
+  c.arcTo(x, y, x+w, y, r);
+  c.closePath();
+}
+
+/* ===== 天氣 / HUD ===== */
+function drawWeather(W,H,now,day){
+  if(!state.room)return;const w=effectiveWeather(day);ctx.save();
+  if(w==='sunny'){
+    ctx.globalAlpha=.22;for(let i=0;i<18;i++){const x=(hash01('sunSparkX'+i)*W+Math.sin(now/1100+i)*10+W)%W,y=hash01('sunSparkY'+i)*H*.62,r=1.8+hash01('sunSparkR'+i)*2.6;ctx.fillStyle=i%2?'#FFF7C8':'#FFFFFF';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();}
+  }else if(w==='rain'){
+    ctx.strokeStyle='rgba(88,160,214,.43)';ctx.lineWidth=1.8;ctx.lineCap='round';for(let i=0;i<70;i++){const x=(hash01('rx'+i)*W+now*.07)%W,y=(hash01('ry'+i)*H+now*.17)%H;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-3,y+12);ctx.stroke();}ctx.fillStyle='rgba(205,232,255,.08)';ctx.fillRect(0,0,W,H);
+  }else if(w==='snow'){
+    for(let i=0;i<58;i++){const x=(hash01('sx'+i)*W+Math.sin(now/760+i)*16+W)%W,y=(hash01('sy'+i)*H+now*.023*(1+hash01('sp'+i)))%H,r=2+hash01('sr'+i)*3.2;ctx.fillStyle=i%4===0?'rgba(255,232,246,.92)':'rgba(255,255,255,.92)';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();}
+  }else if(w==='cloudy'){
+    ctx.fillStyle='rgba(137,143,176,.07)';ctx.fillRect(0,0,W,H);for(let i=0;i<6;i++){const x=(hash01('cloudx'+i)*W+now*.004*(i+1))%(W+180)-90,y=35+hash01('cloudy'+i)*H*.32;ctx.globalAlpha=.18;ctx.fillStyle='#FFFFFF';ctx.beginPath();ctx.ellipse(x,y,42,18,0,0,Math.PI*2);ctx.ellipse(x+30,y+3,34,15,0,0,Math.PI*2);ctx.ellipse(x-28,y+5,29,13,0,0,Math.PI*2);ctx.fill();}
+  }
+  ctx.restore();
+}
+
+function updateHUD(hour,day){
+  $('timePill').textContent=`${sleepMode(hour)?'🌙':'☀️'} ${fmtHour(hour)}`;
+  $('weatherPill').textContent=`${weatherLabel(effectiveWeather(day))} · ${seasonFor(day)}`;
+  $('weatherPill').style.display='block';
+}
+
+function positionDeleteButton(){
+  const o = state.selectedId && state.objects.get(state.selectedId);
+  const b = $('deleteFloating');
+  if(!o?._box){ b.style.display = 'none'; return; }
+  if(!(state.isHost || o.owner_user_id === state.user?.id)){ b.style.display = 'none'; return; }
+  const x = o._box.x + o._box.w/2, y = o._box.y;
+  if(x < -80 || x > cam.vw + 80 || y < -80 || y > cam.vh + 80){ b.style.display = 'none'; return; }
+  b.style.display = 'block';
+  b.style.left = Math.max(8, Math.min(cam.vw - 92, x - 42)) + 'px';
+  b.style.top = Math.max(8, y - 44) + 'px';
+}
+
+/* ===== 主迴圈 ===== */
+function drawWorld(now){
+  const W = cam.vw, H = cam.vh;
+  if(W <= 0 || H <= 0) return;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  const { hour, day } = displayClock();
+  const night = sleepMode(hour);
+
+  drawBackdrop(W, H, night, now);
+  drawIslandShadow(night);
+  drawIslandSides(night);
+  drawIslandTop(W, H, night, now);
+  drawEntities(now, night);
+  drawWeather(W, H, now, day);
+  updateHUD(hour, day);
+  positionDeleteButton();
+}
+
+function animation(now){
+  if(state.room){
+    maybeSyncServerClock(now);
+    if(state.displayMode){
+      const t = now * 0.00006;
+      cam.zoom = fitZoom * 2.2;
+      cam.cx = Math.sin(t) * 240 * WS;
+      cam.cy = isoY(ISLE/2, ISLE/2, 0) - 40 + Math.cos(t*1.3) * 50 * WS;
+    }
+    try { drawWorld(now); }
+    catch(err) {
+      if(!animation.lastErrorAt || now-animation.lastErrorAt>5000){
+        console.error('地圖繪製失敗：',err);
+        animation.lastErrorAt=now;
+      }
+    }
+  }
+  requestAnimationFrame(animation);
+}
+requestAnimationFrame(animation);
+
+/* ===== 指標操作 ===== */
+const ptrs = new Map();
+let dragStart = null, dragged = false, pinch = null;
+const ptrValues = ()=>[...ptrs.values()];
+
+canvas.addEventListener('pointerdown', e=>{
+  if(!state.room) return;
+  ptrs.set(e.pointerId, { x:e.clientX, y:e.clientY });
+  try{ canvas.setPointerCapture(e.pointerId); }catch{}
+  if(ptrs.size === 1){
+    dragStart = { x:e.clientX, y:e.clientY, cx:cam.cx, cy:cam.cy };
+    dragged = false;
+  }else if(ptrs.size === 2){
+    dragStart = null;
+    const [a,b] = ptrValues();
+    pinch = { d:Math.hypot(a.x-b.x, a.y-b.y) || 1, zoom:cam.zoom, mx:(a.x+b.x)/2, my:(a.y+b.y)/2 };
+  }
+});
+
+canvas.addEventListener('pointermove', e=>{
+  if(!ptrs.has(e.pointerId)) return;
+  ptrs.set(e.pointerId, { x:e.clientX, y:e.clientY });
+
+  if(ptrs.size === 1 && dragStart){
+    const dx = e.clientX - dragStart.x, dy = e.clientY - dragStart.y;
+    if(!dragged && Math.hypot(dx,dy) > 8) dragged = true;
+    if(dragged){
+      cam.cx = dragStart.cx - dx / cam.zoom;
+      cam.cy = dragStart.cy - dy / cam.zoom;
+    }
+  }else if(ptrs.size === 2 && pinch){
+    const [a,b] = ptrValues();
+    const f = (Math.hypot(a.x-b.x, a.y-b.y) || 1) / pinch.d;
+    const nz = Math.max(fitZoom*.7, Math.min(fitZoom*9, pinch.zoom * f));
+    const r = canvas.getBoundingClientRect();
+    const sx = pinch.mx - r.left, sy = pinch.my - r.top;
+    const wx = (sx - cam.vw/2) / cam.zoom + cam.cx;
+    const wy = (sy - cam.vh/2) / cam.zoom + cam.cy;
+    cam.zoom = nz;
+    cam.cx = wx - (sx - cam.vw/2) / cam.zoom;
+    cam.cy = wy - (sy - cam.vh/2) / cam.zoom;
+  }
+});
+
+canvas.addEventListener('pointerup', e=>{
+  if(!ptrs.has(e.pointerId)) return;
+  ptrs.delete(e.pointerId);
+  if(ptrs.size < 2) pinch = null;
+
+  if(ptrs.size === 0){
+    if(dragStart && !dragged){
+      const o = pickObject(e.clientX, e.clientY);
+      if(o){
+        state.selectedId = o.id;
+        toast(o.kind === 'food'
+          ? `🍎 ${o.owner_nickname} 畫的食物`
+          : `${kindIcon(o.kind)} ${o.name} · 吃了 ${o.growth_meals||0} 份 · 約 ${growthScale(o).toFixed(2)}×`);
+      }else clearSelection();
+    }
+    dragStart = null;
+    dragged = false;
+  }else dragStart = null;
+});
+
+canvas.addEventListener('pointercancel', e=>{
+  ptrs.delete(e.pointerId);
+  if(ptrs.size < 2) pinch = null;
+  dragStart = null;
+  dragged = false;
+});
+
+canvas.addEventListener('wheel', e=>{
+  if(!state.room) return;
+  e.preventDefault();
+  const r = canvas.getBoundingClientRect();
+  zoomAt(e.deltaY > 0 ? 0.88 : 1.14, e.clientX - r.left, e.clientY - r.top);
+}, { passive:false });
+
+function pickObject(clientX, clientY){
+  const r = canvas.getBoundingClientRect();
+  const x = clientX - r.left, y = clientY - r.top;
+  for(const o of [...state.objects.values()].reverse()){
+    const b = o._box;
+    if(b && x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) return o;
+  }
+  return null;
+}
+
+/* ===== 事件綁定 ===== */
+$('enterWorldBtn').onclick = enterGlobalWorld;
+$('roomCodeInput').addEventListener('keydown', e=>{ if(e.key === 'Enter') joinRoom(); });
+$('shareBtn').onclick = openShare;
+$('gearBtn').onclick = ()=>{ $('adminModal').classList.remove('hidden'); syncAdminUI(); };
+document.querySelectorAll('[data-close]').forEach(b=> b.onclick = ()=>closeModal(b.dataset.close));
+$('copyLinkBtn').onclick = ()=>copyText($('shareLink').value);
+$('copyCodeBtn').onclick = ()=>copyText('共同草原');
+
+document.querySelectorAll('.kindCard').forEach(card=>{
+  card.onclick = ()=>{
+    state.selectedKind = card.dataset.kind;
+    document.querySelectorAll('.kindCard').forEach(c=>c.classList.remove('on'));
+    card.classList.add('on');
+    $('sourceModal').classList.remove('hidden');
+  };
+});
+
+$('takePhotoBtn').onclick = ()=>{
+  $('sourceModal').classList.add('hidden');
+  $('cameraInput').click();
+};
+
+$('choosePhotoBtn').onclick = ()=>{
+  $('sourceModal').classList.add('hidden');
+  $('galleryInput').click();
+};
+
+$('cameraInput').onchange = e=> uploadSelected(e.target.files?.[0], state.selectedKind);
+$('galleryInput').onchange = e=> uploadSelected(e.target.files?.[0], state.selectedKind);
+$('deleteFloating').onclick = ()=> state.selectedId && deleteObject(state.selectedId);
+
+$('zoomIn').onclick  = ()=>zoomAt(1.30);
+$('zoomOut').onclick = ()=>zoomAt(0.77);
+$('zoomFit').onclick = ()=>fitIsland();
+
+$('cycleBtn').onclick = ()=>{
+  viewIndex = (viewIndex + 1) % VIEWS.length;
+  applyView(viewIndex);
+  toast(`切換到「${VIEWS[viewIndex].name}」`);
+};
+$('gotoBtn').onclick = ()=>gotoMine(false);
+
+document.querySelectorAll('.zoneChip').forEach(btn=>{
+  btn.onclick = ()=>{
+    const zone = btn.dataset.zone;
+    if(zone === 'sky')   applyView(3);
+    if(zone === 'land')  applyView(1);
+    if(zone === 'river') applyView(2);
+    setZoneChip(zone);
+    toast(`帶你去看${btn.textContent.replace(/^\S+\s*/,'')}`);
+  };
+});
+
+[ 'cutoutStrength','visualSaturation','dayMinutes','worldSpeed','wakeHour','sleepHour',
+  'breakfastHour','lunchHour','dinnerHour','mealDuration','growthStep','weather',
+  'infiniteGrowth','weatherEnabled','showNames','uploadEnabled'
+].forEach(id=>{
+  $(id).addEventListener('input', scheduleSettingsSave);
+  $(id).addEventListener('change', scheduleSettingsSave);
+});
+
+document.querySelectorAll('.quickTime').forEach(b=> b.onclick = ()=>quickTime(+b.dataset.hour));
+$('clearBtn').onclick = clearRoom;
+$('displayBtn').onclick = ()=>{
+  const u = new URL(location.origin + location.pathname);
+  u.searchParams.set('display','1');
+  window.open(u.toString(),'_blank');
+};
+
+/* 全螢幕按鈕 + iPhone/Safari 沉浸模式 fallback */
+{
+  const de = document.documentElement;
+  const fsBtn = $('fsBtn');
+
+  function realFullscreenElement(){
+    return document.fullscreenElement || document.webkitFullscreenElement || null;
+  }
+
+  function updateFsButton(){
+    const active = !!realFullscreenElement() || document.body.classList.contains('immersiveMode');
+    fsBtn.textContent = active ? '↙' : '⛶';
+    fsBtn.title = active ? '離開滿螢幕' : '滿螢幕';
+  }
+
+  async function enterRealFullscreen(){
+    const request = de.requestFullscreen || de.webkitRequestFullscreen;
+    if(!request) return false;
+    try{
+      const result = request.call(de);
+      if(result?.then) await result;
+      return true;
+    }catch(err){
+      console.warn('Fullscreen API unavailable, using immersive mode.', err);
+      return false;
+    }
+  }
+
+  async function leaveRealFullscreen(){
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if(!exit) return false;
+    try{
+      const result = exit.call(document);
+      if(result?.then) await result;
+      return true;
+    }catch(err){
+      console.warn('Exit fullscreen failed.', err);
+      return false;
+    }
+  }
+
+  fsBtn.classList.remove('hidden');
+  fsBtn.onclick = async ()=>{
+    if(realFullscreenElement()){
+      await leaveRealFullscreen();
+      document.body.classList.remove('immersiveMode');
+    }else if(document.body.classList.contains('immersiveMode')){
+      document.body.classList.remove('immersiveMode');
+    }else{
+      const ok = await enterRealFullscreen();
+      if(!ok){
+        document.body.classList.add('immersiveMode');
+        // iPhone Safari 無法由網頁強制移除瀏覽器工具列，
+        // 但可讓遊戲本體填滿所有可用的 dynamic viewport。
+        try{ window.scrollTo({top:1,left:0,behavior:'instant'}); }catch(_){ window.scrollTo(0,1); }
+        toast('已切換沉浸模式；iPhone 要完全無瀏覽器列可「加入主畫面」後開啟', 4200);
+      }
+    }
+    updateFsButton();
+    setTimeout(()=>{ resizeCanvas(); if(viewIndex===0 && state.room) fitIsland(); }, 80);
+  };
+
+  document.addEventListener('fullscreenchange', updateFsButton);
+  document.addEventListener('webkitfullscreenchange', updateFsButton);
+  updateFsButton();
+
+  new ResizeObserver(()=>{
+    resizeCanvas();
+    if(viewIndex === 0 && state.room) fitIsland();
+  }).observe($('stageWrap'));
+}
+
+document.addEventListener('visibilitychange', ()=>{
+  if(!document.hidden){
+    resizeCanvas();
+    if(state.room) syncServerWorldClock(true).catch(err=>log('伺服器校時失敗：'+err.message));
+  }
+});
+
+/* ===== 啟動：所有人都進同一個共同世界 ===== */
+(async function boot(){
+  const savedNick = localStorage.getItem('meadow_nickname') || '';
+  $('nickname').value = savedNick;
+
+  // 展示模式永遠直接進；一般玩家曾經輸入過暱稱也直接回到共同世界。
+  if(state.displayMode || savedNick){
+    try{ await enterGlobalWorld(); }catch(_){}
+  }
+})();
+</script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"1c1c7799c54e46349cc23295b5e08299","spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>
