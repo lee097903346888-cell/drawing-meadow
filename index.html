@@ -1822,41 +1822,76 @@ function drawWinterSnowGround(now,night){
   }
   ctx.restore();
 }
-/* 冬夜極光：多層透明絲帶緩慢波動，融合薄荷綠／冰藍／薰衣草紫。 */
+/* 冬夜極光：連續柔光幕（無垂直條紋），虹彩在整片光幕上流動。僅替換視覺。 */
 function drawWinterAurora(now){
-  const t=now*.00015;
-  ctx.save();ctx.beginPath();ctx.rect(-1800,-730,3600,805);ctx.clip();
+  const t=now*.00016;
+  ctx.save();
+  ctx.beginPath();ctx.rect(-1800,-730,3600,805);ctx.clip();
   ctx.globalCompositeOperation='screen';
-  const colors=[['#83ffc9','#4ce8e0'],['#9cbbff','#8f7cff'],['#9efbd7','#b99aff'],['#7fead9','#8d8fff']];
-  for(let band=0;band<4;band++){
-    const baseline=-390+band*47;
-    const gradient=ctx.createLinearGradient(0,baseline-225,0,baseline+95);
-    gradient.addColorStop(0,'rgba(30,30,80,0)');
-    gradient.addColorStop(.29,colors[band][0]);
-    gradient.addColorStop(.66,colors[band][1]);
-    gradient.addColorStop(1,'rgba(80,50,140,0)');
-    ctx.fillStyle=gradient;
-    ctx.globalAlpha=.20+(band%2)*.04;
+
+  // 連續色帶：多個柔彩高亮顏色自然交融，不用單根垂直光線。
+  const palette=['#65ffb0','#21ffda','#46cfff','#8089ff','#c37cff','#ff8ccc',
+                 '#ffdf8e','#98ffba','#37f7f4','#589eff','#a38aff','#ff9dd8',
+                 '#b4ff86','#47fff1','#8aafff','#f2a0ff','#65ffd0'];
+  const yAt=(x,layer)=>{
+    const phase=x*.00205+t*2.2+layer*1.67;
+    return -350+layer*30+Math.sin(phase)*75
+      +Math.sin(x*.00415-t*1.18+layer*.9)*32
+      +Math.sin(x*.00094+t*.8+layer*.7)*34;
+  };
+  // 一整片不規則波浪光幕；寬窄沿畫面自然變化，不形成平行直線。
+  function curtainPath(layer,shrink){
     ctx.beginPath();
-    for(let j=0;j<=70;j++){
-      const x=-1800+j*52;
-      const center=baseline+Math.sin(x*.0024+t*2.8+band*.9)*72+Math.sin(x*.005-t*1.4+band)*24;
-      if(j===0)ctx.moveTo(x,center-150);else ctx.lineTo(x,center-150);
+    const count=120, step=3600/count;
+    for(let j=0;j<=count;j++){
+      const x=-1800+j*step;
+      const c=yAt(x,layer);
+      const thickness=140+54*Math.sin(x*.0017-t*1.05+layer)+
+        25*Math.sin(x*.0032+t*.92+layer*2);
+      const upper=c-82+shrink*19;
+      if(j===0)ctx.moveTo(x,upper);
+      else ctx.lineTo(x,upper);
     }
-    for(let j=70;j>=0;j--){
-      const x=-1800+j*52;
-      const center=baseline+Math.sin(x*.0024+t*2.8+band*.9)*72+Math.sin(x*.005-t*1.4+band)*24;
-      ctx.lineTo(x,center+95);
+    for(let j=count;j>=0;j--){
+      const x=-1800+j*step;
+      const c=yAt(x,layer);
+      const thickness=140+54*Math.sin(x*.0017-t*1.05+layer)+
+        25*Math.sin(x*.0032+t*.92+layer*2);
+      ctx.lineTo(x,c+thickness-shrink*35);
     }
-    ctx.closePath();ctx.fill();
-    // 垂直極光光絲：輪廓柔和，時間變化慢
-    ctx.globalAlpha=.09;
-    ctx.strokeStyle=colors[band][0];ctx.lineWidth=14;
-    for(let j=0;j<26;j++){
-      const x=-1760+j*140+band*13;
-      const center=baseline+Math.sin(x*.0024+t*2.8+band*.9)*72+Math.sin(x*.005-t*1.4+band)*24;
-      ctx.beginPath();ctx.moveTo(x,center-130);ctx.lineTo(x+Math.sin(t*2+j)*12,center+90);ctx.stroke();
+    ctx.closePath();
+  }
+  for(let layer=0;layer<3;layer++){
+    const flow=ctx.createLinearGradient(-1800,0,1800,0);
+    for(let k=0;k<palette.length;k++){
+      // 每層顏色錯位，營造漸層虹彩而非規律分段。
+      flow.addColorStop(k/(palette.length-1),palette[(k+layer*3)%palette.length]);
     }
+    // 寬廣柔光：先以大光暈鋪底，再疊高亮核心，輪廓自然融合。
+    ctx.save();
+    ctx.globalAlpha=.26;
+    ctx.fillStyle=flow;
+    ctx.shadowColor=['#55ffcf','#9ca5ff','#ff9de2'][layer];
+    ctx.shadowBlur=75;
+    curtainPath(layer,0);ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.globalAlpha=.46;
+    ctx.fillStyle=flow;
+    ctx.shadowColor=['#51ffe1','#8a9fff','#f6adff'][layer];
+    ctx.shadowBlur=36;
+    curtainPath(layer,1);ctx.fill();
+    ctx.restore();
+
+    // 絲綢感的發亮中心：仍然是整片連續漸層，沒有一條條的豎線。
+    ctx.save();
+    ctx.globalAlpha=.27;
+    ctx.fillStyle=flow;
+    ctx.shadowBlur=18;
+    ctx.shadowColor='#c8fff7';
+    curtainPath(layer,2);ctx.fill();
+    ctx.restore();
   }
   ctx.restore();
 }
