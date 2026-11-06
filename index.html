@@ -330,6 +330,35 @@ html,body{min-height:100%;overscroll-behavior:none}
   #gameTopBar .timeBadge,#gameTopBar #topMenuToggle{min-height:32px}
   .upload:not(.collapsed){max-height:43dvh}
 }
+
+/* 滿版與緊湊上傳列：不更改玩家手動收合狀態 */
+.upload:not(.collapsed){padding-bottom:max(5px,env(safe-area-inset-bottom))}
+html,body{width:100%;height:100%;min-height:100%;overflow:hidden;overscroll-behavior:none}
+#app{position:fixed;inset:0;width:100%;height:100%;height:100dvh;overflow:hidden}
+#world{width:100%;height:100%;display:block}
+.upload,.upload:not(.collapsed){bottom:0;left:50%;right:auto;transform:translateX(-50%);width:min(860px,calc(100% - 12px));max-height:min(34dvh,180px);padding:4px 7px 5px;border-radius:16px 16px 0 0;overflow-x:hidden;overflow-y:auto;box-shadow:0 -3px 15px #6c588c22}
+.upload .hint{font-size:10px;line-height:1.15;margin:0 0 3px}
+.upload .kinds{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.upload .kind{min-width:0;padding:4px 1px 3px;border-radius:11px}
+.upload .kind b{font-size:18px;line-height:1.05}
+.upload .kind span{font-size:10px;line-height:1.25;margin-top:1px;white-space:nowrap}
+.upload #uploadToggle{margin:0 0 2px auto;padding:2px 9px;min-height:22px;font-size:11px}
+.upload.collapsed{bottom:0;left:50%;right:auto;transform:translateX(-50%);width:auto;max-height:none;padding:4px 7px;border-radius:13px 13px 0 0;overflow:visible}
+.upload.collapsed #uploadToggle{margin:0;font-size:12px;padding:5px 12px}
+@media (orientation:landscape){
+ .upload:not(.collapsed){bottom:0;width:min(820px,calc(100% - 16px));max-height:min(36dvh,165px);padding:3px 7px}
+ .upload .hint{display:none}
+ .upload .kind b{font-size:17px}
+ .upload .kind span{font-size:10px}
+ .upload.collapsed{bottom:0;left:50%;right:auto;transform:translateX(-50%);width:auto;max-height:none;padding:3px 6px}
+}
+@media (max-width:420px){
+ .upload:not(.collapsed){width:calc(100% - 6px)}
+ .upload .kinds{gap:2px}
+ .upload .kind{padding:4px 0 3px}
+ .upload .kind b{font-size:17px}
+ .upload .kind span{font-size:9px}
+}
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -1239,6 +1268,8 @@ function resize(){
   if(cameraReadyForResize)clampCamera();
 }
 addEventListener('resize', resize);
+addEventListener('orientationchange',()=>requestAnimationFrame(resize));
+if(window.visualViewport)window.visualViewport.addEventListener('resize',()=>requestAnimationFrame(resize));
 resize();
 
 // 地圖縱向擴展：雲端／本機作品維持原始世界座標。
@@ -2219,6 +2250,8 @@ function drawNature(now,phase){
   // 電腦寬畫面／縮放時，原本的 ±1800 世界繪圖邊界會露出藍色空白。
   // 只在底層延伸原有天空、草原、岸邊、深水的顏色，不搬動原本地形與物件。
   const wide=20000;
+  // 超遠俯瞰時，宇宙頂端也要延伸到可見區，避免出現空白色帶。
+  ctx.fillStyle='#060d24';ctx.fillRect(-wide,-wide,wide*2,wide*2);
   const edgeSky=ctx.createLinearGradient(0,-530,0,140);
   const skyColors=paintSky;
   edgeSky.addColorStop(0,skyColors[0]);edgeSky.addColorStop(.55,skyColors[1]);edgeSky.addColorStop(1,skyColors[2]);
@@ -2234,6 +2267,9 @@ function drawNature(now,phase){
   edgeRiver.addColorStop(.55,night?'#28485d':theme.river[1]);
   edgeRiver.addColorStop(1,night?'#101e36':'#153e66');
   ctx.fillStyle=edgeRiver;ctx.fillRect(-wide,585+EXTRA_VERTICAL_LAND,wide*2,1170+EXTRA_DEEP_SEA);
+  // 深海向下繼續延伸，視窗直立縮遠也不露出底色。
+  ctx.fillStyle=night?'#101e36':'#153e66';
+  ctx.fillRect(-wide,1755+EXTRA_VERTICAL_LAND+EXTRA_DEEP_SEA,wide*2,wide);
 
   // 新宇宙層僅在原天空上方，原天空、日夜與極光的區域完全保留。
   const cosmos=ctx.createLinearGradient(0,WORLD_REGIONS.cosmos.top,0,-740);
@@ -2269,53 +2305,19 @@ function drawNature(now,phase){
   atmosphere.addColorStop(.66,night?'rgba(94,120,182,.32)':'rgba(121,195,249,.44)');
   atmosphere.addColorStop(1,paintSky[0]);
   ctx.fillStyle=atmosphere;ctx.fillRect(-1800,-1030,3600,420);
-  // 風吹得見：高空卷雲與中層雲朵會隨同一風勢飄移、舒展，顏色更有層次。
-  // 只改繪圖，不改世界地形或天氣系統；不用風線表示風。
-  ctx.save();
-  const tCloud=now*.001;
-  const skyPeriod=visualTimeOfDay(now);
-  const isDusk=skyPeriod==='dusk',isDawn=skyPeriod==='morning';
-  // 兩層雲的速度不同，陣風時偏移加大，且循環時不露出矩形空白。
-  for(let layer=0;layer<2;layer++){
-    const count=layer===0?13:11;
-    const spacing=layer===0?335:420;
-    const cycle=spacing*count;
-    const drift=tCloud*(layer===0?30:20)
-      +Math.sin(tCloud*.20+.65)*(layer===0?96:64)
-      +Math.sin(tCloud*.074+1.4)*65;
-    for(let i=0;i<count;i++){
-      const seed=i*17+layer*91;
-      const cx=-2080+(((i*spacing+drift)%cycle)+cycle)%cycle;
-      const cy=(layer===0?-800:-390)+Math.sin(i*1.61+layer*1.3)*65;
-      const wind=natureWind(cx,cy);
-      const stretch=1+Math.abs(wind)*.13;
-      const rx=(layer===0?145:118)+(i%4)*19;
-      const ry=(layer===0?23:35)+(i%3)*5;
-      const alpha=night?(layer===0?.44:.25):(layer===0?.79:.66);
-      ctx.save();ctx.translate(cx,cy);ctx.scale(stretch,1);
-      // 溫暖晨光、紫粉黃昏、白藍日間；夜晚仍能看到淡銀藍雲。
-      const edge=night?'112,142,190':isDusk?'210,164,211':isDawn?'242,198,169':'144,201,245';
-      const light=night?'185,205,237':isDusk?'255,212,232':isDawn?'255,234,206':'253,255,255';
-      const shade=ctx.createRadialGradient(-rx*.2,-ry*.2,4,0,0,rx*1.12);
-      shade.addColorStop(0,`rgba(${light},${alpha})`);
-      shade.addColorStop(.42,`rgba(${light},${alpha*.83})`);
-      shade.addColorStop(.77,`rgba(${edge},${alpha*.48})`);
-      shade.addColorStop(1,`rgba(${edge},0)`);
-      ctx.fillStyle=shade;
-      ctx.beginPath();ctx.ellipse(0,0,rx*1.1,ry*1.65,0,0,Math.PI*2);ctx.fill();
-      // 三片互相重疊的雲團，不出現直線或硬邊；風強時寬度拉長。
-      for(let puff=0;puff<3;puff++){
-        const px=(-.42+puff*.42)*rx+Math.sin(tCloud*.43+i+puff)*wind*4;
-        const py=Math.sin(i+puff*2)*ry*.21;
-        const pr=rx*(puff===1?.57:.42);
-        const mist=ctx.createRadialGradient(px,py,0,px,py,pr*1.25);
-        mist.addColorStop(0,`rgba(${light},${alpha*.68})`);
-        mist.addColorStop(.55,`rgba(${edge},${alpha*.34})`);
-        mist.addColorStop(1,`rgba(${edge},0)`);
-        ctx.fillStyle=mist;ctx.beginPath();ctx.ellipse(px,py,pr*1.3,ry*(puff===1?1.28:.86),0,0,Math.PI*2);ctx.fill();
-      }
-      ctx.restore();
-    }
+  // 高空雲層沿風緩慢漂移：只在大氣交界，避免擋住陸地與動物。
+  ctx.save();ctx.globalCompositeOperation='screen';
+  const drift=((now*.009)%560)-280;
+  for(let i=0;i<13;i++){
+    const cx=-1680+i*295+drift;
+    const cy=-735+Math.sin(i*1.7)*93;
+    const rx=260+(i%4)*39, ry=25+(i%3)*11;
+    const cloud=ctx.createRadialGradient(cx,cy,8,cx,cy,rx);
+    const alpha=night?.065:.16;
+    cloud.addColorStop(0,`rgba(244,250,255,${alpha})`);
+    cloud.addColorStop(.52,`rgba(194,224,255,${alpha*.65})`);
+    cloud.addColorStop(1,'rgba(194,224,255,0)');
+    ctx.fillStyle=cloud;ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);ctx.fill();
   }
   ctx.restore();
 
@@ -3836,6 +3838,53 @@ function drawAnimalHealth(o,p,w,h,now){
   ctx.restore();
 }
 
+
+/* 畫面縮遠時，地景原生寬度可能小於螢幕；用地景邊緣的鏡像延伸填補空隙。
+   僅處理背景圖層，不複製動物、房屋、獵人或互動物件，也不改動世界座標。 */
+const backdropMirrorCanvases=[document.createElement('canvas'),document.createElement('canvas')];
+function extendBackdropEdges(){
+  const z=state.cam.zoom;
+  const left=(-1800-state.cam.x)*z+innerWidth/2;
+  const right=(1800-state.cam.x)*z+innerWidth/2;
+  const fullW=innerWidth,fullH=innerHeight;
+  if(left<=1&&right>=fullW-1)return;
+  const strip=Math.max(28,Math.min(180,Math.floor((right-left)*.16)));
+  if(strip<1)return;
+  ctx.save();ctx.setTransform(1,0,0,1,0,0);
+  // 以原有已繪製的背景作為素材，先複製到緩衝畫布，避免取樣被覆寫。
+  function buffer(start,index){
+    const c=backdropMirrorCanvases[index];
+    const targetWidth=Math.max(1,Math.round(strip*DPR));
+    if(c.width!==targetWidth)c.width=targetWidth;
+    if(c.height!==world.height)c.height=world.height;
+    c.getContext('2d').drawImage(world,Math.round(start*DPR),0,c.width,c.height,0,0,c.width,c.height);
+    return c;
+  }
+  const sw=strip*DPR;
+  if(left>0&&left<fullW){
+    const near=buffer(Math.max(0,Math.min(fullW-strip,left)),0);
+    let x=left,n=0;
+    while(x>0&&n<30){
+      const w=Math.min(strip,x); const dest=x-w;
+      ctx.save();
+      if(n%2===0){ctx.translate(x*DPR,0);ctx.scale(-1,1);ctx.drawImage(near,0,0,sw,world.height,0,0,sw,world.height);}
+      else ctx.drawImage(near,0,0,sw,world.height,dest*DPR,0,sw,world.height);
+      ctx.restore();x-=strip;n++;
+    }
+  }
+  if(right<fullW&&right>0){
+    const near=buffer(Math.max(0,Math.min(fullW-strip,right-strip)),1);
+    let x=right,n=0;
+    while(x<fullW&&n<30){
+      ctx.save();
+      if(n%2===0){ctx.translate(x*DPR,0);ctx.scale(-1,1);ctx.drawImage(near,0,0,sw,world.height,-sw,0,sw,world.height);}
+      else ctx.drawImage(near,0,0,sw,world.height,x*DPR,0,sw,world.height);
+      ctx.restore();x+=strip;n++;
+    }
+  }
+  ctx.restore();ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+
 /* ========== 主迴圈 ========== */
 function animate(now){
   const dt=Math.min(.04,(now-state.last)/1000);
@@ -3852,6 +3901,7 @@ function animate(now){
     if(phase===2)audio.effect('night');
   }
   drawGrass();drawNature(now,phase);
+  extendBackdropEdges();
   drawHomes(now);
   cloudWorld.draw(now);
   updateHunter(dt,now);
