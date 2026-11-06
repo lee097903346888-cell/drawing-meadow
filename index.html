@@ -287,6 +287,49 @@ html,body{min-height:100%;overscroll-behavior:none}
   #bagGrid .animalCard:after{font-size:17px;right:3px}
 }
 @media(prefers-reduced-motion:reduce){#bagGrid .animalCard,#bagGrid .animalCard:after{animation:none}}
+
+/* 介面優化：只調整按鈕佈局、卡冊圖示及音樂署名顯示。 */
+.musicCredits{margin-top:12px;padding:10px 12px;border:1px solid #eadfec;border-radius:13px;background:#f9f5fb;line-height:1.45}
+.musicCredits summary{cursor:pointer;font-weight:900;color:#71577f;font-size:13px}
+.musicCredits a{overflow-wrap:anywhere}
+#bagBtn{min-width:48px;display:inline-flex;align-items:center;justify-content:center}
+.goldCardIcon{position:relative;display:inline-flex;align-items:center;justify-content:center;width:25px;height:35px;line-height:1;border:2.6px solid #a97b14;border-radius:3px;background:linear-gradient(145deg,#fffcca 0%,#ffe782 29%,#e5ac21 72%,#fff2a8 100%);box-shadow:0 0 0 2px #fff3a0 inset,0 0 0 4px #c78d22 inset,0 0 8px #ffe582,0 0 17px #ffd036;transform:rotate(-7deg);animation:goldCardPulse 1.9s ease-in-out infinite;vertical-align:middle;isolation:isolate}
+.goldCardIcon:before{content:"";position:absolute;inset:4px 3px;border:1.5px solid #fff5bd;border-radius:2px;box-shadow:0 0 5px #fff6bd;pointer-events:none}
+.goldCardIcon:after{content:"✧";position:absolute;font-size:14px;right:-9px;top:-8px;color:#fffbe2;text-shadow:0 0 5px #fff,0 0 10px #ffd229,0 0 16px #ffc429;animation:goldCardSparkle 1.5s ease-in-out infinite alternate}
+.goldCardCore{font-size:14px;color:#fff9cc;filter:drop-shadow(0 0 4px #fff);text-shadow:0 0 5px #fff,0 0 10px #f5ae00;z-index:1}
+@keyframes goldCardPulse{0%,100%{filter:brightness(1) drop-shadow(0 0 4px #fac23e)}50%{filter:brightness(1.38) drop-shadow(0 0 10px #ffdf65)}}
+@keyframes goldCardSparkle{from{opacity:.4;transform:scale(.65) rotate(-20deg)}to{opacity:1;transform:scale(1.2) rotate(25deg)}}
+@media(prefers-reduced-motion:reduce){.goldCardIcon,.goldCardIcon:after{animation:none}}
+/* 直式：上方按鈕貼緊安全區，選單原本手動收合照常。 */
+#gameTopBar{top:calc(4px + env(safe-area-inset-top));}
+@media (orientation:landscape) {
+  #gameTopBar{position:absolute;top:calc(2px + env(safe-area-inset-top));left:max(5px,env(safe-area-inset-left));right:max(5px,env(safe-area-inset-right));display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;gap:4px 7px;max-height:45dvh;overflow:visible}
+  #gameTopBar .timeBadge{grid-column:1;grid-row:1;justify-self:start;align-self:start;flex:none;margin:0;font-size:clamp(10px,1.4vw,13px);padding:7px 9px;min-height:34px}
+  #gameTopBar #topActions{grid-column:2;grid-row:1;display:flex;flex-wrap:wrap;justify-content:center;align-content:start;gap:4px 5px;width:100%;max-width:100%;min-width:0;flex:none;margin:0}
+  #gameTopBar #topActions>.pill{flex:0 0 auto;min-width:32px;min-height:35px;max-width:100%;padding:5px 8px;font-size:clamp(10px,1.35vw,14px);line-height:1.2}
+  #gameTopBar #topMenuToggle{grid-column:3;grid-row:1;justify-self:end;margin:0;min-height:35px;padding:6px 9px;font-size:clamp(11px,1.5vw,14px)}
+  #gameTopBar.menuCollapsed #topActions{display:none}
+  .upload{bottom:calc(3px + env(safe-area-inset-bottom));max-height:min(48dvh,220px);width:min(570px,calc(100% - 30px));padding:5px 8px;border-radius:16px;overflow-y:auto;box-shadow:0 4px 14px #6c588c26}
+  .upload .hint{display:none}
+  .upload .kinds{gap:5px}
+  .upload .kind{padding:4px 5px;min-width:52px}
+  .upload .kind b{font-size:18px}
+  .upload .kind span{font-size:10px}
+  .upload #uploadToggle{margin:0 0 3px auto;padding:3px 9px;min-height:24px;font-size:11px}
+  .upload.collapsed{width:auto;max-height:none;overflow:visible;padding:3px 5px;border-radius:13px;left:auto;right:max(5px,env(safe-area-inset-right));transform:none}
+  .upload.collapsed #uploadToggle{padding:7px 10px;font-size:12px}
+}
+@media (orientation:landscape) and (pointer:coarse) {
+  #gameTopBar{grid-template-columns:auto minmax(0,1fr) auto;row-gap:4px}
+  #gameTopBar .timeBadge{grid-column:1;grid-row:1}
+  #gameTopBar #topActions{grid-column:2;grid-row:1;max-width:100%;justify-content:center;flex:0 0 auto}
+  #gameTopBar #topMenuToggle{grid-column:3;grid-row:1}
+}
+@media (orientation:landscape) and (max-height:480px) {
+  #gameTopBar #topActions>.pill{font-size:11px;padding:4px 7px;min-height:32px}
+  #gameTopBar .timeBadge,#gameTopBar #topMenuToggle{min-height:32px}
+  .upload:not(.collapsed){max-height:43dvh}
+}
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -303,7 +346,7 @@ html,body{min-height:100%;overscroll-behavior:none}
       <button id="fitBtn" class="pill">俯瞰</button>
       <button id="clearBtn" class="pill danger">清空</button>
       <button id="fsBtn" class="pill">⛶</button>
-      <button id="bagBtn" class="pill" type="button" title="動物圖冊" aria-label="開啟動物卡冊"><span class="goldCardIcon" aria-hidden="true">▣</span></button>
+      <button id="bagBtn" class="pill" type="button" title="動物圖冊" aria-label="開啟動物卡冊"><span class="goldCardIcon" aria-hidden="true"><span class="goldCardCore">✦</span></span></button>
       <button id="hunterOpenBtn" class="pill" type="button" title="管理員惡搞模式" aria-label="管理員惡搞模式">🏹</button>
       <button id="settingsBtn" class="pill" type="button" title="系統調整" aria-label="系統調整">⚙️</button>
     </div>
@@ -333,15 +376,7 @@ html,body{min-height:100%;overscroll-behavior:none}
       <button class="kind" data-kind="food"><b>🍎</b><span>食物</span></button>
       <button class="kind" data-kind="house"><b>🏠</b><span>房子</span></button>
     </div>
-    <div style="font-size:10px;text-align:center;margin-top:5px;line-height:1.4;color:#81758a">
-      🎵 使用 YouTube 官方嵌入播放器 ·
-      <a href="https://www.youtube.com/watch?v=wpBSYUr2DcE" target="_blank" rel="noopener" style="color:#716386">開啟影片來源</a>
-    </div>
-    <div style="font-size:10px;text-align:center;margin-top:5px;line-height:1.4;color:#81758a">
-      🎹 Gymnopédie No. 1 — Kevin MacLeod (incompetech.com) ·
-      <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener" style="color:#716386">CC BY 3.0</a> ·
-      <a href="https://commons.wikimedia.org/wiki/File:Gymnopedie_No._1_(ISRC_USUAN1100787).mp3" target="_blank" rel="noopener" style="color:#716386">演奏來源</a>
-    </div>
+
     <input id="fileInput" type="file" accept="image/*" class="hidden">
   </div>
 </div>
@@ -408,6 +443,18 @@ html,body{min-height:100%;overscroll-behavior:none}
    </div>
    <button id="meadowCloudOpen" type="button">管理連線</button>
   </div>
+  <details class="musicCredits" id="musicCredits">
+    <summary>🎼 音樂來源與授權資訊</summary>
+    <div style="font-size:10px;text-align:center;margin-top:5px;line-height:1.4;color:#81758a">
+      🎵 使用 YouTube 官方嵌入播放器 ·
+      <a href="https://www.youtube.com/watch?v=wpBSYUr2DcE" target="_blank" rel="noopener" style="color:#716386">開啟影片來源</a>
+    </div>
+    <div style="font-size:10px;text-align:center;margin-top:5px;line-height:1.4;color:#81758a">
+      🎹 Gymnopédie No. 1 — Kevin MacLeod (incompetech.com) ·
+      <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener" style="color:#716386">CC BY 3.0</a> ·
+      <a href="https://commons.wikimedia.org/wiki/File:Gymnopedie_No._1_(ISRC_USUAN1100787).mp3" target="_blank" rel="noopener" style="color:#716386">演奏來源</a>
+    </div>
+  </details>
   <p class="sub" style="margin-top:12px">聲控操作：<strong>按住 🎙️ 說「集合」</strong>，放開立即停止收音。初次使用需允許麥克風權限；語音辨識支援依裝置與瀏覽器而異。</p>
   <div class="settingsFoot"><button id="settingsClose" type="button">完成</button></div>
  </div>
@@ -753,7 +800,7 @@ function setTopMenuCollapsed(collapsed){
   topToggle.setAttribute('aria-expanded',String(!collapsed));
 }
 topToggle.onclick=()=>setTopMenuCollapsed(!topMenu.classList.contains('menuCollapsed'));
-if(matchMedia('(max-width:900px) and (orientation:landscape)').matches) setTopMenuCollapsed(true);
+// 展開與收合完全由玩家決定；旋轉螢幕不自動收合。
 $('#soundBtn').addEventListener('click',()=>audio.toggle());
 audio.refresh();
 // 所有可開關的功能統一收在系統調整；點擊外部也能關閉。
@@ -1267,7 +1314,8 @@ function setUploadCollapsed(collapsed){
 }
 function syncUploadOrientation(){
   if(uploadManuallyChanged)return;
-  setUploadCollapsed(matchMedia('(orientation:landscape) and (pointer:coarse)').matches);
+  // 橫直式只調整尺寸，不強制玩家收合。
+  setUploadCollapsed(false);
 }
 uploadToggle.addEventListener('click',()=>{
   uploadManuallyChanged=true;
@@ -1276,12 +1324,10 @@ uploadToggle.addEventListener('click',()=>{
 const uploadOrientationQuery=matchMedia('(orientation:landscape) and (pointer:coarse)');
 if(uploadOrientationQuery.addEventListener){
   uploadOrientationQuery.addEventListener('change',()=>{
-    uploadManuallyChanged=false;
     syncUploadOrientation();
   });
 }else if(uploadOrientationQuery.addListener){
   uploadOrientationQuery.addListener(()=>{
-    uploadManuallyChanged=false;
     syncUploadOrientation();
   });
 }
@@ -1581,16 +1627,22 @@ function forestEllipse(x,y,rx,ry,color,angle=0){
 }
 let natureWindTime=0;
 function natureWind(x,y=0){
- const t=natureWindTime*.001;
- const steady=Math.sin(t*.22)*.50+Math.sin(t*.074+1.8)*.34;
- const gust=Math.sin(t*.88+x*.0017+y*.0008)*.17;
- return steady+gust;
+  // 大約每 8～16 秒有明顯強弱的陣風；所有植物與雲層共用風向。
+  // 不改動動物速度、氣候時間、河流或任何玩家物件。
+  const t=natureWindTime*.001;
+  const direction=Math.sin(t*.16+.65)*.78+Math.sin(t*.072+1.4)*.34;
+  const swell=.57+.43*Math.pow(Math.sin(t*.37+.3),2);
+  const gust=Math.sin(t*1.12-x*.00085+y*.00045)*.23;
+  return (direction*swell+gust)*1.35;
 }
 function drawForestTree(x,y,s=1,seed=1,near=true,night=false,season=0){
   ctx.save();
   ctx.translate(x,y);
-  // 樹根固定，樹身與枝葉只做非常細的彈性擺動。
-  ctx.rotate(natureWind(x,y)*.012);
+  // 樹根固定、樹梢彎曲：風吹強時整片樹冠可偏移 20～45 世界單位。
+  // 剪切轉換讓樹根不漂移，避免看起來像整棵樹被推走。
+  const wind=natureWind(x,y);
+  ctx.transform(1,0,-wind*.145,1,0,0);
+  ctx.rotate(Math.sin(natureWindTime*.002+seed)*wind*.009);
   ctx.scale(s,s);
 
   const bark=night?'#453b3b':'#74503a';
@@ -1641,7 +1693,8 @@ function drawForestTree(x,y,s=1,seed=1,near=true,night=false,season=0){
     [0,-179,60,42]
   ];
   for(let k=0;k<tops.length;k++){
-    const [cx,cy,rx,ry]=tops[k];
+    const [cx0,cy,rx,ry]=tops[k];
+    const cx=cx0+Math.sin(natureWindTime*.0033+k*1.35+seed)*wind*3.6;
     if(season===2){ // 秋季逐漸露出枝條與楓葉，非濾鏡換色
       forestEllipse(cx+2,cy+7,rx*.61,ry*.58,leafs[0]);
       forestEllipse(cx-8,cy-4,rx*.53,ry*.47,leafs[1]);
@@ -1690,7 +1743,8 @@ function drawGrassClump(x,y,scale,palette,seed){
   for(let i=0;i<blades;i++){
     const spread=(i-(blades-1)/2)*(3.2+forestHash(seed*7+i)*2.8);
     const height=9+forestHash(seed*13+i*5)*18;
-    const lean=-7+forestHash(seed*17+i*9)*14+breeze*(5+i%3*2);
+    const lean=-7+forestHash(seed*17+i*9)*14
+      +breeze*(13+i%3*5)*(height/23);
     ctx.strokeStyle=i%2?palette.grassBlade1:palette.grassBlade2;
     ctx.lineWidth=1.1+forestHash(seed*19+i*3)*1.3;
     ctx.beginPath();
@@ -1699,11 +1753,14 @@ function drawGrassClump(x,y,scale,palette,seed){
     ctx.stroke();
   }
   if(forestHash(seed*23.7)>.84 && palette.flower1){
-    const fx=-4+forestHash(seed*29.3)*8;
+    // 花頭跟隨同一陣風搖擺，不在花莖以外漂浮。
     const fy=-8-forestHash(seed*31.9)*12;
-    forestEllipse(fx,fy,2.8,3.6,palette.flower1);
+    const fx=-4+forestHash(seed*29.3)*8+breeze*(10+Math.abs(fy)*.35);
+    ctx.strokeStyle=palette.grassBlade1;ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.moveTo(fx-breeze*9,0);ctx.quadraticCurveTo(fx-breeze*4,fy*.6,fx,fy);ctx.stroke();
+    forestEllipse(fx,fy,3.2,3.8,palette.flower1);
     if(palette.flower2){
-      forestEllipse(fx+3.3,fy+1.5,2.2,2.8,palette.flower2);
+      forestEllipse(fx+3.3,fy+1.5,2.5,2.9,palette.flower2);
     }
   }
   ctx.restore();
@@ -1775,11 +1832,11 @@ function seasonTheme(season,phase,night){
 }
 
 /* ========== 夜間流星／流星群：高亮度閃耀，出現頻率偏高 ========== */
-const nightMeteors={list:[],next:0,wasNight:false};
-function emitMeteor(now,groupOffset=0){
+const nightMeteors={list:[],next:0,wasNight:false,nightFromLeft:null};
+function emitMeteor(now,groupOffset=0,forcedFromLeft=null){
   if(nightMeteors.list.length>=48)return;
   // 遠景側向掠過：由左往右或右往左，穿過宇宙/高空大氣，避免垂直下墜。
-  const fromLeft=Math.random()<.5;
+  const fromLeft=forcedFromLeft===null?Math.random()<.5:forcedFromLeft;
   const y=-990+Math.random()*755;
   const speed=790+Math.random()*620;
   const vx=(fromLeft?1:-1)*speed;
@@ -1790,16 +1847,19 @@ function emitMeteor(now,groupOffset=0){
     glowTone:Math.floor(Math.random()*4)});
 }
 function drawMeteorShower(now,night){
-  if(!night){nightMeteors.list.length=0;nightMeteors.next=0;nightMeteors.wasNight=false;return;}
+  if(!night){nightMeteors.list.length=0;nightMeteors.next=0;nightMeteors.wasNight=false;nightMeteors.nightFromLeft=null;return;}
   if(!nightMeteors.wasNight){
     nightMeteors.wasNight=true;
+    // 每個新夜晚只抽一次方向；同夜所有單顆與流星群都保持一致。
+    nightMeteors.nightFromLeft=Math.random()<.5;
     nightMeteors.next=now+200+Math.random()*800;
   }
   if(now>=nightMeteors.next){
     // 常有單顆流星；約四成機率同時出現 3～7 顆的流星群。
     const group=Math.random()<.68;
     const count=group?5+Math.floor(Math.random()*6):1+Math.floor(Math.random()*2);
-    for(let j=0;j<count;j++)emitMeteor(now,j*75+Math.random()*120);
+    // 同一整個夜晚的所有流星共用方向；到下一個夜晚才重新隨機選。
+    for(let j=0;j<count;j++)emitMeteor(now,j*75+Math.random()*120,nightMeteors.nightFromLeft);
     nightMeteors.next=now+(group?850:720)+Math.random()*1450;
   }
   ctx.save();
@@ -2209,19 +2269,53 @@ function drawNature(now,phase){
   atmosphere.addColorStop(.66,night?'rgba(94,120,182,.32)':'rgba(121,195,249,.44)');
   atmosphere.addColorStop(1,paintSky[0]);
   ctx.fillStyle=atmosphere;ctx.fillRect(-1800,-1030,3600,420);
-  // 高空雲層沿風緩慢漂移：只在大氣交界，避免擋住陸地與動物。
-  ctx.save();ctx.globalCompositeOperation='screen';
-  const drift=((now*.009)%560)-280;
-  for(let i=0;i<13;i++){
-    const cx=-1680+i*295+drift;
-    const cy=-735+Math.sin(i*1.7)*93;
-    const rx=260+(i%4)*39, ry=25+(i%3)*11;
-    const cloud=ctx.createRadialGradient(cx,cy,8,cx,cy,rx);
-    const alpha=night?.065:.16;
-    cloud.addColorStop(0,`rgba(244,250,255,${alpha})`);
-    cloud.addColorStop(.52,`rgba(194,224,255,${alpha*.65})`);
-    cloud.addColorStop(1,'rgba(194,224,255,0)');
-    ctx.fillStyle=cloud;ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);ctx.fill();
+  // 風吹得見：高空卷雲與中層雲朵會隨同一風勢飄移、舒展，顏色更有層次。
+  // 只改繪圖，不改世界地形或天氣系統；不用風線表示風。
+  ctx.save();
+  const tCloud=now*.001;
+  const skyPeriod=visualTimeOfDay(now);
+  const isDusk=skyPeriod==='dusk',isDawn=skyPeriod==='morning';
+  // 兩層雲的速度不同，陣風時偏移加大，且循環時不露出矩形空白。
+  for(let layer=0;layer<2;layer++){
+    const count=layer===0?13:11;
+    const spacing=layer===0?335:420;
+    const cycle=spacing*count;
+    const drift=tCloud*(layer===0?30:20)
+      +Math.sin(tCloud*.20+.65)*(layer===0?96:64)
+      +Math.sin(tCloud*.074+1.4)*65;
+    for(let i=0;i<count;i++){
+      const seed=i*17+layer*91;
+      const cx=-2080+(((i*spacing+drift)%cycle)+cycle)%cycle;
+      const cy=(layer===0?-800:-390)+Math.sin(i*1.61+layer*1.3)*65;
+      const wind=natureWind(cx,cy);
+      const stretch=1+Math.abs(wind)*.13;
+      const rx=(layer===0?145:118)+(i%4)*19;
+      const ry=(layer===0?23:35)+(i%3)*5;
+      const alpha=night?(layer===0?.44:.25):(layer===0?.79:.66);
+      ctx.save();ctx.translate(cx,cy);ctx.scale(stretch,1);
+      // 溫暖晨光、紫粉黃昏、白藍日間；夜晚仍能看到淡銀藍雲。
+      const edge=night?'112,142,190':isDusk?'210,164,211':isDawn?'242,198,169':'144,201,245';
+      const light=night?'185,205,237':isDusk?'255,212,232':isDawn?'255,234,206':'253,255,255';
+      const shade=ctx.createRadialGradient(-rx*.2,-ry*.2,4,0,0,rx*1.12);
+      shade.addColorStop(0,`rgba(${light},${alpha})`);
+      shade.addColorStop(.42,`rgba(${light},${alpha*.83})`);
+      shade.addColorStop(.77,`rgba(${edge},${alpha*.48})`);
+      shade.addColorStop(1,`rgba(${edge},0)`);
+      ctx.fillStyle=shade;
+      ctx.beginPath();ctx.ellipse(0,0,rx*1.1,ry*1.65,0,0,Math.PI*2);ctx.fill();
+      // 三片互相重疊的雲團，不出現直線或硬邊；風強時寬度拉長。
+      for(let puff=0;puff<3;puff++){
+        const px=(-.42+puff*.42)*rx+Math.sin(tCloud*.43+i+puff)*wind*4;
+        const py=Math.sin(i+puff*2)*ry*.21;
+        const pr=rx*(puff===1?.57:.42);
+        const mist=ctx.createRadialGradient(px,py,0,px,py,pr*1.25);
+        mist.addColorStop(0,`rgba(${light},${alpha*.68})`);
+        mist.addColorStop(.55,`rgba(${edge},${alpha*.34})`);
+        mist.addColorStop(1,`rgba(${edge},0)`);
+        ctx.fillStyle=mist;ctx.beginPath();ctx.ellipse(px,py,pr*1.3,ry*(puff===1?1.28:.86),0,0,Math.PI*2);ctx.fill();
+      }
+      ctx.restore();
+    }
   }
   ctx.restore();
 
@@ -2349,8 +2443,9 @@ function drawNature(now,phase){
     for(let i=0;i<260;i++){
       const x=-1650+forestHash(i*31.2+9)*3300;
       const y=145+forestHash(i*19.7+2)*310;
-      forestEllipse(x,y,4.5,3.2,i%2?'#ffd8e8':'#f5f09f');
-      forestEllipse(x+4,y+1,3.6,2.8,i%2?'#fff5bc':'#ffd8e8');
+      const petalSway=natureWind(x,y)*(2.5+(i%4));
+      forestEllipse(x+petalSway,y,4.5,3.2,i%2?'#ffd8e8':'#f5f09f');
+      forestEllipse(x+4+petalSway,y+1,3.6,2.8,i%2?'#fff5bc':'#ffd8e8');
     }
   }
   if(theme.snow){
@@ -2361,19 +2456,7 @@ function drawNature(now,phase){
     }
   }
 
-  // 風與空氣流：少量不規則透明氣流，隨季節改變速度；不新增作品。
-  ctx.save();
-  const windSpeed=season===1?1.25:season===3?.70:season===2?1.08:1;
-  const driftTime=now*.012*windSpeed;
-  for(let i=0;i<55;i++){
-    const x=-1800+((forestHash(i*37.12)*3600+driftTime*(.5+i%4*.35))%3600);
-    const y=130+forestHash(i*41.71+3)*(350+EXTRA_VERTICAL_LAND);
-    const a=.045+.09*forestHash(i*9.1+12);
-    ctx.strokeStyle=`rgba(242,253,255,${night?a*.6:a})`;
-    ctx.lineWidth=.6+(i%3)*.4;ctx.beginPath();ctx.moveTo(x,y);
-    ctx.quadraticCurveTo(x+12,y-3,x+27+Math.sin(now*.0006+i)*6,y-2);ctx.stroke();
-  }
-  ctx.restore();
+  // 風勢透過樹木、草花與雲朵表現，不再畫獨立氣流線。
   drawSoftSeasonParticles(now,season,night);
 
   // 新增陸地帶：天空和遠山完全不動；讓草原往下自然延伸，河流等距下移。
