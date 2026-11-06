@@ -297,6 +297,14 @@ html,body{min-height:100%;overscroll-behavior:none}
   </div>
   <div class="settingsRow">
    <div style="flex:1;min-width:0">
+    <div class="settingsName">⏱️ 世界時間流速 <span id="worldTimeRateVal">4 倍</span></div>
+    <div class="settingsDesc">控制整個公共世界的日夜與四季。管理員調整後，所有在線玩家會同步相同的季節、極光及時間流速。預設 4 倍；動物移動速度不受影響。</div>
+    <div class="settingsDesc" id="worldClockSyncStatus" aria-live="polite">🌍 正在連接共用世界時鐘…</div>
+    <input id="worldTimeRate" type="range" min="1" max="12" value="4" step="1" aria-label="世界時間流速" style="width:100%;margin-top:9px">
+   </div>
+  </div>
+  <div class="settingsRow">
+   <div style="flex:1;min-width:0">
     <div class="settingsName">🌍 公共大世界</div>
     <div class="settingsDesc" id="meadowCloudStatus">連線檢查中…</div>
    </div>
@@ -1129,11 +1137,65 @@ const DAY_PART=100000;
 const DAY_CYCLE=DAY_PART*3;
 const SEASON_CYCLE=DAY_CYCLE*4;
 const dayStart=performance.now();
-function dayPhase(now){return Math.floor(((now-dayStart)%DAY_CYCLE)/DAY_PART);} 
-function seasonIndex(now){
-  const t=((now-dayStart)%SEASON_CYCLE+SEASON_CYCLE)%SEASON_CYCLE;
-  return Math.floor(t/DAY_CYCLE);
+// 獨立的世界時間：只影響日夜與四季，不加速動物物理、射擊或雲端同步。
+const WORLD_TIME_KEY='meadow_world_clock_rate_v1';
+let worldTimeRate=4;
+try{const v=Number(localStorage.getItem(WORLD_TIME_KEY));if(Number.isInteger(v)&&v>=1&&v<=12)worldTimeRate=v;}catch{}
+let clockAnchorReal=dayStart,clockAnchorWorld=0;
+let cloudClockEpochMs=null,cloudClockElapsedMs=0,cloudClockUpdated=0;
+const worldClockStatus=document.querySelector('#worldClockSyncStatus');
+function worldElapsed(now){
+  if(cloudClockEpochMs!==null){
+    // 所有裝置以同一筆伺服器世界時間為準，而非各自開啟網頁的時間。
+    return cloudClockElapsedMs+(Date.now()-cloudClockEpochMs)*worldTimeRate;
+  }
+  return clockAnchorWorld+(now-clockAnchorReal)*worldTimeRate;
 }
+function updateWorldClockControl(){
+  document.querySelector('#worldTimeRate').value=String(worldTimeRate);
+  document.querySelector('#worldTimeRateVal').textContent=worldTimeRate+' 倍';
+}
+function setWorldTimeRate(next){
+  // 只供未連線時使用的本機回退；不應覆蓋雲端世界時鐘。
+  if(cloudClockEpochMs!==null)return;
+  const now=performance.now();
+  clockAnchorWorld=worldElapsed(now);clockAnchorReal=now;
+  worldTimeRate=Math.max(1,Math.min(12,Math.round(next)||4));
+  try{localStorage.setItem(WORLD_TIME_KEY,String(worldTimeRate));}catch{}
+  updateWorldClockControl();
+}
+function applySharedWorldClock(row){
+  if(!row)return false;
+  const epoch=Number(row.anchor_epoch_ms),base=Number(row.elapsed_ms),rate=Number(row.rate);
+  const revision=Date.parse(row.updated_at||'')||0;
+  if(!Number.isFinite(epoch)||!Number.isFinite(base)||!Number.isInteger(rate)||rate<1||rate>12)return false;
+  if(cloudClockEpochMs!==null && revision<cloudClockUpdated)return false;
+  cloudClockEpochMs=epoch;
+  cloudClockElapsedMs=base;
+  cloudClockUpdated=revision;
+  worldTimeRate=rate;
+  updateWorldClockControl();
+  worldClockStatus.textContent='🟢 公共世界已同步・管理員調整會即時更新所有玩家';
+  return true;
+}
+const worldTimeInput=document.querySelector('#worldTimeRate');
+worldTimeInput.addEventListener('input',e=>{
+  document.querySelector('#worldTimeRateVal').textContent=Number(e.target.value)+' 倍（待確認）';
+});
+worldTimeInput.addEventListener('change',async e=>{
+  const requested=Number(e.target.value);
+  if(!cloudWorld.isReady()){
+    setWorldTimeRate(requested);
+    worldClockStatus.textContent='🟠 未連線・只在本機調整；連線成功將以共用時間為準';
+    return;
+  }
+  worldTimeInput.disabled=true;
+  try{await cloudWorld.setWorldTimeRate(requested);}
+  finally{worldTimeInput.disabled=false;updateWorldClockControl();}
+});
+updateWorldClockControl();
+function dayPhase(now){return Math.floor(((worldElapsed(now)%DAY_CYCLE)+DAY_CYCLE)%DAY_CYCLE/DAY_PART);}
+function seasonIndex(now){return Math.floor(((worldElapsed(now)%SEASON_CYCLE)+SEASON_CYCLE)%SEASON_CYCLE/DAY_CYCLE);}
 const phaseNames=['🌤️ 白天','☀️ 中午','🌙 晚上・睡覺'];
 const seasonNames=['🌸 春天','🌿 夏天','🍁 秋天','❄️ 冬天'];
 const seasonShort=['🌸 春','🌿 夏','🍁 秋','❄️ 冬'];
@@ -1660,19 +1722,19 @@ function drawSoftOceanCaustics(now,night){
   // 把細光紋疊在已選定的背景圖片上；只讓亮紋移動，不拖動圖片。
   ctx.save();ctx.globalCompositeOperation='screen';
   const t=now*.001;
-  for(let i=0;i<43;i++){
+  for(let i=0;i<66;i++){
     const seed=forestHash(i*27.13+1),seed2=forestHash(i*39.37+8);
     const x=-1800+((seed*3660+t*(9+(i%4)*4))%3660);
     const y=505+seed2*830;
     const w=38+forestHash(i*13.71+9)*65;
     const h=8+forestHash(i*8.9+19)*13;
     const pulse=.5+.5*Math.sin(t*.85+i*1.7);
-    ctx.strokeStyle=night?`rgba(157,167,255,${.025+pulse*.045})`:
-      `rgba(173,245,255,${.038+pulse*.07})`;
-    ctx.lineWidth=2+(i%3)*.9;
+    ctx.strokeStyle=night?`rgba(177,175,255,${.10+pulse*.15})`:
+      `rgba(173,245,255,${.14+pulse*.23})`;
+    ctx.lineWidth=2.8+(i%3)*1.3;
     ctx.beginPath();ctx.ellipse(x+Math.sin(t*.53+i)*14,y,w,h,-.11,0,Math.PI*1.48);ctx.stroke();
     if(i%3===0){
-      ctx.strokeStyle=night?'rgba(199,186,255,.055)':'rgba(226,251,255,.085)';
+      ctx.strokeStyle=night?'rgba(199,186,255,.18)':'rgba(226,251,255,.25)';
       ctx.lineWidth=1.2;
       ctx.beginPath();ctx.ellipse(x+13,y+8,w*.78,h*.75,.07,.3,Math.PI*1.65);ctx.stroke();
     }
@@ -1683,12 +1745,12 @@ function drawSoftOceanBubbles(now,night){
   // 透明、低密度的氣泡，只存在水域裁切範圍內。
   const t=now*.001;
   ctx.save();
-  for(let i=0;i<32;i++){
+  for(let i=0;i<56;i++){
     const k=forestHash(i*47.31+13);
     const x=-1660+forestHash(i*31.83+17)*3300+Math.sin(t*.48+i)*6;
     const y=480+((forestHash(i*17.29+7)*1000-t*(11+i%6*3)+1000000)%1000);
     const r=1.5+(i%4)*.85;
-    const a=(night?.12:.24)*(.65+.35*Math.sin(t+i));
+    const a=(night?.27:.49)*(.65+.35*Math.sin(t+i));
     ctx.strokeStyle=`rgba(218,246,255,${a})`;ctx.lineWidth=.8;
     ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();
     if(i%3===0){ctx.fillStyle=`rgba(247,255,255,${a*.8})`;
@@ -1705,14 +1767,14 @@ function drawSoftSeasonParticles(now,season,night){
     isFall?['#efb76e','#dc9a55','#f2d5a2']:
     ['#ffffff','#eaf5ff','#d8e9ff'];
   ctx.save();ctx.beginPath();ctx.rect(-1800,90,3600,420);ctx.clip();
-  for(let i=0;i<55;i++){
+  for(let i=0;i<90;i++){
     const x0=-1700+forestHash(i*24.27+18)*3400;
     const y0=forestHash(i*31.19+15)*380;
     const drift=(isSummer?3:9)+(i%5)*1.7;
     const x=x0+Math.sin(t*.57+i*1.4)*(isSummer?8:24)+t*(isFall?3:1.1);
     const y=100+((y0+(isSummer?Math.sin(t*.9+i)*12:t*drift))%380);
     const r=isSummer?1.3+(i%3)*.4:2.6+(i%3)*.55;
-    const alpha=(night?.42:.7)*(.5+.5*Math.sin(t*.72+i));
+    const alpha=(night?.66:.9)*(.55+.45*Math.sin(t*.72+i));
     ctx.fillStyle=palette[i%3];ctx.globalAlpha=alpha;
     ctx.save();ctx.translate(x,y);ctx.rotate(Math.sin(t*.8+i)*.55);
     if(isSummer){
@@ -1731,6 +1793,92 @@ function drawSoftSeasonParticles(now,season,night){
   ctx.restore();
 }
 
+/* 冬季雪層：實際繪製不透明雪地，不是白色濾鏡；位置仍使用原草地區域。 */
+function drawWinterSnowGround(now,night){
+  ctx.save();
+  const snow=ctx.createLinearGradient(0,120,0,510);
+  snow.addColorStop(0,night?'#bdcde0':'#f6fbff');
+  snow.addColorStop(.6,night?'#b5c4d7':'#e8f5ff');
+  snow.addColorStop(1,night?'#96b4d1':'#dceeff');
+  ctx.fillStyle=snow;ctx.beginPath();ctx.moveTo(-1800,142);
+  for(let x=-1800;x<=1800;x+=35)ctx.lineTo(x,142+5*Math.sin(x*.008)+3*Math.sin(x*.021));
+  ctx.lineTo(1800,498);ctx.lineTo(-1800,498);ctx.closePath();ctx.fill();
+  // 雪堆、起伏與少量冰晶高光；確保地面看起來真的積雪。
+  for(let i=0;i<86;i++){
+    const x=-1700+forestHash(i*29.7+5)*3400;
+    const y=155+forestHash(i*42.1+12)*325;
+    const r=25+forestHash(i*9.7+16)*58;
+    ctx.fillStyle=night?'rgba(233,245,255,.25)':'rgba(255,255,255,.81)';
+    ctx.beginPath();ctx.ellipse(x,y,r,5+r*.12,-.04,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle=night?'rgba(215,236,255,.25)':'rgba(160,202,229,.43)';ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.ellipse(x,y+3,r*.82,3+r*.085,-.04,0,Math.PI);ctx.stroke();
+  }
+  for(let i=0;i<160;i++){
+    const x=-1700+forestHash(i*37.14+28)*3400;
+    const y=165+forestHash(i*43.77+1)*310;
+    const glow=.5+.5*Math.sin(now*.0017+i*2.1);
+    ctx.fillStyle=night?`rgba(229,247,255,${.32*glow})`:`rgba(255,255,255,${.88*glow})`;
+    ctx.beginPath();ctx.arc(x,y,.9+(i%3)*.35,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
+/* 冬夜極光：多層透明絲帶緩慢波動，融合薄荷綠／冰藍／薰衣草紫。 */
+function drawWinterAurora(now){
+  const t=now*.00015;
+  ctx.save();ctx.beginPath();ctx.rect(-1800,-730,3600,805);ctx.clip();
+  ctx.globalCompositeOperation='screen';
+  const colors=[['#83ffc9','#4ce8e0'],['#9cbbff','#8f7cff'],['#9efbd7','#b99aff'],['#7fead9','#8d8fff']];
+  for(let band=0;band<4;band++){
+    const baseline=-390+band*47;
+    const gradient=ctx.createLinearGradient(0,baseline-225,0,baseline+95);
+    gradient.addColorStop(0,'rgba(30,30,80,0)');
+    gradient.addColorStop(.29,colors[band][0]);
+    gradient.addColorStop(.66,colors[band][1]);
+    gradient.addColorStop(1,'rgba(80,50,140,0)');
+    ctx.fillStyle=gradient;
+    ctx.globalAlpha=.20+(band%2)*.04;
+    ctx.beginPath();
+    for(let j=0;j<=70;j++){
+      const x=-1800+j*52;
+      const center=baseline+Math.sin(x*.0024+t*2.8+band*.9)*72+Math.sin(x*.005-t*1.4+band)*24;
+      if(j===0)ctx.moveTo(x,center-150);else ctx.lineTo(x,center-150);
+    }
+    for(let j=70;j>=0;j--){
+      const x=-1800+j*52;
+      const center=baseline+Math.sin(x*.0024+t*2.8+band*.9)*72+Math.sin(x*.005-t*1.4+band)*24;
+      ctx.lineTo(x,center+95);
+    }
+    ctx.closePath();ctx.fill();
+    // 垂直極光光絲：輪廓柔和，時間變化慢
+    ctx.globalAlpha=.09;
+    ctx.strokeStyle=colors[band][0];ctx.lineWidth=14;
+    for(let j=0;j<26;j++){
+      const x=-1760+j*140+band*13;
+      const center=baseline+Math.sin(x*.0024+t*2.8+band*.9)*72+Math.sin(x*.005-t*1.4+band)*24;
+      ctx.beginPath();ctx.moveTo(x,center-130);ctx.lineTo(x+Math.sin(t*2+j)*12,center+90);ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+/* 真正降雪：天空與草地持續落下大、小雪花；不更動任何物件座標。 */
+function drawWinterSnowfall(now,night){
+  const t=now*.001;
+  ctx.save();ctx.beginPath();ctx.rect(-1800,-540,3600,1050);ctx.clip();
+  for(let i=0;i<210;i++){
+    const base=forestHash(i*29.41+3)*3660;
+    const speed=11+(i%8)*5;
+    const y=-530+((forestHash(i*23.21+8)*1040+t*speed)%1040);
+    const x=-1830+((base+Math.sin(t*.68+i)*17+t*(i%3+1)*1.2)%3660);
+    const r=1.1+(i%5)*.48;
+    const alpha=(night?.78:.94)*(.55+.45*forestHash(i*13.17+6));
+    ctx.fillStyle=`rgba(255,255,255,${alpha})`;
+    ctx.shadowColor=i%9===0?'#cceeff':'transparent';ctx.shadowBlur=i%9===0?6:0;
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+    if(i%11===0){ctx.strokeStyle=`rgba(226,245,255,${alpha*.73})`;ctx.lineWidth=.85;
+      ctx.beginPath();ctx.moveTo(x-5,y);ctx.lineTo(x+5,y);ctx.moveTo(x,y-5);ctx.lineTo(x,y+5);ctx.stroke();}
+  }
+  ctx.restore();
+}
 function drawNature(now,phase){
   ctx.save();
   ctx.translate(innerWidth/2-state.cam.x*state.cam.zoom,
@@ -1767,7 +1915,8 @@ function drawNature(now,phase){
   ctx.fillStyle=sky;
   ctx.fillRect(-1800,-750,3600,920);
 
-  const cycleTime=((now-dayStart)%DAY_CYCLE+DAY_CYCLE)%DAY_CYCLE;
+  if(season===3 && night)drawWinterAurora(now);
+  const cycleTime=((worldElapsed(now)%DAY_CYCLE)+DAY_CYCLE)%DAY_CYCLE;
   if(night){
     const moonT=(cycleTime-DAY_PART*2)/DAY_PART;
     const moonX=-1250+2500*moonT;
@@ -1775,12 +1924,12 @@ function drawNature(now,phase){
     const aura=ctx.createRadialGradient(moonX,moonY,2,moonX,moonY,115);
     const moonBreath=.91+.09*Math.sin(now*.00125);
     const moonGlow=ctx.createRadialGradient(moonX,moonY,1,moonX,moonY,155*moonBreath);
-    moonGlow.addColorStop(0,'rgba(255,255,255,.62)');
-    moonGlow.addColorStop(.22,'rgba(210,231,255,.30)');
-    moonGlow.addColorStop(.56,'rgba(194,176,255,.17)');
+    moonGlow.addColorStop(0,'rgba(255,255,255,.85)');
+    moonGlow.addColorStop(.22,'rgba(195,230,255,.55)');
+    moonGlow.addColorStop(.56,'rgba(186,155,255,.32)');
     moonGlow.addColorStop(1,'rgba(176,161,252,0)');
     forestEllipse(moonX,moonY,155*moonBreath,155*moonBreath,moonGlow);
-    ctx.save();ctx.shadowColor='#d7c9ff';ctx.shadowBlur=24;
+    ctx.save();ctx.shadowColor='#b7caff';ctx.shadowBlur=42;
     forestEllipse(moonX,moonY,38,38,'#f8faff');
     ctx.restore();
     for(let i=0;i<80;i++){
@@ -1795,12 +1944,12 @@ function drawNature(now,phase){
     const sunBreath=.93+.07*Math.sin(now*.0011);
     const glowRadius=(phase===1?190:166)*sunBreath;
     const softSun=ctx.createRadialGradient(sunX,sunY,2,sunX,sunY,glowRadius);
-    softSun.addColorStop(0,'rgba(255,251,226,.76)');
-    softSun.addColorStop(.25,'rgba(255,231,169,.42)');
-    softSun.addColorStop(.55,'rgba(255,195,175,.21)');
+    softSun.addColorStop(0,'rgba(255,251,226,.96)');
+    softSun.addColorStop(.25,'rgba(255,230,162,.69)');
+    softSun.addColorStop(.55,'rgba(255,183,172,.40)');
     softSun.addColorStop(1,'rgba(255,181,185,0)');
     forestEllipse(sunX,sunY,glowRadius,glowRadius,softSun);
-    ctx.save();ctx.shadowColor='#ffdac4';ctx.shadowBlur=27;
+    ctx.save();ctx.shadowColor='#ffbdb2';ctx.shadowBlur=46;
     forestEllipse(sunX,sunY,sunR,sunR,phase===1?'#fff6cf':'#ffebc5');
     ctx.restore();
   }
@@ -1911,6 +2060,7 @@ function drawNature(now,phase){
       night?'#30463968':theme.groundShadow);
   }
 
+  if(season===3)drawWinterSnowGround(now,night);
   // 保持河岸、河面、深水區、流動波紋原本的相對高度與尺寸，整段向下移。
   ctx.save();ctx.translate(0,LAND_EXTENSION);
   ctx.fillStyle=night?'#74706b':theme.sand[0];
@@ -1997,6 +2147,7 @@ function drawNature(now,phase){
     ctx.beginPath();ctx.moveTo(x+7,y+5);ctx.quadraticCurveTo(x+21,y-24,x+10,y-38);ctx.stroke();
   }
   ctx.restore(); // 河流整體位移
+  if(season===3)drawWinterSnowfall(now,night);
   ctx.restore(); // 世界相機轉換
 }
 /* ========== 背景 ========== */
@@ -4305,6 +4456,31 @@ const cloudWorld=(()=>{
     if(error){if(!healNotice){healNotice=true;console.warn('雲端回血 RPC 未啟用',error.message);}return;}
     if(Number.isFinite(Number(data))){o.hp=Number(data);health.set(o.cloudId,o.hp);}
   }
+  async function loadSharedWorldClock(){
+    if(!ready)return;
+    const {data,error}=await client.from('meadow_world_clock').select('*').eq('id',1).maybeSingle();
+    if(error){
+      worldClockStatus.textContent='🟠 共用世界時鐘尚未啟用，請先執行新版同步 SQL';
+      console.warn('共用世界時鐘讀取失敗:',error.message);
+      return;
+    }
+    if(data)applySharedWorldClock(data);
+  }
+  async function changeWorldTimeRate(rate){
+    if(!ready)throw new Error('公共世界尚未連線');
+    const n=clamp(Math.round(rate),1,12);
+    const {data,error}=await client.rpc('meadow_set_world_time_rate',{p_rate:n});
+    if(error){
+      const msg=error.code==='42501'?'只有已授權的雲端管理員可以調整全世界時間流速':error.message;
+      worldClockStatus.textContent='🔴 '+msg;
+      toast('⏱️ '+msg);
+      // 避免拒絕修改後畫面仍保留未被伺服器接受的數值。
+      await loadSharedWorldClock();
+      return false;
+    }
+    applySharedWorldClock(data);
+    return true;
+  }
   async function refresh(){
     if(!ready)return;
     const {data,error}=await client.from('meadow_objects').select('*').order('created_at',{ascending:true}).limit(500);
@@ -4337,12 +4513,16 @@ const cloudWorld=(()=>{
       if(hunterUid)hunterUid.textContent=userId;
       ready=true;
       await refresh();
+      await loadSharedWorldClock();
       await loadHealth();
       if(channel)client.removeChannel(channel);
       channel=client.channel('meadow-public-objects')
         .on('broadcast',{event:'animal_motion'},onMotion)
         .on('broadcast',{event:'hunter_shot'},onHunterShot)
         .on('broadcast',{event:'sync_request'},()=>{motionLastSent=0;})
+        .on('postgres_changes',{event:'UPDATE',schema:'public',table:'meadow_world_clock',filter:'id=eq.1'},payload=>{
+          if(payload.new)applySharedWorldClock(payload.new);
+        })
         .on('postgres_changes',{event:'*',schema:'public',table:'meadow_hunter_presence'},payload=>{
           if(payload.eventType==='DELETE')onHunterChange(payload.old,true);
           else if(payload.new)onHunterChange(payload.new);
@@ -4373,6 +4553,9 @@ const cloudWorld=(()=>{
         .subscribe(status=>{
           if(status==='SUBSCRIBED'){
             channel.send({type:'broadcast',event:'sync_request',payload:{owner:userId}}).catch(()=>{});
+            // 斷線重連也重新取得世界時間快照，避免漏掉先前的更新。
+            loadSharedWorldClock().catch(console.warn);
+            loadHunters().catch(console.warn);
           }
         });
       await loadHunters();
@@ -4598,6 +4781,7 @@ const cloudWorld=(()=>{
     if(!ready)return;
     if(Date.now()-lastSync>30000){lastSync=Date.now();syncOwned().catch(console.warn);}
   },10000);
+  setInterval(()=>{if(ready)loadSharedWorldClock().catch(console.warn);},25000);
   setInterval(()=>{if(ready){refresh().catch(console.warn);loadHunters().catch(console.warn);}},60000);
   function getOwnedAnimalBox(id){return ownedAnimalBoxes.get(id)||null;}
   function pickOwnedAnimalAt(x,y){
@@ -4616,6 +4800,7 @@ const cloudWorld=(()=>{
     hunterStop:()=>syncHunter(false).catch(()=>{}),
     hunterImageChanged:()=>{hunterImagePath='';if(hunterState.active)uploadHunterImage().then(()=>syncHunter(true)).catch(()=>{});},
     hunterExtrasChanged:()=>{if(hunterUnits().length)syncHunter(true).catch(()=>{});},
+    setWorldTimeRate:changeWorldTimeRate,
     damage,healOwned,hasRemote:()=>ready&&rows.size>0};
 })();
 
