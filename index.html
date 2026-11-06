@@ -24,12 +24,14 @@
 <style>
 :root{--ink:#594d67;--muted:#887b92;--line:#eadbea}
 *{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;font-family:ui-rounded,"PingFang TC","Microsoft JhengHei",system-ui,sans-serif;color:var(--ink);background:#dff4ff;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;min-height:100%;font-family:ui-rounded,"PingFang TC","Microsoft JhengHei",system-ui,sans-serif;color:var(--ink);background:#dff4ff;-webkit-tap-highlight-color:transparent;overflow:hidden}
+html{height:100dvh;min-height:100dvh;min-height:-webkit-fill-available;overscroll-behavior:none;background:#dff4ff}
+body{height:100dvh;min-height:100dvh;min-height:-webkit-fill-available;position:fixed;inset:0;background:#dff4ff;overscroll-behavior:none}
 button,input{font:inherit}
 button{border:0;cursor:pointer;color:inherit}
 .hidden{display:none!important}
-#app{position:fixed;inset:0;overflow:hidden;background:linear-gradient(#c8edff 0 42%,#b6e493 42% 100%)}
-#world{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+#app{position:fixed;inset:0;width:100vw;height:100dvh;min-height:100dvh;min-height:-webkit-fill-available;overflow:hidden;background:linear-gradient(#c8edff 0 42%,#b6e493 42% 100%)}
+#world{display:block;width:100%;height:100%;min-height:100%;touch-action:none;cursor:grab}
 .top{position:absolute;z-index:10;top:calc(9px + env(safe-area-inset-top));left:10px;right:10px;display:flex;align-items:center;gap:7px;pointer-events:none}
 .top>*{pointer-events:auto}
 .timeBadge{margin-right:auto;background:#ffffffeb;padding:8px 12px;border-radius:999px;font-weight:900;font-size:12px;box-shadow:0 5px 15px #76609c22;white-space:nowrap}
@@ -333,8 +335,8 @@ html,body{min-height:100%;overscroll-behavior:none}
 
 /* 滿版與緊湊上傳列：不更改玩家手動收合狀態 */
 .upload:not(.collapsed){padding-bottom:max(5px,env(safe-area-inset-bottom))}
-html,body{width:100%;height:100%;min-height:100%;overflow:hidden;overscroll-behavior:none}
-#app{position:fixed;inset:0;width:100%;height:100%;height:100dvh;overflow:hidden}
+html,body{width:100%;height:100dvh;min-height:100dvh;overflow:hidden;overscroll-behavior:none}
+#app{position:fixed;inset:0;width:100vw;height:100dvh;overflow:hidden}
 #world{width:100%;height:100%;display:block}
 .upload,.upload:not(.collapsed){bottom:0;left:50%;right:auto;transform:translateX(-50%);width:min(860px,calc(100% - 12px));max-height:min(34dvh,180px);padding:4px 7px 5px;border-radius:16px 16px 0 0;overflow-x:hidden;overflow-y:auto;box-shadow:0 -3px 15px #6c588c22}
 .upload .hint{font-size:10px;line-height:1.15;margin:0 0 3px}
@@ -361,11 +363,14 @@ html,body{width:100%;height:100%;min-height:100%;overflow:hidden;overscroll-beha
 }
 
 /* 2026-11-06：卡冊在主畫面 App 橫向／直向都依可見高度排版，完整卡片可捲動 */
+#bagModal{padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
 #bagModal .bagPanel{display:flex;flex-direction:column;box-sizing:border-box;
-  width:min(1150px,calc(100vw - 24px));max-width:calc(100vw - 24px);
-  height:min(760px,calc(100dvh - 20px));max-height:calc(100dvh - 20px);
-  padding:clamp(8px,1.8vh,17px);overflow:hidden}
+  width:min(1180px,calc(100vw - 16px));max-width:calc(100vw - 16px);
+  height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  padding:clamp(8px,1.6vh,16px);overflow:hidden}
 #bagModal .bagHeader,#bagModal .bagSub,#bagModal .bagNav{flex-shrink:0}
+#bagModal .bagHeader{margin-bottom:6px}
 #bagModal .bagSub{margin-bottom:4px}
 #bagModal .bagNav{gap:5px}
 #bagModal .bagNav button{padding:5px 13px}
@@ -374,17 +379,30 @@ html,body{width:100%;height:100%;min-height:100%;overflow:hidden;overscroll-beha
 #bagGrid .animalCard{box-sizing:border-box;flex:0 0 calc((100% - 2 * clamp(8px,1vw,16px))/3);
   width:calc((100% - 2 * clamp(8px,1vw,16px))/3);min-width:0;
   padding:clamp(4px,.7vw,10px);overflow:hidden}
-#bagGrid .cardArt{height:clamp(100px,26dvh,260px);max-height:calc(100dvh - 325px);min-height:92px}
-#bagGrid .cardFoot{min-height:45px;padding:6px 3px 4px}
+#bagGrid .cardArt{height:clamp(96px,23dvh,220px);max-height:calc(100dvh - 340px);min-height:88px}
+#bagGrid .cardFoot{min-height:42px;padding:6px 3px 4px}
+@media (orientation:landscape){
+ #bagModal .bagPanel{width:min(1260px,calc(100vw - 12px));max-width:calc(100vw - 12px);height:calc(100dvh - 12px - env(safe-area-inset-top) - env(safe-area-inset-bottom));max-height:calc(100dvh - 12px - env(safe-area-inset-top) - env(safe-area-inset-bottom));padding:clamp(7px,1.2vh,14px)}
+ #bagModal .bagSub{font-size:11px;line-height:1.35;margin-bottom:2px}
+ #bagGrid{padding:5px 6px 10px;gap:10px}
+ #bagGrid .animalCard{padding:4px}
+ #bagGrid .cardTop{padding:5px 2px;margin-bottom:4px;font-size:12px}
+ #bagGrid .cardArt{height:clamp(82px,18dvh,170px);max-height:170px}
+ #bagGrid .cardFoot{min-height:34px;padding:4px 2px}
+ #bagGrid .cardTitle{font-size:12px}
+ #bagGrid .cardInfo{display:none}
+ #bagGrid .cardSize{font-size:13px}
+ #bagGrid .cardBadge{font-size:9px;padding:2px 4px}
+}
 @media(max-height:650px){
- #bagModal .bagPanel{height:calc(100dvh - 10px);max-height:calc(100dvh - 10px)}
+ #bagModal .bagPanel{height:calc(100dvh - 10px - env(safe-area-inset-top) - env(safe-area-inset-bottom));max-height:calc(100dvh - 10px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
  #bagModal .bagSub{font-size:11px;line-height:1.25;margin-bottom:2px}
  #bagModal .bagHeader{margin-bottom:2px}
  #bagModal .bagHeader h2{font-size:16px}
  #bagGrid .animalCard{padding:4px;border-width:3px}
  #bagGrid .cardTop{padding:4px 2px;margin-bottom:3px;font-size:12px}
- #bagGrid .cardArt{height:clamp(88px,31dvh,192px);max-height:none}
- #bagGrid .cardFoot{min-height:35px;padding:4px 2px}
+ #bagGrid .cardArt{height:clamp(78px,17dvh,150px);max-height:none}
+ #bagGrid .cardFoot{min-height:34px;padding:4px 2px}
  #bagGrid .cardTitle{font-size:12px}
  #bagGrid .cardInfo{display:none}
  #bagGrid .cardSize{font-size:13px}
@@ -392,7 +410,20 @@ html,body{width:100%;height:100%;min-height:100%;overflow:hidden;overscroll-beha
  #bagGrid{padding:5px 6px 9px}
 }
 @media(max-width:560px){
- #bagGrid .cardArt{height:clamp(105px,26dvh,235px);max-height:calc(100dvh - 280px)}
+ #bagGrid .cardArt{height:clamp(100px,24dvh,210px);max-height:calc(100dvh - 280px)}
+}
+
+/* 修復橫向卡片被截斷：卡片高度不會無限撐大，卡冊本身可上下捲動。 */
+#bagModal .bagPanel{min-height:0}
+#bagGrid{scrollbar-gutter:stable;align-content:start;overscroll-behavior:contain}
+#bagGrid .animalCard{height:max-content;min-height:0;scroll-snap-align:start}
+@media (orientation:landscape){
+ #bagModal .bagPanel{height:calc(100dvh - 12px);max-height:calc(100dvh - 12px)}
+ #bagGrid{min-height:0;overflow-x:auto;overflow-y:auto;align-items:start;padding-bottom:14px}
+ #bagGrid .animalCard{flex:0 0 calc((100% - 20px)/3);width:calc((100% - 20px)/3);min-width:0;max-width:calc((100% - 20px)/3)}
+ #bagGrid .cardArt{height:clamp(86px,19dvh,175px);min-height:86px}
+ #bagGrid .cardFoot{min-height:25px}
+ #bagGrid .animalCard button{margin-top:3px!important;padding:5px 2px!important;font-size:11px}
 }
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1295,11 +1326,18 @@ function updateHouseVisits(o,now,dt,sleeping){
 /* ========== 畫布與座標 ========== */
 let cameraReadyForResize=false;
 function resize(){
+  // 與 worldToScreen/screenToWorld 共用同一個 CSS layout viewport；避免 PWA 旋轉後觸控錯位。
+  const vw=Math.max(1,window.innerWidth||document.documentElement.clientWidth||1);
+  const vh=Math.max(1,window.innerHeight||document.documentElement.clientHeight||1);
+  document.documentElement.style.setProperty('--viewport-w',vw+'px');
+  document.documentElement.style.setProperty('--viewport-h',vh+'px');
   DPR = Math.min(2, devicePixelRatio || 1);
-  world.width  = Math.round(innerWidth  * DPR);
-  world.height = Math.round(innerHeight * DPR);
-  world.style.width  = innerWidth  + 'px';
-  world.style.height = innerHeight + 'px';
+  world.width  = Math.round(vw * DPR);
+  world.height = Math.round(vh * DPR);
+  world.style.width  = vw + 'px';
+  world.style.height = vh + 'px';
+  const appEl=document.getElementById('app');
+  if(appEl){appEl.style.width=vw+'px';appEl.style.height=vh+'px';}
   if(cameraReadyForResize)clampCamera();
 }
 addEventListener('resize', resize);
@@ -1347,7 +1385,7 @@ function worldToScreen(x, y){
     y:(visualWorldY(y)-state.cam.y)*state.cam.zoom+innerHeight/2
   };
 }
-const WORLD_EDGE=1650;
+const WORLD_EDGE=1520; // 收斂可水平移動邊界，避免橫向時露出地景拼接縫。
 const LAND_EXTENSION=140; // 既有陸地擴充保持原值；新的縱向高度只作用在畫面投影，不修改存檔。
 function clampCamera(){
   const view=innerWidth/(2*state.cam.zoom);
@@ -1567,6 +1605,13 @@ function pickFoodSpawn(forageKind,forageZone,animals,target){
   }
   return {x,y,placement:'ground',stem:0};
 }
+function inferHabitatZone(kind,x,y){
+  const areas=HABITATS[kind]||HABITATS.land;
+  let index=areas.findIndex(h=>Number.isFinite(x)&&Number.isFinite(y)&&x>=h.x0&&x<=h.x1&&y>=h.y0&&y<=h.y1);
+  if(index>=0)return index;
+  index=areas.findIndex(h=>Number.isFinite(x)&&x>=h.x0&&x<=h.x1);
+  return index>=0?index:0;
+}
 function placeInHabitat(o){
   o.size=Number.isFinite(o.size)?Math.max(1,o.size):1;
   o.bites=Number.isFinite(o.bites)?o.bites:2;
@@ -1575,10 +1620,8 @@ function placeInHabitat(o){
     // 舊作品中的食物若落在新河流上，讓它保持可被取用的位置。
     if(!Number.isFinite(o.x))o.x=-120;
     if(!Number.isFinite(o.y))o.y=260;
-    if(!o.forageKind){
-      o.forageKind=o.y>445?'fish':o.y>330?'reptile':'land';
-      o.forageZone=0;
-    }
+    if(!o.forageKind)o.forageKind=o.y>445?'fish':o.y>330?'reptile':'land';
+    if(!Number.isInteger(o.forageZone)||o.forageZone<0)o.forageZone=inferHabitatZone(o.forageKind,o.x,o.y);
     if(!o.placement)o.placement='ground';
     if(!Number.isFinite(o.stem))o.stem=12;
     o.vx=0;o.vy=0;return;
@@ -1586,8 +1629,7 @@ function placeInHabitat(o){
   if(!Number.isFinite(o.face))o.face=(o.vx||0)<0?-1:1;
   const areas=HABITATS[o.kind]||HABITATS.land;
   if(!Number.isInteger(o.zone)||o.zone<0||o.zone>=areas.length){
-    o.zone=areas.findIndex(h=>Number.isFinite(o.x)&&o.x>=h.x0&&o.x<=h.x1);
-    if(o.zone<0)o.zone=0;
+    o.zone=inferHabitatZone(o.kind,o.x,o.y);
   }
   const h=habitat(o.kind,o.zone);
   if(!Number.isFinite(o.x)||!Number.isFinite(o.y)||
@@ -1668,14 +1710,25 @@ function eatFood(o,food,now){
 }
 function nearestFood(o){
   let chosen=null,dist=Infinity;
+  let fallback=null,fallbackDist=Infinity;
   for(const f of state.items){
     if(f.kind!=='food'||f.bites<=0)continue;
-    // 同一生活區域的動物可以各自發現、分享一份食物。
-    if(f.forageKind!==o.kind||Number(f.forageZone||0)!==Number(o.zone||0))continue;
+    const sameKind=!f.forageKind||f.forageKind===o.kind;
+    if(!sameKind)continue;
     const d=Math.hypot(f.x-o.x,f.y-o.y);
-    if(d<dist){chosen=f;dist=d;}
+    const foodZone=Number.isInteger(f.forageZone)?f.forageZone:inferHabitatZone(f.forageKind||o.kind,f.x,f.y);
+    const animalZone=Number.isInteger(o.zone)?o.zone:inferHabitatZone(o.kind,o.x,o.y);
+    const exactZone=foodZone===animalZone;
+    const nearbySharedZone=d<260 && Math.abs(foodZone-animalZone)<=1;
+    const meadowShared=(o.kind==='land'||o.kind==='bird') && d<360;
+    const waterShared=(o.kind==='fish'||o.kind==='reptile') && d<320;
+    if(exactZone||nearbySharedZone||meadowShared||waterShared){
+      if(d<dist){chosen=f;dist=d;}
+    }else if(d<fallbackDist){
+      fallback=f;fallbackDist=d;
+    }
   }
-  return chosen;
+  return chosen||fallback;
 }
 function ellipse(x,y,rx,ry,color){
   ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fill();
@@ -2286,7 +2339,7 @@ function drawNature(now,phase){
   // 只在底層延伸原有天空、草原、岸邊、深水的顏色，不搬動原本地形與物件。
   const wide=20000;
   // 視窗縮遠或橫向時，主要地景本體連續延伸至可見邊界，而非複製窄條造成垂直接縫。
-  const scenicSide=Math.max(2200,Math.abs(state.cam.x)+innerWidth/Math.max(.15,state.cam.zoom)+180);
+  const scenicSide=Math.max(2800,Math.abs(state.cam.x)+innerWidth/Math.max(.15,state.cam.zoom)+500);
   // 超遠俯瞰時，宇宙頂端也要延伸到可見區，避免出現空白色帶。
   ctx.fillStyle='#060d24';ctx.fillRect(-wide,-wide,wide*2,wide*2);
   const edgeSky=ctx.createLinearGradient(0,-530,0,140);
@@ -2315,7 +2368,7 @@ function drawNature(now,phase){
   const cosmos=ctx.createLinearGradient(0,WORLD_REGIONS.cosmos.top,0,-740);
   cosmos.addColorStop(0,'#030519');cosmos.addColorStop(.38,'#101037');
   cosmos.addColorStop(.75,'#182753');cosmos.addColorStop(1,paintSky[0]);
-  ctx.fillStyle=cosmos;ctx.fillRect(-1800,WORLD_REGIONS.cosmos.top,3600,-720-WORLD_REGIONS.cosmos.top);
+  ctx.fillStyle=cosmos;ctx.fillRect(-scenicSide,WORLD_REGIONS.cosmos.top,scenicSide*2,-720-WORLD_REGIONS.cosmos.top);
   ctx.save();
   ctx.globalCompositeOperation='screen';
   for(let band=0;band<5;band++){
@@ -2338,13 +2391,13 @@ function drawNature(now,phase){
   // 宇宙→高層大氣→低空：單一連續世界座標，不以矩形硬切天空。
   const sky=ctx.createLinearGradient(0,-700,0,140);
   sky.addColorStop(0,paintSky[0]);sky.addColorStop(.60,paintSky[1]);sky.addColorStop(1,paintSky[2]);
-  ctx.fillStyle=sky;ctx.fillRect(-1800,-640,3600,810);
+  ctx.fillStyle=sky;ctx.fillRect(-scenicSide,-640,scenicSide*2,810);
   const atmosphere=ctx.createLinearGradient(0,-1030,0,-610);
   atmosphere.addColorStop(0,'rgba(45,75,162,0)');
   atmosphere.addColorStop(.34,night?'rgba(53,85,171,.10)':'rgba(46,126,209,.13)');
   atmosphere.addColorStop(.66,night?'rgba(94,120,182,.32)':'rgba(121,195,249,.44)');
   atmosphere.addColorStop(1,paintSky[0]);
-  ctx.fillStyle=atmosphere;ctx.fillRect(-1800,-1030,3600,420);
+  ctx.fillStyle=atmosphere;ctx.fillRect(-scenicSide,-1030,scenicSide*2,420);
   // 高空雲層沿風緩慢漂移：只在大氣交界，避免擋住陸地與動物。
   ctx.save();ctx.globalCompositeOperation='screen';
   const drift=((now*.009)%560)-280;
@@ -2366,7 +2419,7 @@ function drawNature(now,phase){
     eveningHaze.addColorStop(0,'rgba(249,129,185,0)');
     eveningHaze.addColorStop(.65,'rgba(255,146,149,.10)');
     eveningHaze.addColorStop(1,'rgba(255,201,119,.36)');
-    ctx.fillStyle=eveningHaze;ctx.fillRect(-1800,-140,3600,265);
+    ctx.fillStyle=eveningHaze;ctx.fillRect(-scenicSide,-140,scenicSide*2,265);
   }
   if(season===3 && night)drawWinterAurora(now);
   const cycleTime=((worldElapsed(now)%DAY_CYCLE)+DAY_CYCLE)%DAY_CYCLE;
@@ -2414,12 +2467,12 @@ function drawNature(now,phase){
   haze.addColorStop(0,theme.haze[0]);
   haze.addColorStop(1,theme.haze[1]);
   ctx.fillStyle=haze;
-  ctx.fillRect(-1800,-70,3600,200);
+  ctx.fillRect(-scenicSide,-70,scenicSide*2,200);
 
   ctx.fillStyle=night?'#596072':theme.horizon;
-  ctx.beginPath();ctx.moveTo(-1800,66);
-  for(let x=-1800;x<=1800;x+=75)ctx.lineTo(x,46+17*Math.sin(x*.004));
-  ctx.lineTo(1800,133);ctx.lineTo(-1800,133);ctx.fill();
+  ctx.beginPath();ctx.moveTo(-scenicSide,66);
+  for(let x=-scenicSide;x<=scenicSide;x+=75)ctx.lineTo(x,46+17*Math.sin(x*.004));
+  ctx.lineTo(scenicSide,133);ctx.lineTo(-scenicSide,133);ctx.fill();
 
   for(let i=0;i<155;i++){
     const x=-1780+i*24;
@@ -2536,9 +2589,9 @@ function drawNature(now,phase){
   // 保持河岸、河面、深水區、流動波紋原本的相對高度與尺寸，整段向下移。
   ctx.save();ctx.translate(0,LAND_EXTENSION+EXTRA_VERTICAL_LAND);
   ctx.fillStyle=night?'#74706b':theme.sand[0];
-  ctx.beginPath();ctx.moveTo(-1800,358);
-  for(let x=-1800;x<=1800;x+=75)ctx.lineTo(x,358+14*Math.sin(x*.008));
-  ctx.lineTo(1800,475);ctx.lineTo(-1800,475);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(-scenicSide,358);
+  for(let x=-scenicSide;x<=scenicSide;x+=75)ctx.lineTo(x,358+14*Math.sin(x*.008));
+  ctx.lineTo(scenicSide,475);ctx.lineTo(-scenicSide,475);ctx.closePath();ctx.fill();
   ctx.fillStyle=night?'#979087':theme.sand[1];
   ctx.beginPath();ctx.moveTo(-scenicSide,375);
   for(let x=-scenicSide;x<=scenicSide;x+=75)ctx.lineTo(x,373+10*Math.sin(x*.009));
@@ -2561,7 +2614,7 @@ function drawNature(now,phase){
   // 水面沿河道向右流動；採固定世界座標與時間位移，不影響魚的活動區域。
   ctx.save();
   ctx.beginPath();ctx.moveTo(-scenicSide,445);
-  for(let x=-1800;x<=1800;x+=60)ctx.lineTo(x,445+11*Math.sin(x*.008));
+  for(let x=-scenicSide;x<=scenicSide;x+=60)ctx.lineTo(x,445+11*Math.sin(x*.008));
   ctx.lineTo(scenicSide,1520+EXTRA_DEEP_SEA);ctx.lineTo(-scenicSide,1520+EXTRA_DEEP_SEA);ctx.closePath();ctx.clip();
   // 只替換水域底圖；原本流動波紋、光束、海草珊瑚與所有角色均仍在其上繪製。
   drawCustomSeaBackground(night,scenicSide);
@@ -2634,7 +2687,7 @@ function drawNature(now,phase){
 function drawGrass(){
   ctx.setTransform(DPR,0,0,DPR,0,0);
   ctx.clearRect(0,0,innerWidth,innerHeight);
-  ctx.fillStyle='#a7dbf4';ctx.fillRect(0,0,innerWidth,innerHeight);
+  ctx.fillStyle='#101b35';ctx.fillRect(0,0,innerWidth,innerHeight);
 }
 
 /* ========== 開心玩耍：定期選新目的地，沿地圖大範圍奔跑 ========== */
@@ -4075,6 +4128,7 @@ function animate(now){
       ctx.scale(facingSign*bodyTurn,paradeWalking?1+.045*Math.sin(festivalBeat*2):1);
       const glow=.83+.17*Math.sin(now*.008);
       ctx.globalAlpha=.80;
+      ctx.shadowColor='#acf3ff';ctx.shadowBlur=32*glow;
       ctx.filter=`drop-shadow(0 0 ${3*glow}px #ffffff) drop-shadow(0 0 ${10*glow}px #ffd9f7) drop-shadow(0 0 ${23*glow}px #a7dfff) drop-shadow(0 0 ${34*glow}px #dcb9ff)`;
       drawRigged(o,im,w,h,now,sleeping);ctx.restore();
     }
@@ -4246,7 +4300,7 @@ $('#deleteBtn').onclick = async () => {
     if(!confirm('確定要刪除自己發布到公共世界的這隻動物嗎？其他玩家會同步看不到。'))return;
     btn.disabled=true;
     try{
-      const ok=await cloudWorld.remove(id);
+      const ok=await cloudWorld.removeSelectedAnimal(id);
       if(ok){selectedCloudAnimal=null;btn.style.display='none';audio.effect('delete');toast('已刪除公共世界動物');}
     }finally{btn.disabled=false;}
     return;
@@ -4358,13 +4412,22 @@ $('#fileInput').onchange = async e => {
 function addItem(data,kind){
   let o;
   if(kind==='food'){
-    const animals=state.items.filter(v=>v.kind!=='food');
+    // 新雲端生態的動物已不在 state.items；新增食物要從已召喚的雲端動物選目標。
+    const animals=[...state.items.filter(v=>v.kind!=='food'),...cloudWorld.foodSpawnAnimals()];
     const injured=animals.filter(v=>(v.hp??100)<100);
     const target=injured.length?injured[Math.floor(Math.random()*injured.length)]:
-      animals.length?animals[Math.floor(Math.random()*animals.length)]:null;
+      animals.length?animals[Math.floor(Math.random()*Math.min(animals.length,5))]:null;
     const forageKind=target?target.kind:'land';
     const forageZone=target?target.zone:1;
     const spawn=pickFoodSpawn(forageKind,forageZone,animals,target);
+    // 雲端生態用戶上傳食物後，讓食物在所選動物附近可到達的地點出現。
+    // 不擅自改動本機舊版食物隨機生成規則。
+    if(target?.fromCloud && (target.hp??100)>=100){
+      const home=habitat(forageKind,forageZone);
+      spawn.x=clamp(target.x+(Math.random()<.5?-1:1)*(70+Math.random()*75),home.x0+18,home.x1-18);
+      spawn.y=clamp(target.y+(Math.random()-.5)*54,home.y0+12,home.y1-12);
+      spawn.placement=forageKind==='fish'?'water':'ground';spawn.stem=0;
+    }
     // 受傷時，新增的食物可出現在傷患旁，倒地動物便能吃到並復原。
     if(target&&(target.hp??100)<100){
       spawn.x=clamp(target.x+25,habitat(forageKind,forageZone).x0+10,habitat(forageKind,forageZone).x1-10);
@@ -4818,13 +4881,13 @@ const cloudWorld=(()=>{
       const dt=clamp((now-(p.lastFrame??now))/1000,0,0.06);
       p.lastFrame=now;
       const age=Math.max(0,(Date.now()-p.received)/1000);
-      const live=age<3.5;
-      const ahead=live?Math.min(ecosystemEnabled?1.9:.17,age):0;
-      const targetX=p.x+(p.vx||0)*ahead;
-      const targetY=p.y+(p.vy||0)*ahead;
-      const ease=1-Math.exp(-dt/0.105);
-      p.sx=Number.isFinite(p.sx)?p.sx+(targetX-p.sx)*ease:p.x;
-      p.sy=Number.isFinite(p.sy)?p.sy+(targetY-p.sy)*ease:p.y;
+      const live=age<4.5;
+      // 使用最後一個權威座標；禁止按速度外推超前後又回彈（抽動主因）。
+      // 每輪更新間隔約 2.2 秒，採用約 1.7 秒的連續平滑過渡。
+      const easing=ecosystemEnabled?1-Math.exp(-dt/0.48):1-Math.exp(-dt/0.14);
+      p.sx=Number.isFinite(p.sx)?p.sx+(p.x-p.sx)*easing:p.x;
+      p.sy=Number.isFinite(p.sy)?p.sy+(p.y-p.sy)*easing:p.y;
+      const ease=easing;
       // 繼續顯示最後收到的位置，等恢復連線時再柔和地靠近新的位置。
       const f=Number.isFinite(p.sf)?p.sf:(p.face||1);
       p.sf=f+((p.face||1)-f)*ease;
@@ -5120,6 +5183,22 @@ const cloudWorld=(()=>{
       console.warn('生態快照同步失敗：',error.message);
       return ecosystemEnabled;
     }
+  }
+  function foodSpawnAnimals(){
+    if(!ready||!ecosystemEnabled)return[];
+    const out=[];
+    for(const r of rows.values()){
+      if(r.object_type!=='animal'||!deployments.get(r.id))continue;
+      const v=runtimeStates.get(r.id);
+      if(!v)continue;
+      const kind=r.properties?.space?'space':r.species;
+      if(!HABITATS[kind])continue;
+      out.push({id:r.id,kind,zone:Number(r.properties?.zone)||0,x:Number(v.x),y:Number(v.y),
+        hp:health.get(r.id)??100,fromCloud:true});
+    }
+    // 優先使用目前玩家看得到的動物，避免食物生成在遙遠看不見的地方。
+    out.sort((a,b)=>Math.hypot(a.x-state.cam.x,visualWorldY(a.y)-state.cam.y)-Math.hypot(b.x-state.cam.x,visualWorldY(b.y)-state.cam.y));
+    return out.slice(0,40);
   }
   function animalCards(){
     if(!ecosystemEnabled)return[];
@@ -5469,8 +5548,10 @@ const cloudWorld=(()=>{
       const w=((r.object_type==='home'?185:BASE[r.species]||100)*size)*state.cam.zoom;
       const h=w*(im.naturalHeight/im.naturalWidth);
       if(p.x+w<-100||p.x-w>innerWidth+100||p.y+h<-100||p.y-h>innerHeight+100)continue;
-      if(r.object_type==='animal'&&r.owner_id===userId){
-        ownedAnimalBoxes.set(r.id,{x:p.x-w/2,y:p.y-h,w,h});
+      if(r.object_type==='animal'&&(r.owner_id===userId||hunterState.unlocked)){
+        // 與實際繪圖一致；圖比較小仍保留最小觸控範圍，避免點不到。
+        const pickW=Math.max(44,w),pickH=Math.max(44,h);
+        ownedAnimalBoxes.set(r.id,{x:p.x-pickW/2,y:p.y-pickH,w:pickW,h:pickH});
       }
       ctx.save();
       if(r.object_type==='home'){
@@ -5507,8 +5588,11 @@ const cloudWorld=(()=>{
           ctx.scale(face*(.58+.42*Math.abs(pose.face||1)),1);
         }
         const pulse=.84+.16*Math.sin(now*.008);
-        ctx.filter=`drop-shadow(0 0 ${3*pulse}px white) drop-shadow(0 0 ${11*pulse}px #ffd2f0) drop-shadow(0 0 ${22*pulse}px #a0e6ff) drop-shadow(0 0 ${33*pulse}px #dbb9ff)`;
-        ctx.globalAlpha=.8;ctx.drawImage(im,-w/2,-h,w,h);ctx.restore();
+        // 使用 Canvas shadowBlur 而非只依賴 filter，iPhone 主畫面模式也能明顯看見輪廓光。
+        ctx.shadowColor='#bcecff';ctx.shadowBlur=30*pulse;ctx.globalAlpha=.88;
+        ctx.drawImage(im,-w/2,-h,w,h);
+        ctx.shadowColor='#ffd2fc';ctx.shadowBlur=16*pulse;ctx.globalAlpha=.68;
+        ctx.drawImage(im,-w/2,-h,w,h);ctx.restore();
       }
       if(r.object_type==='animal' && health.has(r.id) && health.get(r.id)<100){
         const hp=health.get(r.id);
@@ -5550,20 +5634,21 @@ const cloudWorld=(()=>{
     for(const [id,b] of [...ownedAnimalBoxes].reverse()){
       if(x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h){
         const r=rows.get(id);
-        if(r?.owner_id===userId)return {id,box:b};
+        if(r&&(r.owner_id===userId||hunterState.unlocked))return {id,box:b};
       }
     }
     return null;
   }
   return {publishItem:o=>publish(o,'item'),publishHome:h=>publish(h,'home'),remove,draw,connect,refresh,renderAdminWorks,adminRemove,
     isReady:()=>ready,getOwnedAnimalBox,pickOwnedAnimalAt,
+    removeSelectedAnimal:async id=>{const r=rows.get(id);return r?.owner_id===userId?remove(id):(hunterState.unlocked?adminRemove(id):false);},
     remoteHunterTargets,drawRemoteHunters,broadcastHunterShot,
     hunterStart:()=>{hunterImagePath='';uploadHunterImage().then(()=>syncHunter(true)).catch(()=>{});},
     hunterStop:()=>syncHunter(false).catch(()=>{}),
     hunterImageChanged:()=>{hunterImagePath='';if(hunterState.active)uploadHunterImage().then(()=>syncHunter(true)).catch(()=>{});},
     hunterExtrasChanged:()=>{if(hunterUnits().length)syncHunter(true).catch(()=>{});},
     setWorldTimeRate:changeWorldTimeRate,
-    animalCards,summonCard,archiveCard,
+    animalCards,summonCard,archiveCard,foodSpawnAnimals,
     saveAnimalTraits,damage,healOwned,hasRemote:()=>ready&&rows.size>0};
 })();
 
