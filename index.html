@@ -157,6 +157,38 @@ html,body{min-height:100%;overscroll-behavior:none}
 .bagNav button{border:1px solid #e0d4e7;background:#fff;border-radius:16px;padding:8px 19px;color:#674d7d;font-size:18px;cursor:pointer}
 @media(max-width:600px){#bagGrid{gap:9px;padding:11px 0 22px}#bagGrid .animalCard{flex:0 0 calc((100% - 18px) / 3);width:calc((100% - 18px) / 3);padding:5px;border-radius:12px}#bagGrid .cardArt{height:170px}#bagGrid .cardArt img{padding:2px}#bagGrid .cardTitle{font-size:12px}#bagGrid .cardSize{font-size:13px}#bagGrid .cardBadge{font-size:9px;padding:3px}#bagGrid .cardTop{font-size:10px}#bagGrid .cardInfo{font-size:9px}#bagModal .bagPanel{padding:10px}}
 
+
+/* 新版收藏卡：參考六色元素卡的直立框架、上下資訊分區與細線裝飾，圖片仍為玩家原畫 */
+#bagGrid .animalCard{--frame:#d2ae37;--paper:#fff6d0;--ink:#a17818;--accent:#ffe271;
+  padding:8px;border:4px solid #424344;border-radius:8px;
+  background:linear-gradient(165deg,var(--paper),#fff 52%,var(--paper));
+  box-shadow:inset 0 0 0 3px var(--frame),inset 0 0 0 5px #ffffffa8,0 6px 17px #1525325e,
+    0 0 16px var(--glow),0 0 32px var(--glow);transition:filter .25s}
+#bagGrid .animalCard.tier-gold{--frame:#ecc829;--paper:#fff0b4;--ink:#8d6512;--accent:#ffe964;--glow:#ffd447bb}
+#bagGrid .animalCard.tier-violet{--frame:#914bb3;--paper:#f4d8ff;--ink:#69318c;--accent:#d89eff;--glow:#cf87ffad}
+#bagGrid .animalCard.tier-blue{--frame:#259dcc;--paper:#c8eeff;--ink:#1f6f9e;--accent:#8ce4ff;--glow:#75d7ffaa}
+#bagGrid .animalCard.tier-green{--frame:#14aa58;--paper:#caf7d7;--ink:#17784b;--accent:#74ffaa;--glow:#67e3a6aa}
+#bagGrid .animalCard.tier-silver{--frame:#b3ac67;--paper:#fffdeb;--ink:#8a8040;--accent:#f6f3c3;--glow:#fef5bc99}
+#bagGrid .animalCard:before{inset:-130%;z-index:4;pointer-events:none;opacity:.33;mix-blend-mode:screen}
+#bagGrid .animalCard:after{content:'✦';right:12px;top:45%;font-size:24px;color:#fff;opacity:.7;z-index:5;
+  text-shadow:0 0 9px var(--accent),0 0 21px var(--frame)}
+#bagGrid .cardTop{position:relative;margin:2px 2px 5px;padding:10px 2px 9px;color:var(--ink);
+  border-bottom:3px double var(--frame);background:linear-gradient(#ffffff9a,#ffffff11);font-weight:900}
+#bagGrid .cardTop:after{content:'✧ ✦ ✧';position:absolute;left:50%;bottom:-11px;transform:translateX(-50%);
+  white-space:nowrap;font-size:12px;letter-spacing:3px;color:var(--frame);background:var(--paper);padding:0 8px}
+#bagGrid .cardArt{height:clamp(190px,29vh,330px);border:2px solid var(--frame);border-radius:3px;
+  background:radial-gradient(circle at 50% 40%,#ffffff 0%,var(--paper) 70%,var(--accent) 100%);
+  box-shadow:inset 0 0 28px var(--accent),0 0 12px var(--glow)}
+#bagGrid .cardArt:before{content:'✦';left:auto;right:9px;top:8px;letter-spacing:0;font-size:24px;color:var(--frame)}
+#bagGrid .cardArt img{filter:drop-shadow(0 0 7px var(--accent)) drop-shadow(0 4px 4px #3e4e4e59)}
+#bagGrid .cardBadge{border-radius:4px;border:1px solid var(--frame);color:var(--ink);background:#fffdf4e9}
+#bagGrid .cardFoot{min-height:73px;border-top:3px double var(--frame);padding:12px 5px 5px;align-items:center;color:var(--ink)}
+#bagGrid .cardTitle,#bagGrid .cardSize{color:var(--ink)}
+#bagGrid .cardInfo{color:var(--ink);opacity:.72}
+@media(max-width:600px){#bagGrid .animalCard{padding:3px;border-width:3px;border-radius:5px}
+ #bagGrid .cardArt{height:170px;border-width:1px}#bagGrid .cardTop{font-size:10px;padding:9px 1px 7px}
+ #bagGrid .cardTop:after{font-size:8px;letter-spacing:0;bottom:-7px}#bagGrid .cardFoot{min-height:56px;padding:9px 2px 3px}}
+
 /* QR 分享：獨立彈窗，不影響原本遊戲系統 */
 #qrShareBtn{font-size:23px;background:#fff;white-space:nowrap}
 #qrShareModal{z-index:88}
@@ -1057,20 +1089,48 @@ function resize(){
 addEventListener('resize', resize);
 resize();
 
+// 地圖縱向擴展：雲端／本機作品維持原始世界座標。
+// 草原下半段在畫面中平順延長，海洋整層下移，海域自身深度不縮小。
+// 所有動物、獵人、房屋、手指選取共用相同的正反座標換算。
+// 分區式無縫擴建試驗：僅擴大顯示範圍，不遷移任何現有作品的世界座標。
+// 後續增建只需調整區域容量；天空、陸地、海洋彼此相連，沒有關卡切換。
+const WORLD_REGIONS=Object.freeze({
+  cosmos:Object.freeze({top:-2250,bottom:-720}),
+  sky:Object.freeze({top:-720,bottom:100}),
+  land:Object.freeze({top:100,bottom:585,addedHeight:480}),
+  ocean:Object.freeze({top:585,depth:1355+280})
+});
+const EXTRA_VERTICAL_LAND=WORLD_REGIONS.land.addedHeight;
+const EXTRA_DEEP_SEA=280;
+const VERTICAL_LAND_START=320;
+const VERTICAL_LAND_END=585;
+const VERTICAL_LAND_SCALE=1+EXTRA_VERTICAL_LAND/(VERTICAL_LAND_END-VERTICAL_LAND_START);
+function visualWorldY(y){
+  if(y<=VERTICAL_LAND_START)return y;
+  if(y<VERTICAL_LAND_END)return VERTICAL_LAND_START+(y-VERTICAL_LAND_START)*VERTICAL_LAND_SCALE;
+  return y+EXTRA_VERTICAL_LAND;
+}
+function logicalWorldY(y){
+  if(y<=VERTICAL_LAND_START)return y;
+  if(y<VERTICAL_LAND_END+EXTRA_VERTICAL_LAND)
+    return VERTICAL_LAND_START+(y-VERTICAL_LAND_START)/VERTICAL_LAND_SCALE;
+  return y-EXTRA_VERTICAL_LAND;
+}
 function screenToWorld(sx, sy){
+  const visualY=(sy-innerHeight/2)/state.cam.zoom+state.cam.y;
   return {
-    x: (sx - innerWidth / 2) / state.cam.zoom + state.cam.x,
-    y: (sy - innerHeight / 2) / state.cam.zoom + state.cam.y
+    x:(sx-innerWidth/2)/state.cam.zoom+state.cam.x,
+    y:logicalWorldY(visualY)
   };
 }
 function worldToScreen(x, y){
   return {
-    x: (x - state.cam.x) * state.cam.zoom + innerWidth / 2,
-    y: (y - state.cam.y) * state.cam.zoom + innerHeight / 2
+    x:(x-state.cam.x)*state.cam.zoom+innerWidth/2,
+    y:(visualWorldY(y)-state.cam.y)*state.cam.zoom+innerHeight/2
   };
 }
 const WORLD_EDGE=1650;
-const LAND_EXTENSION=140; // 只在陸地與河流之間插入草原，天空和水域高度不變。
+const LAND_EXTENSION=140; // 既有陸地擴充保持原值；新的縱向高度只作用在畫面投影，不修改存檔。
 function clampCamera(){
   const view=innerWidth/(2*state.cam.zoom);
   const limit=Math.max(0,WORLD_EDGE-view);
@@ -1079,8 +1139,8 @@ function clampCamera(){
   // 保留原版草原的上方視野：螢幕較高或縮小地圖時，不強制把相機往下推。
   // 原版上下邊界為 -450～680，原版俯瞰時中央高度是 115。
   // 擴大魚類水域只增加「可繼續往下探索」的範圍，不移走原本上方風景。
-  const top=Math.min(-450+halfHeight,115);
-  const bottom=Math.max(top,1490+LAND_EXTENSION-halfHeight);
+  const top=Math.min(WORLD_REGIONS.cosmos.top+130+halfHeight,115);
+  const bottom=Math.max(top,1490+LAND_EXTENSION+EXTRA_VERTICAL_LAND+EXTRA_DEEP_SEA-halfHeight);
   state.cam.y=Math.max(top,Math.min(bottom,state.cam.y));
 }
 function fit(){
@@ -1127,7 +1187,7 @@ function zoom(f, sx = innerWidth / 2, sy = innerHeight / 2){
   state.cam.zoom = Math.max(.38, Math.min(2.6, state.cam.zoom * f));
   const after = screenToWorld(sx, sy);
   state.cam.x += before.x - after.x;
-  state.cam.y += before.y - after.y;
+  state.cam.y += visualWorldY(before.y) - visualWorldY(after.y);
   clampCamera();
 }
 
@@ -1196,7 +1256,39 @@ worldTimeInput.addEventListener('change',async e=>{
 updateWorldClockControl();
 function dayPhase(now){return Math.floor(((worldElapsed(now)%DAY_CYCLE)+DAY_CYCLE)%DAY_CYCLE/DAY_PART);}
 function seasonIndex(now){return Math.floor(((worldElapsed(now)%SEASON_CYCLE)+SEASON_CYCLE)%SEASON_CYCLE/DAY_CYCLE);}
-const phaseNames=['🌤️ 白天','☀️ 中午','🌙 晚上・睡覺'];
+const phaseNames=['🌤️ 早晨','☀️ 中午','🌙 夜晚・睡覺'];
+// 保持原本三階段睡眠/餵食邏輯，只在視覺上新增獨立黃昏過渡。
+function visualTimeOfDay(now){
+  const p=((worldElapsed(now)%DAY_CYCLE)+DAY_CYCLE)%DAY_CYCLE;
+  if(p<DAY_PART*.65)return 'morning';
+  if(p<DAY_PART*1.48)return 'noon';
+  if(p<DAY_PART*2)return 'dusk';
+  return 'night';
+}
+function visualPhaseLabel(now){
+  const p=visualTimeOfDay(now);
+  return p==='dusk'?'🌇 黃昏':p==='morning'?'🌤️ 早晨':p==='noon'?'☀️ 中午':'🌙 夜晚・睡覺';
+}
+function lerpHex(a,b,t){
+  t=Math.max(0,Math.min(1,t));
+  const aa=a.replace('#',''),bb=b.replace('#','');
+  const x=i=>parseInt(aa.slice(i,i+2),16),y=i=>parseInt(bb.slice(i,i+2),16);
+  return '#'+[0,2,4].map(i=>Math.round(x(i)*(1-t)+y(i)*t).toString(16).padStart(2,'0')).join('');
+}
+function visualSky(theme,now,season){
+  const current=visualTimeOfDay(now);
+  if(current==='night')return theme.sky;
+  if(current==='dusk'){
+    const p=((worldElapsed(now)%DAY_CYCLE)+DAY_CYCLE)%DAY_CYCLE;
+    const fade=Math.min(1,Math.max(0,(p-DAY_PART*1.48)/(DAY_PART*.52)));
+    const evening=['#65549f','#f0a1b7','#ffd293'];
+    const late=['#283b69','#ab6b9f','#f3ad81'];
+    return evening.map((c,i)=>lerpHex(c,late[i],fade*.87));
+  }
+  if(current==='morning')return [theme.sky[0],theme.sky[1],season===0?'#ffc6d9':'#ffe2ba'];
+  return season===1?['#319cff','#89dbff','#e5ffff']:theme.sky;
+}
+
 const seasonNames=['🌸 春天','🌿 夏天','🍁 秋天','❄️ 冬天'];
 const seasonShort=['🌸 春','🌿 夏','🍁 秋','❄️ 冬'];
 
@@ -1434,9 +1526,33 @@ function drawForestTree(x,y,s=1,seed=1,near=true,night=false,season=0){
   ];
   for(let k=0;k<tops.length;k++){
     const [cx,cy,rx,ry]=tops[k];
-    forestEllipse(cx+2,cy+7,rx,ry,leafs[0]);
-    forestEllipse(cx,cy,rx,ry,leafs[1]);
-    forestEllipse(cx-7,cy-9,rx*.75,ry*.62,leafs[2]);
+    if(season===2){ // 秋季逐漸露出枝條與楓葉，非濾鏡換色
+      forestEllipse(cx+2,cy+7,rx*.61,ry*.58,leafs[0]);
+      forestEllipse(cx-8,cy-4,rx*.53,ry*.47,leafs[1]);
+      ctx.strokeStyle=night?'#57413b':'#795039';ctx.lineWidth=4;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(cx*.12,-105);ctx.quadraticCurveTo(cx*.55,cy+26,cx+rx*.55,cy-ry*.35);ctx.stroke();
+      for(let q=0;q<9;q++){
+        const ax=cx+(forestHash(seed*87+k*17+q*5)-.5)*rx*1.6;
+        const ay=cy+(forestHash(seed*49+k*29+q*11)-.5)*ry*1.55;
+        ctx.save();ctx.translate(ax,ay);ctx.rotate(forestHash(q*13+k*71+seed)*6.28);
+        ctx.fillStyle=['#fca544','#de5c3a','#f4c35b','#b94839'][q%4];
+        ctx.beginPath();ctx.moveTo(0,-9);ctx.lineTo(3,-4);ctx.lineTo(9,-6);ctx.lineTo(6,0);
+        ctx.lineTo(10,4);ctx.lineTo(3,4);ctx.lineTo(0,9);ctx.lineTo(-3,4);
+        ctx.lineTo(-10,4);ctx.lineTo(-6,0);ctx.lineTo(-9,-6);ctx.lineTo(-3,-4);ctx.closePath();ctx.fill();ctx.restore();
+      }
+    }else{
+      forestEllipse(cx+2,cy+7,rx,ry,leafs[0]);
+      forestEllipse(cx,cy,rx,ry,leafs[1]);
+      forestEllipse(cx-7,cy-9,rx*.75,ry*.62,leafs[2]);
+    }
+    if(season===0){ // 春花與果實，點綴既有樹冠而不是新增資料物件
+      for(let q=0;q<7;q++){
+        const bx=cx+(forestHash(seed*11+k*19+q*7)-.5)*rx*1.45;
+        const by=cy+(forestHash(seed*29+k*13+q*9)-.5)*ry*1.35;
+        forestEllipse(bx,by,3.5,3, q%4===0?'#ffcf84':q%3===0?'#fa7898':'#ffd2ed');
+        forestEllipse(bx+2,by-2,2.6,2.6,'#fff2ce');
+      }
+    }
   }
   for(let i=0;i<(near?22:12);i++){
     const angle=forestHash(seed*61+i*11)*Math.PI*2;
@@ -1544,7 +1660,7 @@ function seasonTheme(season,phase,night){
 /* ========== 夜間流星／流星群：高亮度閃耀，出現頻率偏高 ========== */
 const nightMeteors={list:[],next:0,wasNight:false};
 function emitMeteor(now,groupOffset=0){
-  if(nightMeteors.list.length>=30)return;
+  if(nightMeteors.list.length>=48)return;
   const x=-1670+Math.random()*3230;
   const y=-440+Math.random()*265;
   const speed=560+Math.random()*520;
@@ -1562,10 +1678,10 @@ function drawMeteorShower(now,night){
   }
   if(now>=nightMeteors.next){
     // 常有單顆流星；約四成機率同時出現 3～7 顆的流星群。
-    const group=Math.random()<.42;
-    const count=group?3+Math.floor(Math.random()*5):1;
+    const group=Math.random()<.68;
+    const count=group?5+Math.floor(Math.random()*6):1+Math.floor(Math.random()*2);
     for(let j=0;j<count;j++)emitMeteor(now,j*75+Math.random()*120);
-    nightMeteors.next=now+(group?1300:1100)+Math.random()*2600;
+    nightMeteors.next=now+(group?850:720)+Math.random()*1450;
   }
   ctx.save();
   ctx.beginPath();ctx.rect(-1800,-570,3600,635);ctx.clip();
@@ -1678,7 +1794,7 @@ customSeaBackground.src='data:image/jpeg;base64,/9j/4QEMRXhpZgAATU0AKgAAAAgABwES
 function drawCustomSeaBackground(night){
   if(!customSeaBackground.complete||!customSeaBackground.naturalWidth)return;
   // 素材保持原始長寬比例，以鏡像拼接延伸整個可探索海域，避免拉伸和接縫。
-  const top=445, bottom=1520;
+  const top=445, bottom=1520+EXTRA_DEEP_SEA;
   const h=bottom-top, w=h*customSeaBackground.naturalWidth/customSeaBackground.naturalHeight;
   ctx.save();
   ctx.globalAlpha=night?.56:.98;
@@ -1796,17 +1912,17 @@ function drawSoftSeasonParticles(now,season,night){
 /* 冬季雪層：實際繪製不透明雪地，不是白色濾鏡；位置仍使用原草地區域。 */
 function drawWinterSnowGround(now,night){
   ctx.save();
-  const snow=ctx.createLinearGradient(0,120,0,510);
+  const snow=ctx.createLinearGradient(0,120,0,510+EXTRA_VERTICAL_LAND);
   snow.addColorStop(0,night?'#bdcde0':'#f6fbff');
   snow.addColorStop(.6,night?'#b5c4d7':'#e8f5ff');
   snow.addColorStop(1,night?'#96b4d1':'#dceeff');
   ctx.fillStyle=snow;ctx.beginPath();ctx.moveTo(-1800,142);
   for(let x=-1800;x<=1800;x+=35)ctx.lineTo(x,142+5*Math.sin(x*.008)+3*Math.sin(x*.021));
-  ctx.lineTo(1800,498);ctx.lineTo(-1800,498);ctx.closePath();ctx.fill();
+  ctx.lineTo(1800,498+EXTRA_VERTICAL_LAND);ctx.lineTo(-1800,498+EXTRA_VERTICAL_LAND);ctx.closePath();ctx.fill();
   // 雪堆、起伏與少量冰晶高光；確保地面看起來真的積雪。
   for(let i=0;i<86;i++){
     const x=-1700+forestHash(i*29.7+5)*3400;
-    const y=155+forestHash(i*42.1+12)*325;
+    const y=155+forestHash(i*42.1+12)*(325+EXTRA_VERTICAL_LAND);
     const r=25+forestHash(i*9.7+16)*58;
     ctx.fillStyle=night?'rgba(233,245,255,.25)':'rgba(255,255,255,.81)';
     ctx.beginPath();ctx.ellipse(x,y,r,5+r*.12,-.04,0,Math.PI*2);ctx.fill();
@@ -1815,7 +1931,7 @@ function drawWinterSnowGround(now,night){
   }
   for(let i=0;i<160;i++){
     const x=-1700+forestHash(i*37.14+28)*3400;
-    const y=165+forestHash(i*43.77+1)*310;
+    const y=165+forestHash(i*43.77+1)*(310+EXTRA_VERTICAL_LAND);
     const glow=.5+.5*Math.sin(now*.0017+i*2.1);
     ctx.fillStyle=night?`rgba(229,247,255,${.32*glow})`:`rgba(255,255,255,${.88*glow})`;
     ctx.beginPath();ctx.arc(x,y,.9+(i%3)*.35,0,Math.PI*2);ctx.fill();
@@ -1898,11 +2014,12 @@ function drawWinterAurora(now){
 /* 真正降雪：天空與草地持續落下大、小雪花；不更動任何物件座標。 */
 function drawWinterSnowfall(now,night){
   const t=now*.001;
-  ctx.save();ctx.beginPath();ctx.rect(-1800,-540,3600,1050);ctx.clip();
+  ctx.save();ctx.beginPath();ctx.rect(-1800,-540,3600,1050+EXTRA_VERTICAL_LAND);ctx.clip();
   for(let i=0;i<210;i++){
     const base=forestHash(i*29.41+3)*3660;
     const speed=11+(i%8)*5;
-    const y=-530+((forestHash(i*23.21+8)*1040+t*speed)%1040);
+    const snowSpan=1040+EXTRA_VERTICAL_LAND;
+    const y=-530+((forestHash(i*23.21+8)*snowSpan+t*speed)%snowSpan);
     const x=-1830+((base+Math.sin(t*.68+i)*17+t*(i%3+1)*1.2)%3660);
     const r=1.1+(i%5)*.48;
     const alpha=(night?.78:.94)*(.55+.45*forestHash(i*13.17+6));
@@ -1923,33 +2040,71 @@ function drawNature(now,phase){
   const night=phase===2;
   const season=seasonIndex(now);
   const theme=seasonTheme(season,phase,night);
+  const paintSky=visualSky(theme,now,season);
 
   // 電腦寬畫面／縮放時，原本的 ±1800 世界繪圖邊界會露出藍色空白。
   // 只在底層延伸原有天空、草原、岸邊、深水的顏色，不搬動原本地形與物件。
   const wide=20000;
   const edgeSky=ctx.createLinearGradient(0,-530,0,140);
-  const skyColors=night?['#17283c','#4e506b','#7b6677']:theme.sky;
+  const skyColors=paintSky;
   edgeSky.addColorStop(0,skyColors[0]);edgeSky.addColorStop(.55,skyColors[1]);edgeSky.addColorStop(1,skyColors[2]);
   ctx.fillStyle=edgeSky;ctx.fillRect(-wide,-780,wide*2,890);
   const edgeLand=ctx.createLinearGradient(0,95,0,510);
   edgeLand.addColorStop(0,night?'#51644e':theme.grass[0]);
   edgeLand.addColorStop(.5,night?'#355044':theme.grass[1]);
   edgeLand.addColorStop(1,night?'#263d36':theme.grass[2]);
-  ctx.fillStyle=edgeLand;ctx.fillRect(-wide,100,wide*2,420);
-  ctx.fillStyle=night?'#979087':theme.sand[1];ctx.fillRect(-wide,510,wide*2,85);
+  ctx.fillStyle=edgeLand;ctx.fillRect(-wide,100,wide*2,420+EXTRA_VERTICAL_LAND);
+  ctx.fillStyle=night?'#979087':theme.sand[1];ctx.fillRect(-wide,510+EXTRA_VERTICAL_LAND,wide*2,85);
   const edgeRiver=ctx.createLinearGradient(0,585,0,1660);
   edgeRiver.addColorStop(0,night?'#35586d':theme.river[0]);
   edgeRiver.addColorStop(.55,night?'#28485d':theme.river[1]);
   edgeRiver.addColorStop(1,night?'#101e36':'#153e66');
-  ctx.fillStyle=edgeRiver;ctx.fillRect(-wide,585,wide*2,1170);
+  ctx.fillStyle=edgeRiver;ctx.fillRect(-wide,585+EXTRA_VERTICAL_LAND,wide*2,1170+EXTRA_DEEP_SEA);
+
+  // 新宇宙層僅在原天空上方，原天空、日夜與極光的區域完全保留。
+  const cosmos=ctx.createLinearGradient(0,WORLD_REGIONS.cosmos.top,0,-740);
+  cosmos.addColorStop(0,'#030519');cosmos.addColorStop(.38,'#101037');
+  cosmos.addColorStop(.75,'#182753');cosmos.addColorStop(1,paintSky[0]);
+  ctx.fillStyle=cosmos;ctx.fillRect(-1800,WORLD_REGIONS.cosmos.top,3600,-720-WORLD_REGIONS.cosmos.top);
+  ctx.save();
+  ctx.globalCompositeOperation='screen';
+  for(let band=0;band<5;band++){
+    const bx=-1160+band*530,by=-1390+Math.sin(band*2.4)*180;
+    const nebula=ctx.createRadialGradient(bx,by,0,bx,by,490);
+    const colors=['rgba(117,80,237,.23)','rgba(29,204,232,.20)','rgba(255,126,197,.17)','rgba(69,121,249,.23)','rgba(128,221,209,.16)'];
+    nebula.addColorStop(0,colors[band]);nebula.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=nebula;ctx.beginPath();ctx.ellipse(bx,by,500,290,-.20,0,Math.PI*2);ctx.fill();
+  }
+  for(let i=0;i<390;i++){
+    const x=-1780+forestHash(i*31.17+7)*3560;
+    const y=WORLD_REGIONS.cosmos.top+30+forestHash(i*59.83+3)*(-790-WORLD_REGIONS.cosmos.top);
+    const twinkle=.50+.45*Math.sin(now*.0007+i*1.4);
+    ctx.fillStyle=`rgba(234,246,255,${twinkle})`;
+    ctx.beginPath();ctx.arc(x,y,.7+(i%5)*.44,0,Math.PI*2);ctx.fill();
+  }
+  // 遠處柔彩行星：只是一層背景，無碰撞、互動或資料物件。
+  for(const [x,y,r,shade] of [[-970,-1245,67,'#a9b6ff'],[690,-1515,101,'#9ce5ed']]){
+    ctx.save();ctx.shadowColor=shade;ctx.shadowBlur=26;
+    const globe=ctx.createRadialGradient(x-r*.34,y-r*.34,2,x,y,r);
+    globe.addColorStop(0,'#f3f6ff');globe.addColorStop(.3,shade);globe.addColorStop(1,'#353c83');
+    ctx.fillStyle=globe;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.restore();
+  }
+  ctx.restore();
 
   const sky=ctx.createLinearGradient(0,-530,0,140);
-  sky.addColorStop(0,theme.sky[0]);
-  sky.addColorStop(.55,theme.sky[1]);
-  sky.addColorStop(1,theme.sky[2]);
+  sky.addColorStop(0,paintSky[0]);
+  sky.addColorStop(.55,paintSky[1]);
+  sky.addColorStop(1,paintSky[2]);
   ctx.fillStyle=sky;
   ctx.fillRect(-1800,-750,3600,920);
 
+  if(visualTimeOfDay(now)==='dusk'){
+    const eveningHaze=ctx.createLinearGradient(0,-140,0,125);
+    eveningHaze.addColorStop(0,'rgba(249,129,185,0)');
+    eveningHaze.addColorStop(.65,'rgba(255,146,149,.10)');
+    eveningHaze.addColorStop(1,'rgba(255,201,119,.36)');
+    ctx.fillStyle=eveningHaze;ctx.fillRect(-1800,-140,3600,265);
+  }
   if(season===3 && night)drawWinterAurora(now);
   const cycleTime=((worldElapsed(now)%DAY_CYCLE)+DAY_CYCLE)%DAY_CYCLE;
   if(night){
@@ -1974,17 +2129,17 @@ function drawNature(now,phase){
     const sunT=cycleTime/(DAY_PART*2);
     const sunX=-1250+2500*sunT;
     const sunY=55-385*Math.sin(Math.PI*sunT);
-    const sunR=phase===1?52:43;
+    const sunR=(season===1?1.22:1)*(phase===1?52:43);
     const aura=ctx.createRadialGradient(sunX,sunY,4,sunX,sunY,phase===1?180:153);
     const sunBreath=.93+.07*Math.sin(now*.0011);
-    const glowRadius=(phase===1?190:166)*sunBreath;
+    const glowRadius=(phase===1?190:166)*sunBreath*(season===1?1.34:1);
     const softSun=ctx.createRadialGradient(sunX,sunY,2,sunX,sunY,glowRadius);
     softSun.addColorStop(0,'rgba(255,251,226,.96)');
     softSun.addColorStop(.25,'rgba(255,230,162,.69)');
     softSun.addColorStop(.55,'rgba(255,183,172,.40)');
     softSun.addColorStop(1,'rgba(255,181,185,0)');
     forestEllipse(sunX,sunY,glowRadius,glowRadius,softSun);
-    ctx.save();ctx.shadowColor='#ffbdb2';ctx.shadowBlur=46;
+    ctx.save();ctx.shadowColor=season===1?'#ffe060':'#ffbdb2';ctx.shadowBlur=season===1?72:46;
     forestEllipse(sunX,sunY,sunR,sunR,phase===1?'#fff6cf':'#ffebc5');
     ctx.restore();
   }
@@ -2017,14 +2172,14 @@ function drawNature(now,phase){
     forestEllipse(x-25,y-34,rx*.35,ry*.24,night?'#53625c':theme.rockMoss);
   }
 
-  const grass=ctx.createLinearGradient(0,91,0,690);
+  const grass=ctx.createLinearGradient(0,91,0,690+EXTRA_VERTICAL_LAND);
   grass.addColorStop(0,night?'#51644e':theme.grass[0]);
   grass.addColorStop(.46,night?'#355044':theme.grass[1]);
   grass.addColorStop(1,night?'#263d36':theme.grass[2]);
   ctx.fillStyle=grass;
   ctx.beginPath();ctx.moveTo(-1800,97);
   for(let x=-1800;x<=1800;x+=66)ctx.lineTo(x,95+10*Math.sin(x*.007));
-  ctx.lineTo(1800,700);ctx.lineTo(-1800,700);ctx.fill();
+  ctx.lineTo(1800,700+EXTRA_VERTICAL_LAND);ctx.lineTo(-1800,700+EXTRA_VERTICAL_LAND);ctx.fill();
 
   for(let i=0;i<55;i++){
     const x=-1790+(i*181)%3570;
@@ -2056,7 +2211,7 @@ function drawNature(now,phase){
   }
 
   if(theme.fall){
-    for(let i=0;i<85;i++){
+    for(let i=0;i<200;i++){
       const x=-1650+forestHash(i*21.1)*3300;
       const y=170+forestHash(i*17.6)*150;
       forestEllipse(x,y,5+forestHash(i*8.3)*6,2.5+forestHash(i*6.1)*3,
@@ -2064,9 +2219,9 @@ function drawNature(now,phase){
     }
   }
   if(theme.spring){
-    for(let i=0;i<42;i++){
-      const x=-1600+forestHash(i*31.2+9)*3200;
-      const y=145+forestHash(i*19.7+2)*170;
+    for(let i=0;i<260;i++){
+      const x=-1650+forestHash(i*31.2+9)*3300;
+      const y=145+forestHash(i*19.7+2)*310;
       forestEllipse(x,y,4.5,3.2,i%2?'#ffd8e8':'#f5f09f');
       forestEllipse(x+4,y+1,3.6,2.8,i%2?'#fff5bc':'#ffd8e8');
     }
@@ -2085,19 +2240,19 @@ function drawNature(now,phase){
   // 使用固定散點而不是整排草，四季仍跟著原來的主題改變。
   for(let i=0;i<148;i++){
     const x=-1690+forestHash(i*11.97+41)*3380;
-    const y=352+forestHash(i*22.43+19)*130;
+    const y=352+forestHash(i*22.43+19)*(130+EXTRA_VERTICAL_LAND);
     drawGrassClump(x,y,.78+forestHash(i*7.27)*.95,theme,season*5000+i+1000);
   }
   for(let i=0;i<22;i++){
     const x=-1650+forestHash(i*31.67+15)*3300;
-    const y=374+forestHash(i*18.51+7)*92;
+    const y=374+forestHash(i*18.51+7)*(92+EXTRA_VERTICAL_LAND);
     forestEllipse(x,y,23+forestHash(i*6.5)*35,2.5+forestHash(i*4.9)*2.8,
       night?'#30463968':theme.groundShadow);
   }
 
   if(season===3)drawWinterSnowGround(now,night);
   // 保持河岸、河面、深水區、流動波紋原本的相對高度與尺寸，整段向下移。
-  ctx.save();ctx.translate(0,LAND_EXTENSION);
+  ctx.save();ctx.translate(0,LAND_EXTENSION+EXTRA_VERTICAL_LAND);
   ctx.fillStyle=night?'#74706b':theme.sand[0];
   ctx.beginPath();ctx.moveTo(-1800,358);
   for(let x=-1800;x<=1800;x+=75)ctx.lineTo(x,358+14*Math.sin(x*.008));
@@ -2120,12 +2275,12 @@ function drawNature(now,phase){
   river.addColorStop(1,night?'#101e36':'#153e66');
   ctx.fillStyle=river;ctx.beginPath();ctx.moveTo(-1800,445);
   for(let x=-1800;x<=1800;x+=60)ctx.lineTo(x,445+11*Math.sin(x*.008));
-  ctx.lineTo(1800,1520);ctx.lineTo(-1800,1520);ctx.closePath();ctx.fill();
+  ctx.lineTo(1800,1520+EXTRA_DEEP_SEA);ctx.lineTo(-1800,1520+EXTRA_DEEP_SEA);ctx.closePath();ctx.fill();
   // 水面沿河道向右流動；採固定世界座標與時間位移，不影響魚的活動區域。
   ctx.save();
   ctx.beginPath();ctx.moveTo(-1800,445);
   for(let x=-1800;x<=1800;x+=60)ctx.lineTo(x,445+11*Math.sin(x*.008));
-  ctx.lineTo(1800,1520);ctx.lineTo(-1800,1520);ctx.closePath();ctx.clip();
+  ctx.lineTo(1800,1520+EXTRA_DEEP_SEA);ctx.lineTo(-1800,1520+EXTRA_DEEP_SEA);ctx.closePath();ctx.clip();
   // 只替換水域底圖；原本流動波紋、光束、海草珊瑚與所有角色均仍在其上繪製。
   drawCustomSeaBackground(night);
   drawSoftOceanCaustics(now,night);
@@ -2167,6 +2322,14 @@ function drawNature(now,phase){
     forestEllipse(x,y,1.1+(i%3)*.7,1.1+(i%2)*.4,'#d9f8ff');
   }
   ctx.globalAlpha=1;
+  // 深海擴建段：保留原海域及魚類座標，僅在更下方增加可探索的景深。
+  for(let i=0;i<38;i++){
+    const x=-1750+forestHash(i*41.73+3)*3500;
+    const y=1530+forestHash(i*19.31+6)*(EXTRA_DEEP_SEA-18);
+    const shimmer=.25+.18*Math.sin(now*.0008+i*2.4);
+    ctx.fillStyle=`rgba(150,220,248,${shimmer})`;
+    ctx.beginPath();ctx.arc(x,y,1.0+(i%3)*.55,0,Math.PI*2);ctx.fill();
+  }
   drawUnderwaterHabitat(now,night);
   drawSoftOceanBubbles(now,night);
   for(let i=0;i<78;i++){
@@ -3391,10 +3554,12 @@ function animate(now){
   const phase=dayPhase(now),sleeping=phase===2;
   const season=seasonIndex(now);
   const label=$('#timeBadge');
-  if(label.dataset.phase!==String(phase) || label.dataset.season!==String(season)){
+  const visualPeriod=visualTimeOfDay(now);
+  if(label.dataset.phase!==String(phase) || label.dataset.season!==String(season) || label.dataset.visualPeriod!==visualPeriod){
     label.dataset.phase=String(phase);
     label.dataset.season=String(season);
-    label.textContent=seasonShort[season]+'｜'+phaseNames[phase];
+    label.dataset.visualPeriod=visualPeriod;
+    label.textContent=seasonShort[season]+'｜'+visualPhaseLabel(now);
     if(phase===2)audio.effect('night');
   }
   drawGrass();drawNature(now,phase);
@@ -3614,7 +3779,7 @@ world.addEventListener('pointermove',e=>{
     const dist=Math.max(10,Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y));
     state.cam.zoom=clamp(pinch.zoom*dist/pinch.dist,.38,2.6);
     state.cam.x=pinch.anchor.x-(sx-innerWidth/2)/state.cam.zoom;
-    state.cam.y=pinch.anchor.y-(sy-innerHeight/2)/state.cam.zoom;
+    state.cam.y=visualWorldY(pinch.anchor.y)-(sy-innerHeight/2)/state.cam.zoom;
     clampCamera();e.preventDefault();return;
   }
   if(!gesture||gesture.id!==e.pointerId)return;
@@ -3826,7 +3991,7 @@ function addItem(data,kind){
     }
     o={id:uid(),kind,data,x:spawn.x,y:spawn.y,vx:0,vy:0,phase:Math.random()*Math.PI*2,size:1,bites:2,
        forageKind,forageZone,placement:spawn.placement,stem:spawn.stem||0};
-    state.cam.x=spawn.x;state.cam.y=spawn.y;clampCamera();
+    state.cam.x=spawn.x;state.cam.y=visualWorldY(spawn.y);clampCamera();
   }else{
     const areas=HABITATS[kind]||HABITATS.land;
     const zone=Math.floor(Math.random()*areas.length);
@@ -3836,7 +4001,7 @@ function addItem(data,kind){
       y:h.y0+12+Math.random()*(h.y1-h.y0-24),
       vx:(Math.random()-.5)*20,vy:(Math.random()-.5)*6,
       phase:Math.random()*Math.PI*2};
-    state.cam.x=o.x;state.cam.y=o.y;clampCamera();
+    state.cam.x=o.x;state.cam.y=visualWorldY(o.y);clampCamera();
   }
   state.items.push(o);loadImg(o);save();updateEmpty();
   cloudWorld.publishItem(o).catch(()=>{});
