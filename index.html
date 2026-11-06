@@ -1489,7 +1489,8 @@ function emitMeteor(now,groupOffset=0){
   const angle=.18+Math.random()*.27;
   nightMeteors.list.push({x,y,born:now+groupOffset,life:750+Math.random()*750,
     vx:-speed*Math.cos(angle),vy:speed*Math.sin(angle),
-    width:1.8+Math.random()*2.3,glitter:Math.random()*6.28});
+    width:1.8+Math.random()*2.3,glitter:Math.random()*6.28,
+    glowTone:Math.floor(Math.random()*4)});
 }
 function drawMeteorShower(now,night){
   if(!night){nightMeteors.list.length=0;nightMeteors.next=0;nightMeteors.wasNight=false;return;}
@@ -1517,31 +1518,39 @@ function drawMeteorShower(now,night){
     const speed=Math.hypot(m.vx,m.vy),dirx=m.vx/speed,diry=m.vy/speed;
     const length=105+Math.sin(u*Math.PI)*115;
     const tailx=x-dirx*length,taily=y-diry*length;
+    // 柔和糖果色：薄荷綠、薰衣草紫、蜜桃金、冰藍；亮白中心、同色暈染尾跡。
+    const palette=[
+      [165,255,210], [222,180,255], [255,218,176], [163,224,255]
+    ];
+    const [r,g,b]=palette[m.glowTone??0];
+    const tone=`rgb(${r},${g},${b})`;
     const grad=ctx.createLinearGradient(x,y,tailx,taily);
     grad.addColorStop(0,`rgba(255,255,255,${bright})`);
-    grad.addColorStop(.17,`rgba(174,232,255,${bright*.83})`);
-    grad.addColorStop(.55,`rgba(145,133,255,${bright*.47})`);
-    grad.addColorStop(1,'rgba(86,123,255,0)');
+    grad.addColorStop(.16,`rgba(${r},${g},${b},${bright*.92})`);
+    grad.addColorStop(.56,`rgba(${r},${g},${b},${bright*.44})`);
+    grad.addColorStop(1,`rgba(${r},${g},${b},0)`);
     ctx.globalCompositeOperation='lighter';
-    ctx.strokeStyle=grad;ctx.lineCap='round';
-    ctx.shadowColor='#6bcdff';ctx.shadowBlur=27;ctx.lineWidth=m.width*4.3;
+    ctx.lineCap='round';ctx.strokeStyle=grad;
+    // 三層暈光和一條纖細的白色核心，不改流星速度、數量或路徑。
+    ctx.shadowColor=tone;ctx.shadowBlur=34;ctx.lineWidth=m.width*5.1;
     ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(tailx,taily);ctx.stroke();
-    ctx.shadowColor='#ffffff';ctx.shadowBlur=15;ctx.lineWidth=m.width*1.3;
+    ctx.shadowColor='#ffffff';ctx.shadowBlur=15;ctx.lineWidth=m.width*.95;
     ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(tailx,taily);ctx.stroke();
-    ctx.shadowBlur=33;
-    const halo=ctx.createRadialGradient(x,y,0,x,y,32);
+    const halo=ctx.createRadialGradient(x,y,0,x,y,37);
     halo.addColorStop(0,`rgba(255,255,255,${bright})`);
-    halo.addColorStop(.22,`rgba(173,240,255,${bright*.85})`);
-    halo.addColorStop(1,'rgba(83,138,255,0)');
-    ctx.fillStyle=halo;ctx.beginPath();ctx.arc(x,y,32,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#ffffff';ctx.shadowBlur=18;
-    ctx.beginPath();ctx.arc(x,y,Math.max(2,m.width*1.9),0,Math.PI*2);ctx.fill();
-    // 閃耀十字星芒
-    const twinkle=(.8+.2*Math.sin(age*.04+m.glitter))*bright;
+    halo.addColorStop(.16,`rgba(255,255,255,${bright*.8})`);
+    halo.addColorStop(.34,`rgba(${r},${g},${b},${bright*.72})`);
+    halo.addColorStop(1,`rgba(${r},${g},${b},0)`);
+    ctx.shadowColor=tone;ctx.shadowBlur=27;
+    ctx.fillStyle=halo;ctx.beginPath();ctx.arc(x,y,37,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#ffffff';ctx.shadowColor='#ffffff';ctx.shadowBlur=15;
+    ctx.beginPath();ctx.arc(x,y,Math.max(1.8,m.width*1.65),0,Math.PI*2);ctx.fill();
+    // 類似參考圖的柔白四角星芒。
+    const twinkle=(.77+.23*Math.sin(age*.04+m.glitter))*bright;
     ctx.strokeStyle=`rgba(255,255,255,${twinkle})`;
-    ctx.lineWidth=1.6;ctx.shadowBlur=16;
-    ctx.beginPath();ctx.moveTo(x-20,y);ctx.lineTo(x+20,y);
-    ctx.moveTo(x,y-18);ctx.lineTo(x,y+18);ctx.stroke();
+    ctx.lineWidth=1.5;ctx.shadowColor=tone;ctx.shadowBlur=18;
+    ctx.beginPath();ctx.moveTo(x-16,y);ctx.lineTo(x+16,y);
+    ctx.moveTo(x,y-16);ctx.lineTo(x,y+16);ctx.stroke();
     ctx.globalCompositeOperation='source-over';ctx.shadowBlur=0;
   }
   ctx.restore();
@@ -1567,7 +1576,7 @@ function drawUnderwaterHabitat(now,night){
     const x=-1710+forestHash(i*17.7+13)*3420;
     const y=665+forestHash(i*27.8+4)*797;
     const h=24+forestHash(i*7.13)*56;
-    const sway=Math.sin(t*.72+i*2.1)*7;
+    const sway=Math.sin(t*.72+i*2.1)*7+Math.sin(t*.38+i*.87)*3;
     const shades=night?['#356c65','#47796e','#53847c']:['#448f74','#58a88b','#81b69b'];
     ctx.lineCap='round';
     for(let j=0;j<3;j++){
@@ -1621,6 +1630,107 @@ function drawCustomSeaBackground(night){
   ctx.restore();
 }
 
+
+/* ====== 純視覺圖層：柔彩天光、海底流光、氣泡、四季飄落 ======
+ * 坐標、碰撞、動物、獵人、多人狀態、儲存與設定均不更動。
+ * 粒子依固定索引與 now 計算，不使用持續累積的物件陣列。
+ */
+function drawSoftSkyTwinkles(now,night){
+  if(!night)return;
+  ctx.save();ctx.beginPath();ctx.rect(-1800,-550,3600,615);ctx.clip();
+  const t=now*.001;
+  for(let i=0;i<57;i++){
+    const x=-1660+forestHash(i*48.37+3)*3320;
+    const y=-480+forestHash(i*71.21+19)*475;
+    const pulse=Math.pow(.5+.5*Math.sin(t*(.52+(i%5)*.11)+i*3.6),2);
+    const alpha=.11+.53*pulse;
+    const r=.9+(i%4)*.42;
+    ctx.fillStyle=`rgba(246,247,255,${alpha})`;
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+    if(i%8===0){
+      const c=i%3===0?'205,219,255':'226,207,255';
+      ctx.strokeStyle=`rgba(${c},${alpha*.62})`;ctx.lineWidth=.7;
+      ctx.beginPath();ctx.moveTo(x-5,y);ctx.lineTo(x+5,y);
+      ctx.moveTo(x,y-5);ctx.lineTo(x,y+5);ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+function drawSoftOceanCaustics(now,night){
+  // 把細光紋疊在已選定的背景圖片上；只讓亮紋移動，不拖動圖片。
+  ctx.save();ctx.globalCompositeOperation='screen';
+  const t=now*.001;
+  for(let i=0;i<43;i++){
+    const seed=forestHash(i*27.13+1),seed2=forestHash(i*39.37+8);
+    const x=-1800+((seed*3660+t*(9+(i%4)*4))%3660);
+    const y=505+seed2*830;
+    const w=38+forestHash(i*13.71+9)*65;
+    const h=8+forestHash(i*8.9+19)*13;
+    const pulse=.5+.5*Math.sin(t*.85+i*1.7);
+    ctx.strokeStyle=night?`rgba(157,167,255,${.025+pulse*.045})`:
+      `rgba(173,245,255,${.038+pulse*.07})`;
+    ctx.lineWidth=2+(i%3)*.9;
+    ctx.beginPath();ctx.ellipse(x+Math.sin(t*.53+i)*14,y,w,h,-.11,0,Math.PI*1.48);ctx.stroke();
+    if(i%3===0){
+      ctx.strokeStyle=night?'rgba(199,186,255,.055)':'rgba(226,251,255,.085)';
+      ctx.lineWidth=1.2;
+      ctx.beginPath();ctx.ellipse(x+13,y+8,w*.78,h*.75,.07,.3,Math.PI*1.65);ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+function drawSoftOceanBubbles(now,night){
+  // 透明、低密度的氣泡，只存在水域裁切範圍內。
+  const t=now*.001;
+  ctx.save();
+  for(let i=0;i<32;i++){
+    const k=forestHash(i*47.31+13);
+    const x=-1660+forestHash(i*31.83+17)*3300+Math.sin(t*.48+i)*6;
+    const y=480+((forestHash(i*17.29+7)*1000-t*(11+i%6*3)+1000000)%1000);
+    const r=1.5+(i%4)*.85;
+    const a=(night?.12:.24)*(.65+.35*Math.sin(t+i));
+    ctx.strokeStyle=`rgba(218,246,255,${a})`;ctx.lineWidth=.8;
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();
+    if(i%3===0){ctx.fillStyle=`rgba(247,255,255,${a*.8})`;
+      ctx.beginPath();ctx.arc(x-r*.28,y-r*.34,.65,0,Math.PI*2);ctx.fill();}
+  }
+  ctx.restore();
+}
+function drawSoftSeasonParticles(now,season,night){
+  // 以季節原有索引決定外觀；飄落只作視覺呈現，絕不新增地面物件。
+  const t=now*.001;
+  const isSpring=season===0,isSummer=season===1,isFall=season===2;
+  const palette=isSpring?['#ffd8e8','#fff1fa','#f2baca']:
+    isSummer?['#fff6b7','#d6f8a6','#fffad8']:
+    isFall?['#efb76e','#dc9a55','#f2d5a2']:
+    ['#ffffff','#eaf5ff','#d8e9ff'];
+  ctx.save();ctx.beginPath();ctx.rect(-1800,90,3600,420);ctx.clip();
+  for(let i=0;i<55;i++){
+    const x0=-1700+forestHash(i*24.27+18)*3400;
+    const y0=forestHash(i*31.19+15)*380;
+    const drift=(isSummer?3:9)+(i%5)*1.7;
+    const x=x0+Math.sin(t*.57+i*1.4)*(isSummer?8:24)+t*(isFall?3:1.1);
+    const y=100+((y0+(isSummer?Math.sin(t*.9+i)*12:t*drift))%380);
+    const r=isSummer?1.3+(i%3)*.4:2.6+(i%3)*.55;
+    const alpha=(night?.42:.7)*(.5+.5*Math.sin(t*.72+i));
+    ctx.fillStyle=palette[i%3];ctx.globalAlpha=alpha;
+    ctx.save();ctx.translate(x,y);ctx.rotate(Math.sin(t*.8+i)*.55);
+    if(isSummer){
+      ctx.shadowColor='#fff9b0';ctx.shadowBlur=7;
+      ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
+    }else if(isSpring){
+      ctx.beginPath();ctx.ellipse(0,0,r*1.3,r*.65,.35,0,Math.PI*2);ctx.fill();
+    }else if(isFall){
+      ctx.beginPath();ctx.moveTo(-r,0);ctx.lineTo(0,-r*.85);ctx.lineTo(r*.9,0);
+      ctx.lineTo(0,r*.8);ctx.closePath();ctx.fill();
+    }else{
+      ctx.beginPath();ctx.arc(0,0,r*.72,0,Math.PI*2);ctx.fill();
+    }
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
 function drawNature(now,phase){
   ctx.save();
   ctx.translate(innerWidth/2-state.cam.x*state.cam.zoom,
@@ -1663,10 +1773,16 @@ function drawNature(now,phase){
     const moonX=-1250+2500*moonT;
     const moonY=45-315*Math.sin(Math.PI*moonT);
     const aura=ctx.createRadialGradient(moonX,moonY,2,moonX,moonY,115);
-    aura.addColorStop(0,'#fbf3c08c');
-    aura.addColorStop(1,'#fff8d000');
-    forestEllipse(moonX,moonY,115,115,aura);
-    forestEllipse(moonX,moonY,38,38,'#fff4d4');
+    const moonBreath=.91+.09*Math.sin(now*.00125);
+    const moonGlow=ctx.createRadialGradient(moonX,moonY,1,moonX,moonY,155*moonBreath);
+    moonGlow.addColorStop(0,'rgba(255,255,255,.62)');
+    moonGlow.addColorStop(.22,'rgba(210,231,255,.30)');
+    moonGlow.addColorStop(.56,'rgba(194,176,255,.17)');
+    moonGlow.addColorStop(1,'rgba(176,161,252,0)');
+    forestEllipse(moonX,moonY,155*moonBreath,155*moonBreath,moonGlow);
+    ctx.save();ctx.shadowColor='#d7c9ff';ctx.shadowBlur=24;
+    forestEllipse(moonX,moonY,38,38,'#f8faff');
+    ctx.restore();
     for(let i=0;i<80;i++){
       forestEllipse(-1600+(i*191)%3200,-430+(i*73)%320,1+i%3,1+i%3,'#fffdeaaa');
     }
@@ -1676,13 +1792,20 @@ function drawNature(now,phase){
     const sunY=55-385*Math.sin(Math.PI*sunT);
     const sunR=phase===1?52:43;
     const aura=ctx.createRadialGradient(sunX,sunY,4,sunX,sunY,phase===1?180:153);
-    aura.addColorStop(0,phase===1?'#fff6b6b8':'#fff0b5b2');
-    aura.addColorStop(.35,phase===1?'#fff6b245':'#ffd79e5a');
-    aura.addColorStop(1,'#ffbc8b00');
-    forestEllipse(sunX,sunY,phase===1?180:153,phase===1?180:153,aura);
-    forestEllipse(sunX,sunY,sunR,sunR,phase===1?'#fff1a8':'#ffe09a');
+    const sunBreath=.93+.07*Math.sin(now*.0011);
+    const glowRadius=(phase===1?190:166)*sunBreath;
+    const softSun=ctx.createRadialGradient(sunX,sunY,2,sunX,sunY,glowRadius);
+    softSun.addColorStop(0,'rgba(255,251,226,.76)');
+    softSun.addColorStop(.25,'rgba(255,231,169,.42)');
+    softSun.addColorStop(.55,'rgba(255,195,175,.21)');
+    softSun.addColorStop(1,'rgba(255,181,185,0)');
+    forestEllipse(sunX,sunY,glowRadius,glowRadius,softSun);
+    ctx.save();ctx.shadowColor='#ffdac4';ctx.shadowBlur=27;
+    forestEllipse(sunX,sunY,sunR,sunR,phase===1?'#fff6cf':'#ffebc5');
+    ctx.restore();
   }
 
+  drawSoftSkyTwinkles(now,night);
   drawMeteorShower(now,night);
 
   const haze=ctx.createLinearGradient(0,-50,0,115);
@@ -1772,6 +1895,8 @@ function drawNature(now,phase){
     }
   }
 
+  drawSoftSeasonParticles(now,season,night);
+
   // 新增陸地帶：天空和遠山完全不動；讓草原往下自然延伸，河流等距下移。
   // 使用固定散點而不是整排草，四季仍跟著原來的主題改變。
   for(let i=0;i<148;i++){
@@ -1818,6 +1943,7 @@ function drawNature(now,phase){
   ctx.lineTo(1800,1520);ctx.lineTo(-1800,1520);ctx.closePath();ctx.clip();
   // 只替換水域底圖；原本流動波紋、光束、海草珊瑚與所有角色均仍在其上繪製。
   drawCustomSeaBackground(night);
+  drawSoftOceanCaustics(now,night);
   const flow=now*.065;
   for(let i=0;i<82;i++){
     const drift=((i*173+flow)%3720+3720)%3720;
@@ -1857,6 +1983,7 @@ function drawNature(now,phase){
   }
   ctx.globalAlpha=1;
   drawUnderwaterHabitat(now,night);
+  drawSoftOceanBubbles(now,night);
   for(let i=0;i<78;i++){
     const x=-1780+(i*139)%3550;
     const y=1435+(i*37)%57;
@@ -3187,13 +3314,15 @@ function animate(now){
     if(o.kind!=='food'){
       if(now<(o.hunterGlowUntil||0)){
         const intensity=.75+.25*Math.abs(Math.sin(now*.043));
-        ctx.filter=`drop-shadow(0px 0px ${10*intensity}px #ff163b) drop-shadow(0px 0px ${23*intensity}px #ff284a) drop-shadow(0px 0px ${37*intensity}px #ff3a4d)`;
+        // 亮白貼邊、粉紅中光、鮮紅外暈；只在被攻擊後短暫閃爍。
+        ctx.filter=`drop-shadow(0 0 ${2.4*intensity}px #fff0f1) drop-shadow(0 0 ${8*intensity}px #ffb0b8) drop-shadow(0 0 ${19*intensity}px #ff476a) drop-shadow(0 0 ${33*intensity}px #ff527b)`;
       }else if(growing>0 && !o.growHealing){
         const levels=[...new Set(state.items.filter(v=>v.kind!=='food').map(v=>Number((v.size||1).toFixed(5))))].sort((a,b)=>b-a);
         const tier=bagTier(o.size||1,levels);
-        const color={gold:'#ffe56a',violet:'#c873ff',blue:'#66cfff',green:'#80ee90',silver:'#dcecff'}[tier];
+        const color={gold:'#ffe1a8',violet:'#dcb7ff',blue:'#a3dcff',green:'#a4fbd1',silver:'#ecf4ff'}[tier];
         const strength=.45+.55*Math.sin((1-growing)*Math.PI);
-        ctx.filter=`drop-shadow(0 0 ${12*strength}px ${color}) drop-shadow(0 0 ${29*strength}px ${color})`;
+        // 參考圖的亮白柔邊 + 原等級對應的淡彩光暈；長大結束立即消失。
+        ctx.filter=`drop-shadow(0 0 ${2.5*strength}px #ffffff) drop-shadow(0 0 ${8*strength}px ${color}) drop-shadow(0 0 ${21*strength}px ${color}) drop-shadow(0 0 ${33*strength}px ${color})`;
       }
     }
     drawRigged(o,im,w,h,now,sleeping);ctx.restore();
