@@ -425,6 +425,30 @@ html,body{width:100%;height:100dvh;min-height:100dvh;overflow:hidden;overscroll-
  #bagGrid .cardFoot{min-height:25px}
  #bagGrid .animalCard button{margin-top:3px!important;padding:5px 2px!important;font-size:11px}
 }
+
+/* 這版只修卡冊橫向：完整可見關閉鍵；3 張卡在可用寬度內自動縮小。 */
+#bagModal{box-sizing:border-box;padding:8px max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
+#bagModal .bagPanel{position:relative;box-sizing:border-box;width:min(1160px,100%);max-width:100%;min-width:0;overflow:hidden}
+#bagModal .bagHeader{min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:8px}
+#bagModal #bagClose{position:relative;z-index:3;white-space:nowrap;min-width:56px;flex-shrink:0}
+#bagGrid{box-sizing:border-box;width:100%;min-width:0;gap:clamp(5px,1vw,12px);scrollbar-gutter:auto;overflow-x:auto;overflow-y:auto;scroll-padding-inline:0}
+#bagGrid .animalCard{box-sizing:border-box;flex:0 0 calc((100% - 2 * clamp(5px,1vw,12px))/3);width:calc((100% - 2 * clamp(5px,1vw,12px))/3);max-width:calc((100% - 2 * clamp(5px,1vw,12px))/3);min-width:0}
+@media(orientation:landscape){
+ #bagModal{padding:4px max(8px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
+ #bagModal .bagPanel{height:calc(100dvh - 8px - env(safe-area-inset-bottom));max-height:calc(100dvh - 8px - env(safe-area-inset-bottom));padding:6px 8px}
+ #bagModal .bagHeader{margin:0 0 3px}
+ #bagModal .bagSub{font-size:10px;line-height:1.2;margin:0 0 3px}
+ #bagModal .bagNav{min-height:24px;font-size:10px}
+ #bagModal .bagNav button{padding:2px 8px;font-size:14px}
+ #bagGrid{gap:6px;padding:3px 1px 6px}
+ #bagGrid .animalCard{flex:0 0 calc((100% - 12px)/3);width:calc((100% - 12px)/3);max-width:calc((100% - 12px)/3);padding:3px;border-width:2px}
+ #bagGrid .cardTop{font-size:clamp(9px,1.1vw,13px);padding:2px;margin:0 0 2px}
+ #bagGrid .cardArt{height:clamp(55px,16dvh,128px);min-height:55px}
+ #bagGrid .cardFoot{padding:2px;min-height:24px}
+ #bagGrid .cardSize{font-size:12px}
+ #bagGrid .cardBadge{font-size:9px;padding:2px 3px}
+ #bagGrid .animalCard>button{padding:4px 3px!important;margin-top:3px!important;font-size:11px!important}
+}
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -926,7 +950,7 @@ $('#animalMoveSpeed').addEventListener('input',e=>{
   updateAnimalSpeedSetting();
 });
 updateAnimalSpeedSetting();
-
+$('#animalMoveSpeed').addEventListener('change',()=>cloudWorld.updateEcologySetting('speed',animalMoveSpeed).catch(console.warn));
 
 // 吃東西長大的倍率只影響之後的進食，原本已長大的體型不變。
 const ANIMAL_GROWTH_SETTING='meadow_animal_growth_percent_v1';
@@ -948,6 +972,7 @@ $('#animalGrowth').addEventListener('input',e=>{
   updateAnimalGrowthSetting();
 });
 updateAnimalGrowthSetting();
+$('#animalGrowth').addEventListener('change',()=>cloudWorld.updateEcologySetting('growth',animalGrowthPercent).catch(console.warn));
 
 /* ========== 動物卡冊：舊版收藏與新版雲端召喚 ========== */
 const LEGACY_CARD_KEY='drawing_meadow_ecology_legacy_cards_v1';
@@ -4470,7 +4495,7 @@ function addItem(data,kind){
     const areas=HABITATS[kind]||HABITATS.land;
     const zone=Math.floor(Math.random()*areas.length);
     const h=habitat(kind,zone);
-    o={id:uid(),kind,data,zone,size:1,bites:2,
+    o={id:uid(),kind,data,zone,size:1.5,bites:2,
       x:h.x0+30+Math.random()*(h.x1-h.x0-60),
       y:h.y0+12+Math.random()*(h.y1-h.y0-24),
       vx:(Math.random()-.5)*20,vy:(Math.random()-.5)*6,
@@ -4846,6 +4871,7 @@ const cloudWorld=(()=>{
   const SEND_MOTION_MS=260, SEND_HUNTER_MS=420;
   let healNotice=false,damageNotice=false;
   let lastSync=0;
+  let ecologySettingsWarned=false, growthPollBusy=false;
   const status=$('#meadowCloudStatus');
   const detail=$('#meadowCloudDetail');
   const owned=$('#meadowCloudOwned');
@@ -5259,6 +5285,49 @@ const cloudWorld=(()=>{
     }catch(e){console.warn('雲端動物位置快照更新失敗',e.message);}
     finally{runtimePollBusy=false;}
   }
+  // 共同設定來自資料庫，所有玩家顯示相同的速度及成長倍率。
+  function applyEcologySetting(row){
+    if(!row)return;
+    const speed=Number(row.speed_percent), growth=Number(row.growth_percent);
+    if(Number.isFinite(speed)&&speed>=30&&speed<=200){animalMoveSpeed=speed;updateAnimalSpeedSetting();}
+    if(Number.isFinite(growth)&&growth>=0&&growth<=50){animalGrowthPercent=growth;updateAnimalGrowthSetting();}
+  }
+  async function loadEcologySetting(){
+    if(!ready)return;
+    const {data,error}=await client.from('meadow_ecology_settings').select('*').eq('id',1).maybeSingle();
+    if(error){if(!ecologySettingsWarned){console.warn('請先執行新版生態設定 SQL：',error.message);ecologySettingsWarned=true;}return;}
+    ecologySettingsWarned=false;
+    applyEcologySetting(data);
+  }
+  async function updateEcologySetting(which,value){
+    if(!ready)return; // 斷網時維持本機設定，不改變既有遊戲可用性。
+    const p={p_speed:which==='speed'?Math.round(value):null,p_growth:which==='growth'?Number(value):null};
+    const {data,error}=await client.rpc('meadow_set_ecology_settings',p);
+    if(error){toast(error.code==='42501'?'只有授權管理員可以調整全玩家的動物設定':'同步動物設定失敗：'+error.message);await loadEcologySetting();return;}
+    applyEcologySetting(data);
+  }
+  // 補回延遲或遺失的 Realtime 訊息，所有玩家能看見實際成長後的尺寸。
+  async function pollAnimalSizes(){
+    if(!ready||!ecosystemEnabled||growthPollBusy)return;
+    growthPollBusy=true;
+    try{
+      const list=await fetchPaged('meadow_objects','id,size',500,8000);
+      for(const item of list){
+        const previous=rows.get(item.id);
+        if(!previous||previous.object_type!=='animal')continue;
+        const before=Number(previous.size)||1,after=Number(item.size)||1;
+        if(after>before*1.001){
+          const location=runtimeStates.get(item.id);
+          const x=location?.x??previous.x,y=location?.y??previous.y;
+          growthFlash.set(item.id,performance.now()+1500);
+          growthBursts.push({x,y:y-45,start:performance.now()});
+          sparkle(x,y-42);
+        }
+        if(Math.abs(after-before)>0.00001){previous.size=after;bagLastSignature='';}
+      }
+    }catch(error){console.warn('成長尺寸校正失敗：',error.message);}
+    finally{growthPollBusy=false;}
+  }
   async function loadEcosystem(){
     try{
       const [dep,runtimes]=await Promise.all([
@@ -5390,6 +5459,7 @@ const cloudWorld=(()=>{
       ready=true;
       await refresh();
       await loadSharedWorldClock();
+      await loadEcologySetting();
       await loadHealth();
       if(channel)client.removeChannel(channel);
       channel=client.channel('meadow-public-objects')
@@ -5407,6 +5477,7 @@ const cloudWorld=(()=>{
           bagLastSignature='';
           drawBagCards(true);
         })
+        .on('postgres_changes',{event:'UPDATE',schema:'public',table:'meadow_ecology_settings',filter:'id=eq.1'},payload=>{if(payload.new)applyEcologySetting(payload.new);})
         .on('broadcast',{event:'animal_motion'},onMotion)
         .on('broadcast',{event:'hunter_shot'},onHunterShot)
         .on('broadcast',{event:'sync_request'},()=>{motionLastSent=0;})
@@ -5426,6 +5497,7 @@ const cloudWorld=(()=>{
               const current=runtimeStates.get(payload.new.id);
               const px=current?.x??payload.new.x, py=current?.y??payload.new.y;
               growthFlash.set(payload.new.id,performance.now()+1500);
+              bagLastSignature='';
               growthBursts.push({x:px,y:py-45,start:performance.now()});
               sparkle(px,py-42);
               if(payload.new.owner_id===userId)audio.effect('eat');
@@ -5681,14 +5753,14 @@ const cloudWorld=(()=>{
       if(r.object_type==='home'){
         ctx.drawImage(im,p.x-w/2,p.y-h,w,h);
       }else{
-        const bob=r.object_type==='animal'?
+        const bob=r.object_type==='animal'&&!pose.sleeping?
           (Math.sin(now*.007+(pose.phase||0))*(r.species==='bird'?8:3)
           -(pose.live&&pose.jump?Math.abs(Math.sin(now*.012+(pose.phase||0)))*12:0))*state.cam.zoom:0;
         ctx.translate(p.x,p.y+bob);
         const sign=pose.face<0?-1:1;
         const turn=.72+.28*Math.abs(pose.face||1);
         ctx.scale(sign*turn,1);
-        ctx.rotate(r.object_type==='animal'?.02*Math.sin(now*.008+(r.properties?.phase||0)):0);
+        ctx.rotate(r.object_type==='animal'&&!pose.sleeping?.02*Math.sin(now*.008+(r.properties?.phase||0)):0);
         if(r.object_type==='animal' && (growthFlash.get(r.id)||0)>now){
           const fade=Math.max(0,Math.min(1,(growthFlash.get(r.id)-now)/1500));
           ctx.filter=`drop-shadow(0 0 ${4+4*fade}px #ffffff) drop-shadow(0 0 ${16*fade}px #ffe189) drop-shadow(0 0 ${26*fade}px #e2b4ff)`;
@@ -5758,6 +5830,8 @@ const cloudWorld=(()=>{
   // 即時事件遺失也能補回最新位置；不會產生第二套動物模擬。
   setInterval(()=>{if(ready&&ecosystemEnabled)pollRuntimeSnapshot().catch(console.warn);},5300);
   setInterval(()=>{if(ready)loadSharedWorldClock().catch(console.warn);},25000);
+  setInterval(()=>{if(ready)loadEcologySetting().catch(console.warn);},15000);
+  setInterval(()=>{if(ready)pollAnimalSizes().catch(console.warn);},6500);
   setInterval(()=>{if(ready)checkHunterRevocations().catch(console.warn);},7000);
   setInterval(()=>{if(ready){refresh().catch(console.warn);loadHunters().catch(console.warn);}},60000);
   function getOwnedAnimalBox(id){return ownedAnimalBoxes.get(id)||null;}
@@ -5786,7 +5860,7 @@ const cloudWorld=(()=>{
     hunterStop:()=>syncHunter(false).catch(()=>{}),
     hunterImageChanged:()=>{hunterMainToken=crypto.randomUUID();try{localStorage.setItem(HUNTER_MAIN_TOKEN_KEY,hunterMainToken);}catch{}hunterImagePath='';if(hunterState.active)uploadHunterImage().then(()=>syncHunter(true)).catch(()=>{});},
     hunterExtrasChanged:()=>{if(hunterUnits().length)syncHunter(true).catch(()=>{});},
-    setWorldTimeRate:changeWorldTimeRate,
+    setWorldTimeRate:changeWorldTimeRate,updateEcologySetting,
     animalCards,summonCard,archiveCard,foodSpawnAnimals,
     saveAnimalTraits,damage,healOwned,hasRemote:()=>ready&&rows.size>0};
 })();
