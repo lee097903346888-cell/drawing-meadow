@@ -585,11 +585,15 @@ html,body{width:100%;height:100dvh;min-height:100dvh;overflow:hidden;overscroll-
   <p class="sub" id="hunterStatus">輸入管理密碼解鎖。若要攻擊公共世界所有作品，還需先在 Supabase SQL 授權此玩家為雲端獵人管理員。</p>
   <p class="settingsDesc" style="overflow-wrap:anywhere">🌍 本機雲端帳號 ID：<code id="hunterCloudUid">連線後顯示</code></p>
   <div id="hunterLogin" class="settingsRow" style="display:grid;gap:10px">
-   <label for="hunterPassword">🔐 管理密碼</label>
-   <input id="hunterPassword" type="password" autocomplete="off" placeholder="輸入管理員密碼" style="width:100%;padding:11px;border:1px solid #d7cadd;border-radius:10px">
-   <button id="hunterUnlock" type="button">🔓 解鎖管理員</button>
+   <label for="hunterEmail">📧 管理員 Email</label>
+   <input id="hunterEmail" type="email" autocomplete="username" placeholder="輸入管理員信箱" style="width:100%;padding:11px;border:1px solid #d7cadd;border-radius:10px">
+   <label for="hunterPassword">🔐 管理員登入密碼</label>
+   <input id="hunterPassword" type="password" autocomplete="current-password" placeholder="輸入 Supabase 管理員密碼" style="width:100%;padding:11px;border:1px solid #d7cadd;border-radius:10px">
+   <button id="hunterUnlock" type="button">🔓 登入管理員</button>
+   <p class="sub">一般玩家自動匿名登入；管理員使用正式 Email 帳號，不再使用固定本機密碼。</p>
   </div>
   <div id="hunterControls" class="hidden">
+   <div class="settingsRow"><button id="hunterSignOut" type="button">🚪 登出管理員，切換一般玩家</button></div>
    <div class="settingsRow" style="display:block">
     <strong>🖼️ 獵人圖片</strong>
     <p class="settingsDesc">每次選圖都會新增一名獵人，可重複上傳；所有獵人會獨立自動狩獵。手指直接拖住獵人移到指定位置，放開後繼續狩獵。</p>
@@ -3582,7 +3586,7 @@ const hunterState={unlocked:false,active:false,mode:'auto',x:0,y:280,vx:0,vy:0,h
   image:null,source:null,targetId:null,moveTarget:null,lastShot:0,lastHit:0,
   arrowShots:[],nextCharge:0,flashUntil:0,fireRate:20,moveSpeed:100,lastManualHeld:false,lastSavedShot:0};
 // 固定的本機介面密碼；前端原始碼可被檢視，不能當雲端管理員認證。
-const HUNTER_ACCESS_PASSWORD='0979033468';
+// 管理員只使用 Supabase Email 登入；不在前端保存管理員密碼。
 const HUNTER_IMAGE_KEY='meadow_local_hunter_image_v1';
 const HUNTER_EXTRA_KEY='meadow_local_hunters_extra_v1';
 const HUNTER_MAIN_TOKEN_KEY='meadow_hunter_main_token_v1';
@@ -3678,21 +3682,41 @@ const hunterModal=$('#hunterModal');
 const hunterControls=$('#hunterControls');
 const hunterLogin=$('#hunterLogin');
 async function hunterUnlock(){
-  const v=$('#hunterPassword').value;
-  if(v!==HUNTER_ACCESS_PASSWORD){hunterStatus.textContent='密碼不正確。';return;}
-  hunterState.unlocked=true;
-  hunterControls.classList.remove('hidden');hunterLogin.classList.add('hidden');
-  hunterStatus.textContent='🔓 已解鎖。可以調整射速、移速及管理公共作品；刪除權限另由雲端驗證。';
-  $('#hunterPassword').value='';
-  cloudWorld.renderAdminWorks();
+  const email=$('#hunterEmail').value.trim();
+  const password=$('#hunterPassword').value;
+  if(!email||!password){hunterStatus.textContent='請輸入 Email 和管理員密碼';return;}
+  $('#hunterUnlock').disabled=true;
+  hunterStatus.textContent='正在向 Supabase 驗證管理員…';
+  try{
+    await cloudWorld.adminSignIn(email,password);
+    hunterState.unlocked=true;
+    hunterControls.classList.remove('hidden');hunterLogin.classList.add('hidden');
+    hunterStatus.textContent='✅ 已通過 Supabase 管理員權限驗證';
+    cloudWorld.renderAdminWorks();syncDefaultZoomControls();
+  }catch(e){
+    hunterState.unlocked=false;
+    hunterStatus.textContent='管理員登入失敗：'+(e.message||String(e));
+  }finally{$('#hunterPassword').value='';$('#hunterUnlock').disabled=false;}
 }
-$('#hunterOpenBtn').onclick=()=>{
-  hunterState.unlocked=false;
-  hunterControls.classList.add('hidden');hunterLogin.classList.remove('hidden');
-  hunterStatus.textContent='請輸入管理密碼；雲端攻擊另需伺服端管理員授權。';
+$('#hunterOpenBtn').onclick=async()=>{
   hunterModal.classList.remove('hidden');
+  const ok=await cloudWorld.checkAdmin().catch(()=>false);
+  hunterState.unlocked=ok;
+  hunterControls.classList.toggle('hidden',!ok);
+  hunterLogin.classList.toggle('hidden',ok);
+  hunterStatus.textContent=ok?'✅ 目前已登入正式管理員':'請輸入正式管理員 Email 與密碼';
+  if(ok)cloudWorld.renderAdminWorks();
 };
-$('#hunterUnlock').onclick=()=>hunterUnlock().catch(e=>{hunterStatus.textContent='密碼處理失敗：'+e.message;});
+$('#hunterUnlock').onclick=()=>hunterUnlock().catch(e=>{hunterStatus.textContent='登入失敗：'+e.message;});
+$('#hunterSignOut').onclick=async()=>{
+  try{
+    await cloudWorld.adminSignOut();
+    hunterState.unlocked=false;hunterState.active=false;
+    hunterControls.classList.add('hidden');hunterLogin.classList.remove('hidden');
+    hunterStatus.textContent='已登出管理員；目前是一般玩家';
+    syncDefaultZoomControls();
+  }catch(e){hunterStatus.textContent='登出失敗：'+(e.message||e);}
+};
 $('#hunterClose').onclick=()=>hunterModal.classList.add('hidden');
 $('#hunterRefreshWorks').onclick=async()=>{
   if(!hunterState.unlocked)return;
@@ -5451,18 +5475,54 @@ const cloudWorld=(()=>{
     if(ecoOk)archiveOldLocalAnimals();
     setStatus(`🟢 已連線・公共世界 ${rows.size} 件作品${ecoOk?'・統一生態啟用':''}`);
   }
+  async function ensureClient(){
+    if(client)return client;
+    if(!window.supabase?.createClient)throw new Error('Supabase 連線套件載入失敗');
+    client=window.supabase.createClient(URL,KEY,{
+      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false},
+      realtime:{params:{eventsPerSecond:8}}
+    });
+    return client;
+  }
+  async function checkAdmin(){
+    if(!client)return false;
+    const {data:{user},error:userError}=await client.auth.getUser();
+    if(userError||!user||user.is_anonymous)return false;
+    // 後端 SECURITY DEFINER 函式必須查核 auth.uid()，不信任前端 UUID。
+    const {data,error}=await client.rpc('meadow_v1_is_admin');
+    if(error){console.warn('管理員權限檢查失敗',error);return false;}
+    return data===true;
+  }
+  async function adminSignIn(email,password){
+    await ensureClient();
+    const {error}=await client.auth.signInWithPassword({email,password});
+    if(error)throw error;
+    // 即使 Email 密碼登入成功，未取得後端管理員授權也不得開放管理介面。
+    if(!(await checkAdmin())){
+      await client.auth.signOut();
+      await connect();
+      throw new Error('帳號登入成功，但沒有通過管理員授權；請確認 SQL 函式已部署且開放 Data API');
+    }
+    ready=false;
+    if(channel){await client.removeChannel(channel);channel=null;}
+    await connect();
+    if(!ready)throw new Error('已登入，但公共世界重新連線失敗，請查看雲端狀態');
+  }
+  async function adminSignOut(){
+    if(!client)return;
+    const {error}=await client.auth.signOut();if(error)throw error;
+    ready=false;
+    if(channel){await client.removeChannel(channel);channel=null;}
+    userId=null;rows.clear();images.clear();
+    await connect();
+  }
   async function connect(){
     if(busy)return;
     busy=true;
     setStatus('🌍 正在連接公共世界…');
     try{
       if(!window.supabase?.createClient)throw new Error('無法載入雲端連線套件，請檢查網路');
-      if(!client){
-        client=window.supabase.createClient(URL,KEY,{
-          auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false},
-          realtime:{params:{eventsPerSecond:8}}
-        });
-      }
+      await ensureClient();
       let {data:{session},error:sessionError}=await client.auth.getSession();
       if(sessionError)throw sessionError;
       if(!session){
@@ -5617,7 +5677,7 @@ const cloudWorld=(()=>{
       renderOwned();updateEmpty();return true;
     }catch(e){
       console.warn('雲端發布失敗',e);
-      toast('🌍 雲端發布失敗，作品仍保存在手機');return false;
+      toast('🌍 上傳失敗：'+(e.message||'未知錯誤'));return false;
     }finally{working.delete(o.id);}
   }
   async function clearOwned(){
@@ -5894,7 +5954,7 @@ const cloudWorld=(()=>{
     }
     return null;
   }
-  return {publishItem:o=>publish(o,'item'),publishHome:h=>publish(h,'home'),remove,clearOwned,draw,connect,refresh,renderAdminWorks,adminRemove,
+  return {publishItem:o=>publish(o,'item'),publishHome:h=>publish(h,'home'),remove,clearOwned,draw,connect,refresh,renderAdminWorks,adminRemove,adminSignIn,adminSignOut,checkAdmin,
     isReady:()=>ready,getOwnedAnimalBox,pickOwnedAnimalAt,getRigEditableAnimal,
     removeSelectedAnimal:async id=>{const r=rows.get(id);return r?.owner_id===userId?remove(id):(hunterState.unlocked?adminRemove(id):false);},
     remoteHunterTargets,drawRemoteHunters,broadcastHunterShot,
@@ -5931,6 +5991,8 @@ document.addEventListener('visibilitychange',()=>{
   });
 }
 </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"7939e04a4baf43c8b86a560f74aac60e","spa":2}' crossorigin="anonymous"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"1c1c7799c54e46349cc23295b5e08299","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"7939e04a4baf43c8b86a560f74aac60e","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"1c1c7799c54e46349cc23295b5e08299","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"7939e04a4baf43c8b86a560f74aac60e","spa":2}' crossorigin="anonymous"></script>
