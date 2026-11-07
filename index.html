@@ -1163,7 +1163,7 @@ function housePosition(point){
   };
 }
 function addHome(data){
-  const h={id:uid(),data,x:0,y:300,realm:'land',size:1};
+  const h={id:uid(),data,x:0,y:300,realm:'land',size:2};
   state.placingHome=h;
   loadHomeImage(h);
   state.selectedHome=null;
@@ -1725,7 +1725,7 @@ function eatFood(o,food,now){
   o.growHealing=healing;
   o.growTime=now;
   sparkle(o.x,o.y-45);
-  growthBursts.push({x:o.x,y:o.y-55,start:now,kind:o.kind});
+  if(!healing)growthBursts.push({x:o.x,y:o.y-55,start:now,kind:o.kind});
   if(food.bites<=0){
     if(food.cloudId)cloudWorld.remove(food.cloudId).catch(()=>{});
     state.items=state.items.filter(item=>item!==food);
@@ -4379,16 +4379,34 @@ $('#deleteBtn').onclick = async () => {
   save();updateEmpty();toast('已刪除');
 };
 $('#fitBtn').onclick = fit;
-$('#clearBtn').onclick = () => {
-  if(!confirm('確定清空這台裝置上的所有本機作品？已發布到公共世界的作品不會被刪除，請至「公共大世界」管理。')) return;
-  stopParade();
-  stopWildlifeEvents();
-  state.items = [];
-  state.images.clear();rigCaches.clear();
-  state.homes=[];state.homeImages.clear();state.selectedHome=null;state.placingHome=null;
-  saveHomes();$('#homePlacement').classList.add('hidden');
-  audio.effect('delete');
-  save(); updateEmpty(); toast('草原已清空');
+$('#clearBtn').onclick = async () => {
+  if(!confirm('確定刪除自己的所有作品（本機動物、食物、房屋、舊卡冊，以及本帳號發布到公共世界的作品）？刪除後無法復原。其他玩家的作品不會刪除。'))return;
+  const button=$('#clearBtn');
+  button.disabled=true;
+  try{
+    stopParade();stopWildlifeEvents();
+    state.items=[];state.images.clear();rigCaches.clear();state.selected=null;
+    state.homes=[];state.homeImages.clear();state.selectedHome=null;state.placingHome=null;
+    legacyAnimalCards=[];bagLastSignature='';
+    // 清掉卡冊與遷移殘留資料，避免重新載入時舊作品再次回到世界。
+    try{
+      localStorage.removeItem(LEGACY_CARD_KEY);
+      localStorage.setItem(LEGACY_MIGRATION_KEY,'yes');
+      localStorage.removeItem(STORE);localStorage.removeItem(HOMES_STORE);
+    }catch(e){console.warn('清除舊存檔遇到問題',e);}
+    save();saveHomes();drawBagCards(true);
+    selectedCloudAnimal=null;
+    $('#deleteBtn').style.display='none';
+    $('#homePlacement').classList.add('hidden');
+    $('#homeTools').classList.add('hidden');
+    audio.effect('delete');updateEmpty();
+    // 使用目前登入的雲端帳號刪除自己的已發布作品（含收回卡冊的雲端動物）。
+    const result=await cloudWorld.clearOwned();
+    if(result.offline)toast('本機作品已清空；雲端未連線，雲端作品尚未刪除');
+    else if(result.failed)toast(`本機已清空，雲端刪除 ${result.deleted} 件，${result.failed} 件失敗`);
+    else toast(`✅ 已清空全部自己的作品（含 ${result.deleted} 件雲端作品）`);
+    updateEmpty();
+  }finally{button.disabled=false;}
 };
 function isIosPhone(){
   return /iPhone|iPod/i.test(navigator.userAgent);
@@ -4488,14 +4506,14 @@ function addItem(data,kind){
       spawn.y=target.y;
       spawn.placement=forageKind==='fish'?'water':'ground';spawn.stem=0;
     }
-    o={id:uid(),kind,data,x:spawn.x,y:spawn.y,vx:0,vy:0,phase:Math.random()*Math.PI*2,size:1,bites:2,
+    o={id:uid(),kind,data,x:spawn.x,y:spawn.y,vx:0,vy:0,phase:Math.random()*Math.PI*2,size:2,bites:2,
        forageKind,forageZone,placement:spawn.placement,stem:spawn.stem||0};
     state.cam.x=spawn.x;state.cam.y=visualWorldY(spawn.y);clampCamera();
   }else{
     const areas=HABITATS[kind]||HABITATS.land;
     const zone=Math.floor(Math.random()*areas.length);
     const h=habitat(kind,zone);
-    o={id:uid(),kind,data,zone,size:1.5,bites:2,
+    o={id:uid(),kind,data,zone,size:3,bites:2,
       x:h.x0+30+Math.random()*(h.x1-h.x0-60),
       y:h.y0+12+Math.random()*(h.y1-h.y0-24),
       vx:(Math.random()-.5)*20,vy:(Math.random()-.5)*6,
@@ -5602,6 +5620,30 @@ const cloudWorld=(()=>{
       toast('🌍 雲端發布失敗，作品仍保存在手機');return false;
     }finally{working.delete(o.id);}
   }
+  async function clearOwned(){
+    if(!ready||!userId)return {offline:true,deleted:0,failed:0};
+    let owned;
+    try{
+      // 不只使用當前畫面已載入清單，重新向雲端查詢自己的全部作品。
+      const {data,error}=await client.from('meadow_objects').select('id').eq('owner_id',userId);
+      if(error)throw error;
+      owned=data||[];
+    }catch(error){
+      console.warn('取得雲端作品清單失敗',error);
+      return {offline:false,deleted:0,failed:1};
+    }
+    let deleted=0,failed=0;
+    for(const row of owned){
+      try{
+        const {data,error}=await client.from('meadow_objects').delete()
+          .eq('id',row.id).eq('owner_id',userId).select('id');
+        if(error||!data?.length)throw error||new Error('雲端未確認刪除');
+        onCloudAdminDeletion(row.id);deleted++;
+      }catch(error){failed++;console.warn('無法清除雲端作品',row.id,error);}
+    }
+    bagLastSignature='';drawBagCards(true);
+    return {offline:false,deleted,failed};
+  }
   async function remove(id){
     if(!ready||!id){toast('雲端尚未連線，無法刪除公共作品');return false;}
     const r=rows.get(id);
@@ -5852,7 +5894,7 @@ const cloudWorld=(()=>{
     }
     return null;
   }
-  return {publishItem:o=>publish(o,'item'),publishHome:h=>publish(h,'home'),remove,draw,connect,refresh,renderAdminWorks,adminRemove,
+  return {publishItem:o=>publish(o,'item'),publishHome:h=>publish(h,'home'),remove,clearOwned,draw,connect,refresh,renderAdminWorks,adminRemove,
     isReady:()=>ready,getOwnedAnimalBox,pickOwnedAnimalAt,getRigEditableAnimal,
     removeSelectedAnimal:async id=>{const r=rows.get(id);return r?.owner_id===userId?remove(id):(hunterState.unlocked?adminRemove(id):false);},
     remoteHunterTargets,drawRemoteHunters,broadcastHunterShot,
@@ -5889,6 +5931,8 @@ document.addEventListener('visibilitychange',()=>{
   });
 }
 </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"7939e04a4baf43c8b86a560f74aac60e","spa":2}' crossorigin="anonymous"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"1c1c7799c54e46349cc23295b5e08299","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"7939e04a4baf43c8b86a560f74aac60e","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"1c1c7799c54e46349cc23295b5e08299","spa":2}' crossorigin="anonymous"></script>
 </body>
