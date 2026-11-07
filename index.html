@@ -1176,10 +1176,13 @@ $('#homeMove').onclick=()=>{
   $('#homeTools').classList.add('hidden');
   toast('↔ 點選新的陸地或水下位置');
 };
-$('#homeDelete').onclick=()=>{
+$('#homeDelete').onclick=async()=>{
   const id=state.selectedHome;
   const oldHome=state.homes.find(h=>h.id===id);
-  if(oldHome?.cloudId)cloudWorld.remove(oldHome.cloudId).catch(()=>{});
+  if(oldHome?.cloudId&&cloudWorld.isReady()){
+    const ok=await cloudWorld.remove(oldHome.cloudId);
+    if(!ok)return;
+  }else if(oldHome?.cloudId&&!confirm('雲端未連線，只刪除這台裝置上的房子嗎？其他玩家仍可能看得到。'))return;
   state.homes=state.homes.filter(h=>h.id!==id);
   state.homeImages.delete(id);
   state.selectedHome=null;
@@ -1957,10 +1960,11 @@ function emitMeteor(now,groupOffset=0,forcedFromLeft=null){
   // 遠景側向掠過：由左往右或右往左，穿過宇宙/高空大氣，避免垂直下墜。
   const fromLeft=forcedFromLeft===null?Math.random()<.5:forcedFromLeft;
   const y=-990+Math.random()*755;
+  const view=visualEffectBounds(220);
   const speed=790+Math.random()*620;
   const vx=(fromLeft?1:-1)*speed;
   const vy=(Math.random()-.48)*speed*.18;
-  nightMeteors.list.push({x:fromLeft?-1810:1810,y,born:now+groupOffset,
+  nightMeteors.list.push({x:fromLeft?view.left:view.right,y,born:now+groupOffset,
     life:2600+Math.random()*650,vx,vy,
     width:1.8+Math.random()*2.3,glitter:Math.random()*6.28,
     glowTone:Math.floor(Math.random()*4)});
@@ -1982,7 +1986,8 @@ function drawMeteorShower(now,night){
     nightMeteors.next=now+(group?850:720)+Math.random()*1450;
   }
   ctx.save();
-  ctx.beginPath();ctx.rect(-1800,WORLD_REGIONS.cosmos.top,3600, WORLD_REGIONS.land.top-WORLD_REGIONS.cosmos.top);ctx.clip();
+  ctx.beginPath();const view=visualEffectBounds(250);
+  ctx.rect(view.left,WORLD_REGIONS.cosmos.top,view.width,WORLD_REGIONS.land.top-WORLD_REGIONS.cosmos.top);ctx.clip();
   for(let i=nightMeteors.list.length-1;i>=0;i--){
     const m=nightMeteors.list[i];
     const age=now-m.born;
@@ -2105,12 +2110,18 @@ function drawCustomSeaBackground(night,scenicSide){
  * 坐標、碰撞、動物、獵人、多人狀態、儲存與設定均不更動。
  * 粒子依固定索引與 now 計算，不使用持續累積的物件陣列。
  */
+function visualEffectBounds(padding=120){
+  const zoom=Math.max(.12,Number(state.cam.zoom)||.32);
+  const half=innerWidth/(2*zoom);
+  return {left:state.cam.x-half-padding,right:state.cam.x+half+padding,
+    width:half*2+padding*2};
+}
 function drawSoftSkyTwinkles(now,night){
   if(!night)return;
-  ctx.save();ctx.beginPath();ctx.rect(-1800,-550,3600,615);ctx.clip();
+  ctx.save();ctx.beginPath();const view=visualEffectBounds(120);ctx.rect(view.left,-550,view.width,615);ctx.clip();
   const t=now*.001;
-  for(let i=0;i<57;i++){
-    const x=-1660+forestHash(i*48.37+3)*3320;
+  for(let i=0;i<Math.min(180,Math.ceil(57*view.width/3600));i++){
+    const x=view.left+forestHash(i*48.37+3)*view.width;
     const y=-480+forestHash(i*71.21+19)*475;
     const pulse=Math.pow(.5+.5*Math.sin(t*(.52+(i%5)*.11)+i*3.6),2);
     const alpha=.11+.53*pulse;
@@ -2132,7 +2143,8 @@ function drawSoftOceanCaustics(now,night){
   const t=now*.001;
   for(let i=0;i<66;i++){
     const seed=forestHash(i*27.13+1),seed2=forestHash(i*39.37+8);
-    const x=-1800+((seed*3660+t*(9+(i%4)*4))%3660);
+    const view=visualEffectBounds(120);
+    const x=view.left+((seed*view.width+t*(9+(i%4)*4))%view.width);
     const y=505+seed2*830;
     const w=38+forestHash(i*13.71+9)*65;
     const h=8+forestHash(i*8.9+19)*13;
@@ -2155,7 +2167,8 @@ function drawSoftOceanBubbles(now,night){
   ctx.save();
   for(let i=0;i<56;i++){
     const k=forestHash(i*47.31+13);
-    const x=-1660+forestHash(i*31.83+17)*3300+Math.sin(t*.48+i)*6;
+    const view=visualEffectBounds(120);
+    const x=view.left+forestHash(i*31.83+17)*view.width+Math.sin(t*.48+i)*6;
     const y=480+((forestHash(i*17.29+7)*1000-t*(11+i%6*3)+1000000)%1000);
     const r=1.5+(i%4)*.85;
     const a=(night?.27:.49)*(.65+.35*Math.sin(t+i));
@@ -2174,9 +2187,9 @@ function drawSoftSeasonParticles(now,season,night){
     isSummer?['#fff6b7','#d6f8a6','#fffad8']:
     isFall?['#efb76e','#dc9a55','#f2d5a2']:
     ['#ffffff','#eaf5ff','#d8e9ff'];
-  ctx.save();ctx.beginPath();ctx.rect(-1800,90,3600,420);ctx.clip();
-  for(let i=0;i<90;i++){
-    const x0=-1700+forestHash(i*24.27+18)*3400;
+  ctx.save();ctx.beginPath();const view=visualEffectBounds(120);ctx.rect(view.left,90,view.width,420);ctx.clip();
+  for(let i=0;i<Math.min(310,Math.ceil(90*view.width/3600));i++){
+    const x0=view.left+forestHash(i*24.27+18)*view.width;
     const y0=forestHash(i*31.19+15)*380;
     const drift=(isSummer?3:9)+(i%5)*1.7;
     const x=x0+Math.sin(t*.57+i*1.4)*(isSummer?8:24)+t*(isFall?3:1.1);
@@ -2208,12 +2221,13 @@ function drawWinterSnowGround(now,night){
   snow.addColorStop(0,night?'#bdcde0':'#f6fbff');
   snow.addColorStop(.6,night?'#b5c4d7':'#e8f5ff');
   snow.addColorStop(1,night?'#96b4d1':'#dceeff');
-  ctx.fillStyle=snow;ctx.beginPath();ctx.moveTo(-1800,142);
-  for(let x=-1800;x<=1800;x+=35)ctx.lineTo(x,142+5*Math.sin(x*.008)+3*Math.sin(x*.021));
-  ctx.lineTo(1800,498+EXTRA_VERTICAL_LAND);ctx.lineTo(-1800,498+EXTRA_VERTICAL_LAND);ctx.closePath();ctx.fill();
+  ctx.fillStyle=snow;const view=visualEffectBounds(180);
+  ctx.beginPath();ctx.moveTo(view.left,142);
+  for(let x=view.left;x<=view.right;x+=35)ctx.lineTo(x,142+5*Math.sin(x*.008)+3*Math.sin(x*.021));
+  ctx.lineTo(view.right,498+EXTRA_VERTICAL_LAND);ctx.lineTo(view.left,498+EXTRA_VERTICAL_LAND);ctx.closePath();ctx.fill();
   // 雪堆、起伏與少量冰晶高光；確保地面看起來真的積雪。
-  for(let i=0;i<86;i++){
-    const x=-1700+forestHash(i*29.7+5)*3400;
+  for(let i=0;i<Math.min(330,Math.ceil(86*view.width/3400));i++){
+    const x=view.left+forestHash(i*29.7+5)*view.width;
     const y=155+forestHash(i*42.1+12)*(325+EXTRA_VERTICAL_LAND);
     const r=25+forestHash(i*9.7+16)*58;
     ctx.fillStyle=night?'rgba(233,245,255,.25)':'rgba(255,255,255,.81)';
@@ -2221,8 +2235,8 @@ function drawWinterSnowGround(now,night){
     ctx.strokeStyle=night?'rgba(215,236,255,.25)':'rgba(160,202,229,.43)';ctx.lineWidth=1.2;
     ctx.beginPath();ctx.ellipse(x,y+3,r*.82,3+r*.085,-.04,0,Math.PI);ctx.stroke();
   }
-  for(let i=0;i<160;i++){
-    const x=-1700+forestHash(i*37.14+28)*3400;
+  for(let i=0;i<Math.min(590,Math.ceil(160*view.width/3400));i++){
+    const x=view.left+forestHash(i*37.14+28)*view.width;
     const y=165+forestHash(i*43.77+1)*(310+EXTRA_VERTICAL_LAND);
     const glow=.5+.5*Math.sin(now*.0017+i*2.1);
     ctx.fillStyle=night?`rgba(229,247,255,${.32*glow})`:`rgba(255,255,255,${.88*glow})`;
@@ -2234,7 +2248,7 @@ function drawWinterSnowGround(now,night){
 function drawWinterAurora(now){
   const t=now*.00016;
   ctx.save();
-  ctx.beginPath();ctx.rect(-1800,-730,3600,805);ctx.clip();
+  ctx.beginPath();const view=visualEffectBounds(140);ctx.rect(view.left,-730,view.width,805);ctx.clip();
   ctx.globalCompositeOperation='screen';
 
   // 連續色帶：多個柔彩高亮顏色自然交融，不用單根垂直光線。
@@ -2250,9 +2264,9 @@ function drawWinterAurora(now){
   // 一整片不規則波浪光幕；寬窄沿畫面自然變化，不形成平行直線。
   function curtainPath(layer,shrink){
     ctx.beginPath();
-    const count=120, step=3600/count;
+    const count=Math.max(120,Math.ceil(view.width/32)),step=view.width/count;
     for(let j=0;j<=count;j++){
-      const x=-1800+j*step;
+      const x=view.left+j*step;
       const c=yAt(x,layer);
       const thickness=140+54*Math.sin(x*.0017-t*1.05+layer)+
         25*Math.sin(x*.0032+t*.92+layer*2);
@@ -2261,7 +2275,7 @@ function drawWinterAurora(now){
       else ctx.lineTo(x,upper);
     }
     for(let j=count;j>=0;j--){
-      const x=-1800+j*step;
+      const x=view.left+j*step;
       const c=yAt(x,layer);
       const thickness=140+54*Math.sin(x*.0017-t*1.05+layer)+
         25*Math.sin(x*.0032+t*.92+layer*2);
@@ -2270,7 +2284,7 @@ function drawWinterAurora(now){
     ctx.closePath();
   }
   for(let layer=0;layer<3;layer++){
-    const flow=ctx.createLinearGradient(-1800,0,1800,0);
+    const flow=ctx.createLinearGradient(view.left,0,view.right,0);
     for(let k=0;k<palette.length;k++){
       // 每層顏色錯位，營造漸層虹彩而非規律分段。
       flow.addColorStop(k/(palette.length-1),palette[(k+layer*3)%palette.length]);
@@ -2306,13 +2320,13 @@ function drawWinterAurora(now){
 /* 真正降雪：天空與草地持續落下大、小雪花；不更動任何物件座標。 */
 function drawWinterSnowfall(now,night){
   const t=now*.001;
-  ctx.save();ctx.beginPath();ctx.rect(-1800,-540,3600,1050+EXTRA_VERTICAL_LAND);ctx.clip();
-  for(let i=0;i<210;i++){
-    const base=forestHash(i*29.41+3)*3660;
+  ctx.save();ctx.beginPath();const view=visualEffectBounds(140);ctx.rect(view.left,-540,view.width,1050+EXTRA_VERTICAL_LAND);ctx.clip();
+  for(let i=0;i<Math.min(900,Math.ceil(210*view.width/3600));i++){
+    const base=forestHash(i*29.41+3)*view.width;
     const speed=11+(i%8)*5;
     const snowSpan=1040+EXTRA_VERTICAL_LAND;
     const y=-530+((forestHash(i*23.21+8)*snowSpan+t*speed)%snowSpan);
-    const x=-1830+((base+Math.sin(t*.68+i)*17+t*(i%3+1)*1.2)%3660);
+    const x=view.left+((base+Math.sin(t*.68+i)*17+t*(i%3+1)*1.2)%view.width);
     const r=1.1+(i%5)*.48;
     const alpha=(night?.78:.94)*(.55+.45*forestHash(i*13.17+6));
     ctx.fillStyle=`rgba(255,255,255,${alpha})`;
@@ -2359,10 +2373,10 @@ function drawNature(now,phase){
   edgeRiver.addColorStop(.5,night?'#28485d':theme.river[1]);
   edgeRiver.addColorStop(.28,night?'#1e384f':theme.river[2]);
   edgeRiver.addColorStop(1,night?'#101e36':'#153e66');
-  ctx.fillStyle=edgeRiver;ctx.fillRect(-wide,445,wide*2,1300+EXTRA_DEEP_SEA);
+  ctx.fillStyle=edgeRiver;ctx.fillRect(-wide,445,wide*2,2100+EXTRA_VERTICAL_LAND+EXTRA_DEEP_SEA);
   // 深海向下繼續延伸，視窗直立縮遠也不露出底色。
   ctx.fillStyle=night?'#101e36':'#153e66';
-  ctx.fillRect(-wide,1755+EXTRA_VERTICAL_LAND+EXTRA_DEEP_SEA,wide*2,wide);
+  ctx.fillRect(-wide,2450+EXTRA_VERTICAL_LAND+EXTRA_DEEP_SEA,wide*2,wide);
 
   // 新宇宙層僅在原天空上方，原天空、日夜與極光的區域完全保留。
   const cosmos=ctx.createLinearGradient(0,WORLD_REGIONS.cosmos.top,0,-740);
@@ -3400,6 +3414,10 @@ function drawRigged(o,im,w,h,now,sleeping){
   ctx.restore();
 }
 let rigEdit=null;
+function rigEditingAnimal(){
+  return state.items.find(v=>v.id===rigEdit?.id)||
+    (rigEdit?.cloudId?cloudWorld.getRigEditableAnimal(rigEdit.cloudId):null);
+}
 function updateRigMotionUI(){
   if(!rigEdit)return;
   const m=rigEdit.rig.motion||{strength:1,speed:1,breath:.3};
@@ -3412,9 +3430,11 @@ function updateRigMotionUI(){
 }
 function updateRigButton(){
   const o=state.items.find(v=>v.id===state.selected&&v.kind!=='food');
-  $('#rigBtn').style.display=o&&o.box?'block':'none';
-  if(o?.box){
-    const b=o.box,btn=$('#rigBtn');
+  const cloudItem=!o&&selectedCloudAnimal?cloudWorld.getRigEditableAnimal(selectedCloudAnimal):null;
+  const b=o?.box||cloudItem?.box;
+  $('#rigBtn').style.display=b?'block':'none';
+  if(b){
+    const btn=$('#rigBtn');
     btn.style.left=clamp(b.x+b.w/2-btn.offsetWidth/2,8,Math.max(8,innerWidth-btn.offsetWidth-8))+'px';
     btn.style.top=clamp(b.y+b.h+9,55,Math.max(55,innerHeight-155))+'px';
   }
@@ -3461,12 +3481,13 @@ function applyRigMotionPreset(name){
   updateRigMotionUI();rigPreview();
 }
 $('#rigBtn').onclick=()=>{
-  const o=state.items.find(v=>v.id===state.selected&&v.kind!=='food');
+  const o=state.items.find(v=>v.id===state.selected&&v.kind!=='food')||
+    (selectedCloudAnimal?cloudWorld.getRigEditableAnimal(selectedCloudAnimal):null);
   if(!o||!state.images.has(o.id))return;
-  rigEdit={id:o.id,rig:normalizeRig(o.rig,o.kind),nature:o.nature||'auto',draw:null};$('#animalNature').value=rigEdit.nature;
+  rigEdit={id:o.id,cloudId:o.cloudId||null,rig:normalizeRig(o.rig,o.kind),nature:o.nature||'auto',draw:null};$('#animalNature').value=rigEdit.nature;
   $('#rigModal').classList.remove('hidden');rigPartsList();updateRigMotionUI();rigPreview();audio.effect('tap');
 };
-$('#rigSmartAuto').onclick=()=>{const im=state.images.get(rigEdit?.id);const o=state.items.find(v=>v.id===rigEdit?.id);if(!im||!o)return;rigEdit.rig=smartRigFromImage(im,o.kind);rigPartsList();updateRigMotionUI();rigPreview();toast('✨ 已自動標記，可直接儲存或微調！');};
+$('#rigSmartAuto').onclick=()=>{const im=state.images.get(rigEdit?.id);const o=rigEditingAnimal();if(!im||!o)return;rigEdit.rig=smartRigFromImage(im,o.kind);rigPartsList();updateRigMotionUI();rigPreview();toast('✨ 已自動標記，可直接儲存或微調！');};
 $('#animalNature').onchange=e=>{if(rigEdit)rigEdit.nature=e.target.value;};
 $('#rigPresetSoft').onclick=()=>applyRigMotionPreset('soft');
 $('#rigPresetPlayful').onclick=()=>applyRigMotionPreset('playful');
@@ -3474,14 +3495,14 @@ $('#rigPresetWild').onclick=()=>applyRigMotionPreset('wild');
 $('#rigStrength').oninput=e=>{ if(!rigEdit)return; rigEdit.rig.motion.strength=Number(e.target.value)/100; updateRigMotionUI(); rigPreview(); };
 $('#rigSpeed').oninput=e=>{ if(!rigEdit)return; rigEdit.rig.motion.speed=Number(e.target.value)/100; updateRigMotionUI(); rigPreview(); };
 $('#rigBreath').oninput=e=>{ if(!rigEdit)return; rigEdit.rig.motion.breath=Number(e.target.value)/100; updateRigMotionUI(); rigPreview(); };
-$('#rigReset').onclick=()=>{const o=state.items.find(v=>v.id===rigEdit?.id);if(!o)return;rigEdit.rig=presetRig(o.kind);rigPartsList();updateRigMotionUI();rigPreview();};
+$('#rigReset').onclick=()=>{const o=rigEditingAnimal();if(!o)return;rigEdit.rig=presetRig(o.kind);rigPartsList();updateRigMotionUI();rigPreview();};
 $('#rigCancel').onclick=()=>{$('#rigModal').classList.add('hidden');rigEdit=null;};
 $('#rigDisable').onclick=()=>{
-  const o=state.items.find(v=>v.id===rigEdit?.id);if(!o)return;
+  const o=rigEditingAnimal();if(!o)return;
   delete o.rig;rigCaches.delete(o.id);if(o.cloudId)cloudWorld.saveAnimalTraits(o).catch(console.warn);save();$('#rigModal').classList.add('hidden');rigEdit=null;toast('已還原原本動畫');
 };
 $('#rigSave').onclick=()=>{
-  const o=state.items.find(v=>v.id===rigEdit?.id);if(!o)return;
+  const o=rigEditingAnimal();if(!o)return;
   o.rig=rigEdit.rig;o.nature=rigEdit.nature||'auto';rigCaches.delete(o.id);
   if(o.cloudId)cloudWorld.saveAnimalTraits(o).catch(e=>console.warn('動物骨骼雲端更新失敗',e));
   const im=state.images.get(o.id);if(im)buildRigCache(o,im);
@@ -3539,14 +3560,18 @@ const hunterState={unlocked:false,active:false,mode:'auto',x:0,y:280,vx:0,vy:0,h
 const HUNTER_ACCESS_PASSWORD='0979033468';
 const HUNTER_IMAGE_KEY='meadow_local_hunter_image_v1';
 const HUNTER_EXTRA_KEY='meadow_local_hunters_extra_v1';
+const HUNTER_MAIN_TOKEN_KEY='meadow_hunter_main_token_v1';
+let hunterMainToken=localStorage.getItem(HUNTER_MAIN_TOKEN_KEY)||crypto.randomUUID();
+try{localStorage.setItem(HUNTER_MAIN_TOKEN_KEY,hunterMainToken);}catch{}
+
 const hunterExtras=[];
 function hunterUnits(){return [hunterState,...hunterExtras].filter(h=>h.active&&h.hp>0&&h.image);}
-function makeHunterExtra(data,index){
+function makeHunterExtra(data,index,token=null){
   const im=new Image();
   const hs={active:false,mode:'auto',x:clamp(state.cam.x+index*47-60,-1580,1580),
     y:300+index%4*15,hp:100,source:data,image:im,targetId:null,moveTarget:null,
     lastShot:0,arrowShots:[],nextCharge:0,flashUntil:0,fireRate:hunterState.fireRate,
-    moveSpeed:hunterState.moveSpeed,lastSavedShot:0,imagePath:'',dragging:false};
+    moveSpeed:hunterState.moveSpeed,lastSavedShot:0,imagePath:'',dragging:false,token:token||crypto.randomUUID()};
   im.src=data;hunterExtras.push(hs);return hs;
 }
 function updateHunterCount(){
@@ -3554,7 +3579,7 @@ function updateHunterCount(){
   renderHunterCards();
 }
 function storeHunterExtras(){
-  try{localStorage.setItem(HUNTER_EXTRA_KEY,JSON.stringify(hunterExtras.map(h=>h.source)));}
+  try{localStorage.setItem(HUNTER_EXTRA_KEY,JSON.stringify(hunterExtras.map(h=>({source:h.source,token:h.token}))));}
   catch{toast('獵人圖片較大：新增獵人仍可使用，但可能無法全部存入本機');}
 }
 function hunterCardCollection(){return [hunterState,...hunterExtras].filter(h=>!!h.source);}
@@ -3616,7 +3641,11 @@ function deleteHunterUnit(unit){
 $('#hunterDeleteBtn').onclick=()=>{if(selectedHunterUnit)deleteHunterUnit(selectedHunterUnit);};
 try{
   const saved=JSON.parse(localStorage.getItem(HUNTER_EXTRA_KEY)||'[]');
-  if(Array.isArray(saved))saved.slice(0,20).forEach((data,i)=>{if(typeof data==='string'&&data.startsWith('data:image/'))makeHunterExtra(data,i+1);});
+  if(Array.isArray(saved))saved.slice(0,20).forEach((item,i)=>{
+    const src=typeof item==='string'?item:item?.source;
+    if(typeof src==='string'&&src.startsWith('data:image/'))makeHunterExtra(src,i+1,item?.token||null);
+  });
+  storeHunterExtras();
 }catch{}
 
 const hunterStatus=$('#hunterStatus');
@@ -4089,7 +4118,7 @@ function animate(now){
     }
     const face=o.kind==='food'?1:(Number.isFinite(o.face)?o.face:1);
     const facingSign=face<0?-1:1;
-    const bodyTurn=.58+.42*Math.abs(face);
+    const bodyTurn=.72+.28*Math.abs(face);
     const motionTilt=sleeping&&!parade.active?0:Math.sin(now/450+o.phase)*.035+clamp((o.vy||0)/260,-.16,.16);
     ctx.save();ctx.translate(p.x,p.y+bob);
     ctx.rotate(motionTilt+(paradeWalking?Math.sin(festivalBeat)*.09:0));
@@ -4297,11 +4326,11 @@ $('#deleteBtn').onclick = async () => {
   if(btn.disabled)return;
   if(selectedCloudAnimal){
     const id=selectedCloudAnimal;
-    if(!confirm('確定要刪除自己發布到公共世界的這隻動物嗎？其他玩家會同步看不到。'))return;
+    if(!confirm('確定要刪除選取的公共世界作品嗎？這會讓所有玩家都看不到它，無法復原。'))return;
     btn.disabled=true;
     try{
       const ok=await cloudWorld.removeSelectedAnimal(id);
-      if(ok){selectedCloudAnimal=null;btn.style.display='none';audio.effect('delete');toast('已刪除公共世界動物');}
+      if(ok){selectedCloudAnimal=null;btn.style.display='none';audio.effect('delete');toast('已刪除公共世界作品');}
     }finally{btn.disabled=false;}
     return;
   }
@@ -4449,7 +4478,12 @@ function addItem(data,kind){
     state.cam.x=o.x;state.cam.y=visualWorldY(o.y);clampCamera();
   }
   if(kind!=='food'&&kind!=='space'){
-    const temp=new Image();temp.onload=()=>{if(!state.items.includes(o))return;o.rig=smartRigFromImage(temp,kind);rigCaches.delete(o.id);buildRigCache(o,temp);save();};temp.src=data;
+    const temp=new Image();temp.onload=()=>{
+      o.rig=smartRigFromImage(temp,kind);rigCaches.delete(o.id);
+      if(state.items.includes(o)){buildRigCache(o,temp);save();}
+      // 發布到公共世界後動物會從本機活動清單移除；此時仍需同步剛分析好的智能骨骼。
+      if(o.cloudId)cloudWorld.saveAnimalTraits(o).catch(e=>console.warn('智能骨骼雲端同步失敗',e));
+    };temp.src=data;
     // 所有新動物都套用骨骼預設；舊作品既有自訂骨骼不變。
     o.rig=presetRig(kind);
   }
@@ -4804,6 +4838,7 @@ const cloudWorld=(()=>{
   let rows=new Map(),images=new Map(),working=new Set(),health=new Map(),hitFlash=new Map();
   const deployments=new Map();const runtimeStates=new Map();let ecosystemEnabled=false;
   const remoteMotion=new Map();
+  const growthFlash=new Map();
   const ownedAnimalBoxes=new Map();
   const remoteHunters=new Map();
   let motionLastSent=0,hunterLastSent=0;
@@ -4849,7 +4884,7 @@ const cloudWorld=(()=>{
     }
     if(state.selected && deletedAnimals.some(o=>o.id===state.selected))state.selected=null;
     if(selectedCloudAnimal===id)selectedCloudAnimal=null;
-    rows.delete(id);images.delete(id);health.delete(id);hitFlash.delete(id);
+    rows.delete(id);images.delete(id);health.delete(id);hitFlash.delete(id);growthFlash.delete(id);
     remoteMotion.delete(id);ownedAnimalBoxes.delete(id);
     updateEmpty();renderOwned();
     if(hunterState.unlocked)renderAdminWorks();
@@ -4867,7 +4902,11 @@ const cloudWorld=(()=>{
     if(authoritative){
       let p=remoteMotion.get(r.id)||{};
       if(p.revision!==authoritative.revision){
+        const clock=performance.now();
         p={...p,x:authoritative.x,y:authoritative.y,vx:authoritative.vx,vy:authoritative.vy,
+          fromX:Number.isFinite(p.sx)?p.sx:(Number.isFinite(p.x)?p.x:authoritative.x),
+          fromY:Number.isFinite(p.sy)?p.sy:(Number.isFinite(p.y)?p.y:authoritative.y),
+          glideStart:clock,glideDuration:2200,
           face:authoritative.face,behavior:authoritative.behavior,nature:authoritative.nature,
           jump:authoritative.jump,sleeping:authoritative.sleeping,phase:authoritative.phase,
           revision:authoritative.revision,received:Date.now()};
@@ -4882,12 +4921,16 @@ const cloudWorld=(()=>{
       p.lastFrame=now;
       const age=Math.max(0,(Date.now()-p.received)/1000);
       const live=age<4.5;
-      // 使用最後一個權威座標；禁止按速度外推超前後又回彈（抽動主因）。
-      // 每輪更新間隔約 2.2 秒，採用約 1.7 秒的連續平滑過渡。
-      const easing=ecosystemEnabled?1-Math.exp(-dt/0.48):1-Math.exp(-dt/0.14);
-      p.sx=Number.isFinite(p.sx)?p.sx+(p.x-p.sx)*easing:p.x;
-      p.sy=Number.isFinite(p.sy)?p.sy+(p.y-p.sy)*easing:p.y;
-      const ease=easing;
+      // 雲端每約 2.2 秒發布權威位置；用前後座標做連續插值。
+      // 不再超前推估或指數式瞬間急停，畫面上的腳步會完整走完一段路。
+      const easing=ecosystemEnabled
+        ?Math.min(1,Math.max(0,(performance.now()-(p.glideStart??performance.now()))/(p.glideDuration||2200)))
+        :1-Math.exp(-dt/0.14);
+      p.sx=ecosystemEnabled?(p.fromX??p.x)+(p.x-(p.fromX??p.x))*easing
+        :(Number.isFinite(p.sx)?p.sx+(p.x-p.sx)*easing:p.x);
+      p.sy=ecosystemEnabled?(p.fromY??p.y)+(p.y-(p.fromY??p.y))*easing
+        :(Number.isFinite(p.sy)?p.sy+(p.y-p.sy)*easing:p.y);
+      const ease=ecosystemEnabled?1-Math.exp(-dt/0.16):easing;
       // 繼續顯示最後收到的位置，等恢復連線時再柔和地靠近新的位置。
       const f=Number.isFinite(p.sf)?p.sf:(p.face||1);
       p.sf=f+((p.face||1)-f)*ease;
@@ -4950,12 +4993,43 @@ const cloudWorld=(()=>{
       if(!picture||past.imagePath!==unit.image_path){
         picture=new Image();if(unit.image_path)picture.src=safeImage(unit.image_path);
       }
-      return {...past,id:unit.id||String(i),x:Number(unit.x)||0,y:Number(unit.y)||0,
+      return {...past,id:unit.id||String(i),token:unit.token||unit.id||String(i),x:Number(unit.x)||0,y:Number(unit.y)||0,
         sx:Number.isFinite(past.sx)?past.sx:Number(unit.x)||0,
         sy:Number.isFinite(past.sy)?past.sy:Number(unit.y)||0,
         hp:clamp(Number(unit.hp)||0,0,100),imagePath:unit.image_path,picture};
     });
     remoteHunters.set(row.owner_id,{units,active:row.active,updatedAt:Date.parse(row.updated_at)||Date.now()});
+  }
+  let hunterRevocationBusy=false;
+  async function checkHunterRevocations(){
+    if(!ready||hunterRevocationBusy)return;
+    hunterRevocationBusy=true;
+    try{
+      const {data,error}=await client.from('meadow_hunter_removed_units')
+        .select('token').eq('owner_id',userId);
+      if(error)throw error;
+      const banned=new Set((data||[]).map(v=>String(v.token)));
+      let changed=false;
+      if(hunterState.source&&banned.has(hunterMainToken)){
+        hunterState.active=false;hunterState.source=null;hunterState.image=null;
+        hunterState.arrowShots=[];hunterState.targetId=null;
+        try{localStorage.removeItem(HUNTER_IMAGE_KEY);}catch{}
+        hunterMainToken=crypto.randomUUID();
+        try{localStorage.setItem(HUNTER_MAIN_TOKEN_KEY,hunterMainToken);}catch{}
+        hunterImagePath='';changed=true;
+      }
+      for(let i=hunterExtras.length-1;i>=0;i--){
+        if(banned.has(hunterExtras[i].token)){hunterExtras.splice(i,1);changed=true;}
+      }
+      if(changed){
+        hunterExtras.forEach(h=>h.imagePath='');
+        storeHunterExtras();updateHunterCount();updateHunterHud();
+        if(hunterUnits().length)await syncHunter(true);
+        else await syncHunter(false);
+        toast('🏹 管理員已將指定獵人從公共世界移除');
+      }
+    }catch(e){if(!checkHunterRevocations.warned){console.warn('獵人管理同步需安裝新版權限 SQL：',e.message);checkHunterRevocations.warned=true;}}
+    finally{hunterRevocationBusy=false;}
   }
   async function loadHunters(){
     if(!ready)return;
@@ -4964,6 +5038,7 @@ const cloudWorld=(()=>{
     const active=new Set((data||[]).map(r=>r.owner_id));
     for(const id of [...remoteHunters.keys()])if(!active.has(id))remoteHunters.delete(id);
     for(const row of data||[])onHunterChange(row);
+    if(hunterState.unlocked)renderAdminWorks();
   }
   async function uploadHunterImage(){
     if(!ready||hunterUploadBusy||!hunterState.source)return hunterImagePath;
@@ -5000,6 +5075,7 @@ const cloudWorld=(()=>{
     if(active){await Promise.all(hunterExtras.filter(h=>h.source).map((h,i)=>uploadExtraHunter(h,i+1)));}
     const hunters=active?hunterUnits().map((hs,i)=>({
       id:hs===hunterState?'main':String(hunterExtras.indexOf(hs)+1),
+      token:hs===hunterState?hunterMainToken:hs.token,
       x:hs.x,y:hs.y,hp:hs.hp,
       image_path:hs===hunterState?hunterImagePath:(hs.imagePath||null)
     })):[];
@@ -5069,7 +5145,7 @@ const cloudWorld=(()=>{
     const summary=document.createElement('div');
     summary.style.margin='8px 0';summary.textContent=`目前公共世界共有 ${rows.size} 件作品，其中 ${mine.length} 件屬於此瀏覽器帳號。`;
     owned.append(summary);
-    for(const r of mine.slice(0,70)){
+    for(const r of mine){
       const line=document.createElement('div');
       line.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px;border-top:1px solid #eadfea';
       const label=document.createElement('span');
@@ -5165,6 +5241,23 @@ const cloudWorld=(()=>{
     }
     console.warn(`${table} 已達 ${maxRecords} 筆載入上限，後續資料需使用區域載入`);
     return all;
+  }
+  let lastRuntimePoll=0,runtimePollBusy=false;
+  async function pollRuntimeSnapshot(){
+    if(!ready||!ecosystemEnabled||runtimePollBusy||document.hidden)return;
+    runtimePollBusy=true;
+    try{
+      const runtimes=await fetchPaged('meadow_animal_runtime','*',500,4000);
+      const activeIds=new Set();
+      for(const v of runtimes){
+        activeIds.add(v.object_id);
+        const old=runtimeStates.get(v.object_id);
+        if(!old||Number(v.revision)>=Number(old.revision))runtimeStates.set(v.object_id,v);
+      }
+      for(const id of runtimeStates.keys())if(!activeIds.has(id))runtimeStates.delete(id);
+      lastRuntimePoll=Date.now();
+    }catch(e){console.warn('雲端動物位置快照更新失敗',e.message);}
+    finally{runtimePollBusy=false;}
   }
   async function loadEcosystem(){
     try{
@@ -5329,6 +5422,14 @@ const cloudWorld=(()=>{
             onCloudAdminDeletion(payload.old.id);
           }else if(payload.new){
             const prev=rows.get(payload.new.id);
+            if(prev?.object_type==='animal' && Number(payload.new.size)>Number(prev.size)*1.001){
+              const current=runtimeStates.get(payload.new.id);
+              const px=current?.x??payload.new.x, py=current?.y??payload.new.y;
+              growthFlash.set(payload.new.id,performance.now()+1500);
+              growthBursts.push({x:px,y:py-45,start:performance.now()});
+              sparkle(px,py-42);
+              if(payload.new.owner_id===userId)audio.effect('eat');
+            }
             if(JSON.stringify(prev?.properties?.rig)!==JSON.stringify(payload.new.properties?.rig))rigCaches.delete('cloud:'+payload.new.id);
             rows.set(payload.new.id,payload.new);
             loadRemoteImage(payload.new);
@@ -5358,6 +5459,7 @@ const cloudWorld=(()=>{
           }
         });
       await loadHunters();
+      await checkHunterRevocations();
       setStatus(`🟢 已連線・公共世界 ${rows.size} 件作品`);
     }catch(e){
       ready=false;setStatus('🔴 離線：'+(e.message||'連線失敗'));
@@ -5438,10 +5540,7 @@ const cloudWorld=(()=>{
       const {data,error}=await client.from('meadow_objects').delete().eq('id',id).eq('owner_id',userId).select('id');
       if(error)throw error;
       if(!data?.length){toast('雲端刪除未生效，請檢查登入身分與作品權限');return false;}
-      rows.delete(id);images.delete(id);remoteMotion.delete(id);ownedAnimalBoxes.delete(id);
-      for(const o of state.items)if(o.cloudId===id)delete o.cloudId;
-      for(const h of state.homes)if(h.cloudId===id)delete h.cloudId;
-      save();saveHomes();renderOwned();updateEmpty();
+      onCloudAdminDeletion(id);
       return true;
     }catch(e){console.warn('雲端刪除失敗',e);toast('雲端刪除失敗：'+(e.message||'請重試'));return false;}
   }
@@ -5452,7 +5551,7 @@ const cloudWorld=(()=>{
     if(!hunterState.unlocked){box.textContent='請先解鎖管理員介面';return;}
     if(!ready){box.textContent='雲端未連線。請先到 ⚙️ 系統調整確認公共大世界連線。';return;}
     const list=[...rows.values()].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
-    if(!list.length){box.textContent='目前沒有公共作品。';return;}
+    if(!list.length){const info=document.createElement('div');info.textContent='目前沒有一般公共作品。';box.append(info);}
     const info=document.createElement('div');info.textContent=`目前有 ${list.length} 件公開作品（只顯示已載入的作品）。`;
     box.append(info);
     for(const r of list){
@@ -5473,6 +5572,30 @@ const cloudWorld=(()=>{
         if(ok){toast('🗑️ 已從公共世界刪除作品');renderAdminWorks();}
       };
       line.append(label,b);box.append(line);
+    }
+    // 管理員亦可管理其他玩家上傳的「單一獵人」，不刪除同玩家的其他獵人。
+    for(const [owner,entry] of remoteHunters){
+      for(const unit of entry.units||[]){
+        const line=document.createElement('div');
+        line.style.cssText='display:flex;align-items:center;gap:7px;justify-content:space-between;border-top:1px solid #eadfea;padding:7px 0';
+        const label=document.createElement('span');label.style.cssText='flex:1;min-width:0;overflow-wrap:anywhere';
+        label.textContent='🏹 雲端獵人 · '+owner.slice(0,8)+' · '+unit.id;
+        const b=document.createElement('button');b.type='button';b.className='tool';b.textContent='🗑 刪除單一獵人';
+        b.onclick=async()=>{
+          if(!confirm('管理員確定刪除這一位獵人嗎？不會影響其他獵人。'))return;
+          b.disabled=true;
+          try{
+            const {data,error}=await client.rpc('meadow_admin_delete_hunter_unit',{
+              p_owner_id:owner,p_unit_token:unit.token
+            });
+            if(error)throw error;
+            if(data!==true)throw new Error('獵人資料已不存在，請重新整理');
+            await loadHunters();toast('🗑 已刪除單一雲端獵人');
+          }catch(error){toast('獵人刪除失敗：'+(error?.message||error));}
+          finally{b.disabled=false;}
+        };
+        line.append(label,b);box.append(line);
+      }
     }
   }
   async function adminRemove(id){
@@ -5498,6 +5621,7 @@ const cloudWorld=(()=>{
     const {data,error}=await client.from('meadow_objects')
       .update({properties}).eq('id',o.cloudId).eq('owner_id',userId).select('*').single();
     if(error){toast('骨骼與習性尚未同步：'+error.message);throw error;}
+    rows.set(o.cloudId,data);rigCaches.delete('cloud:'+o.cloudId);
     if(data)rows.set(data.id,data);
     return true;
   }
@@ -5548,9 +5672,9 @@ const cloudWorld=(()=>{
       const w=((r.object_type==='home'?185:BASE[r.species]||100)*size)*state.cam.zoom;
       const h=w*(im.naturalHeight/im.naturalWidth);
       if(p.x+w<-100||p.x-w>innerWidth+100||p.y+h<-100||p.y-h>innerHeight+100)continue;
-      if(r.object_type==='animal'&&(r.owner_id===userId||hunterState.unlocked)){
+      if(r.owner_id===userId||hunterState.unlocked){
         // 與實際繪圖一致；圖比較小仍保留最小觸控範圍，避免點不到。
-        const pickW=Math.max(44,w),pickH=Math.max(44,h);
+        const pickW=Math.max(52,w),pickH=Math.max(52,h);
         ownedAnimalBoxes.set(r.id,{x:p.x-pickW/2,y:p.y-pickH,w:pickW,h:pickH});
       }
       ctx.save();
@@ -5562,15 +5686,19 @@ const cloudWorld=(()=>{
           -(pose.live&&pose.jump?Math.abs(Math.sin(now*.012+(pose.phase||0)))*12:0))*state.cam.zoom:0;
         ctx.translate(p.x,p.y+bob);
         const sign=pose.face<0?-1:1;
-        const turn=.58+.42*Math.abs(pose.face||1);
+        const turn=.72+.28*Math.abs(pose.face||1);
         ctx.scale(sign*turn,1);
         ctx.rotate(r.object_type==='animal'?.02*Math.sin(now*.008+(r.properties?.phase||0)):0);
+        if(r.object_type==='animal' && (growthFlash.get(r.id)||0)>now){
+          const fade=Math.max(0,Math.min(1,(growthFlash.get(r.id)-now)/1500));
+          ctx.filter=`drop-shadow(0 0 ${4+4*fade}px #ffffff) drop-shadow(0 0 ${16*fade}px #ffe189) drop-shadow(0 0 ${26*fade}px #e2b4ff)`;
+        }
         if(r.object_type==='animal' && (hitFlash.get(r.id)||0)>now){
           const flash=.65+.35*Math.abs(Math.sin(now*.046));
           ctx.filter=`drop-shadow(0 0 ${11*flash}px #ff183b) drop-shadow(0 0 ${27*flash}px #ff2e4d) drop-shadow(0 0 ${38*flash}px #ff4960)`;
         }
         if(r.object_type==='animal'&&r.properties?.rig?.enabled){
-          const remoteAnimal={id:'cloud:'+r.id,kind:r.species,rig:r.properties.rig,phase:pose.phase||0};
+          const remoteAnimal={id:'cloud:'+r.id,kind:r.properties?.space?'space':r.species,rig:r.properties.rig,phase:pose.phase||0};
           drawRigged(remoteAnimal,im,w,h,now,!!pose.sleeping);
         }else ctx.drawImage(im,-w/2,-h,w,h);
       }
@@ -5585,7 +5713,7 @@ const cloudWorld=(()=>{
         ctx.translate(p.x,p.y);
         if(r.object_type==='animal'){
           const face=pose.face<0?-1:1;
-          ctx.scale(face*(.58+.42*Math.abs(pose.face||1)),1);
+          ctx.scale(face*(.72+.28*Math.abs(pose.face||1)),1);
         }
         const pulse=.84+.16*Math.sin(now*.008);
         // 使用 Canvas shadowBlur 而非只依賴 filter，iPhone 主畫面模式也能明顯看見輪廓光。
@@ -5627,9 +5755,20 @@ const cloudWorld=(()=>{
     if(Date.now()-lastSync>30000){lastSync=Date.now();syncOwned().catch(console.warn);}
   },10000);
   setInterval(()=>{if(ready&&ecosystemEnabled)simulationTick().catch(console.warn);},2200);
+  // 即時事件遺失也能補回最新位置；不會產生第二套動物模擬。
+  setInterval(()=>{if(ready&&ecosystemEnabled)pollRuntimeSnapshot().catch(console.warn);},5300);
   setInterval(()=>{if(ready)loadSharedWorldClock().catch(console.warn);},25000);
+  setInterval(()=>{if(ready)checkHunterRevocations().catch(console.warn);},7000);
   setInterval(()=>{if(ready){refresh().catch(console.warn);loadHunters().catch(console.warn);}},60000);
   function getOwnedAnimalBox(id){return ownedAnimalBoxes.get(id)||null;}
+  function getRigEditableAnimal(id){
+    const r=rows.get(id),entry=images.get(id);
+    if(!r||r.object_type!=='animal'||r.owner_id!==userId||!entry?.loaded)return null;
+    const key='cloud:'+id;
+    state.images.set(key,entry.image);
+    return {id:key,cloudId:id,kind:r.properties?.space?'space':r.species,
+      rig:r.properties?.rig||null,nature:r.properties?.nature||'auto',box:ownedAnimalBoxes.get(id)||null};
+  }
   function pickOwnedAnimalAt(x,y){
     for(const [id,b] of [...ownedAnimalBoxes].reverse()){
       if(x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h){
@@ -5640,12 +5779,12 @@ const cloudWorld=(()=>{
     return null;
   }
   return {publishItem:o=>publish(o,'item'),publishHome:h=>publish(h,'home'),remove,draw,connect,refresh,renderAdminWorks,adminRemove,
-    isReady:()=>ready,getOwnedAnimalBox,pickOwnedAnimalAt,
+    isReady:()=>ready,getOwnedAnimalBox,pickOwnedAnimalAt,getRigEditableAnimal,
     removeSelectedAnimal:async id=>{const r=rows.get(id);return r?.owner_id===userId?remove(id):(hunterState.unlocked?adminRemove(id):false);},
     remoteHunterTargets,drawRemoteHunters,broadcastHunterShot,
     hunterStart:()=>{hunterImagePath='';uploadHunterImage().then(()=>syncHunter(true)).catch(()=>{});},
     hunterStop:()=>syncHunter(false).catch(()=>{}),
-    hunterImageChanged:()=>{hunterImagePath='';if(hunterState.active)uploadHunterImage().then(()=>syncHunter(true)).catch(()=>{});},
+    hunterImageChanged:()=>{hunterMainToken=crypto.randomUUID();try{localStorage.setItem(HUNTER_MAIN_TOKEN_KEY,hunterMainToken);}catch{}hunterImagePath='';if(hunterState.active)uploadHunterImage().then(()=>syncHunter(true)).catch(()=>{});},
     hunterExtrasChanged:()=>{if(hunterUnits().length)syncHunter(true).catch(()=>{});},
     setWorldTimeRate:changeWorldTimeRate,
     animalCards,summonCard,archiveCard,foodSpawnAnimals,
