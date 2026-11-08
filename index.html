@@ -607,6 +607,19 @@ html.meadow-tablet #fullscreenHelp p{font-size:18px}
  html.meadow-tablet .modal{max-height:95dvh}
 }
 </style>
+<style>
+/* V2.3 Samsung: landscape-friendly, easy-to-touch wide cards */
+.meadowFxSwitches{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.meadowFxSwitches label{display:flex;align-items:center;gap:8px;padding:9px;background:#f3f6f8;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer}
+.meadowFxSwitches input{width:22px;height:22px;accent-color:#4da971}
+@media(orientation:landscape) and (min-width:850px) and (pointer:coarse){
+ html.meadow-tablet #uploadPanel.upload:not(.collapsed){width:min(1150px,calc(100vw - 30px))!important;max-height:210px!important}
+ html.meadow-tablet #uploadPanel.upload:not(.collapsed) .kinds{width:max-content!important;max-width:100%;margin-left:auto!important;margin-right:auto!important;gap:clamp(9px,1.2vw,17px)!important}
+ html.meadow-tablet #uploadPanel.upload:not(.collapsed) .kind{flex:0 0 clamp(116px,10.4vw,160px)!important;width:clamp(116px,10.4vw,160px)!important;min-width:clamp(116px,10.4vw,160px)!important;min-height:clamp(95px,9vw,120px)!important;padding:10px 6px!important;border-radius:19px}
+ html.meadow-tablet #uploadPanel.upload:not(.collapsed) .kind b{font-size:clamp(35px,3.1vw,46px)!important}
+ html.meadow-tablet #uploadPanel.upload:not(.collapsed) .kind span{font-size:clamp(16px,1.5vw,21px)!important}
+}
+</style>
 <!-- V1.8 local fixes: landscape bottom center + soft fish glow -->
 </head>
 <body>
@@ -692,6 +705,31 @@ html.meadow-tablet #fullscreenHelp p{font-size:18px}
     <input id="voiceSensitivity" type="range" min="1" max="100" value="100" aria-label="收音靈敏度" style="width:100%;margin-top:9px">
    </div>
   </div>
+  <div class="settingsRow">
+   <div style="flex:1;min-width:0">
+    <div class="settingsName">🎞️ 畫面 FPS <span id="fpsSettingVal">50 FPS</span> <span id="actualFpsVal" style="font-size:.75em;color:#718279">實際：測量中</span></div>
+    <div class="settingsDesc">可選 20、30、40、50、60 FPS。這是畫面目標上限；實際 FPS 依平板效能而定。動物活動仍以真實經過時間計算。</div>
+    <select id="fpsSetting" aria-label="目標畫面 FPS" style="width:100%;min-height:44px;margin-top:8px"><option>20</option><option>30</option><option>40</option><option selected>50</option><option>60</option></select>
+   </div>
+  </div>
+  <div class="settingsRow"><div style="flex:1;min-width:0">
+   <div class="settingsName">🌄 背景更新速度 <span id="sceneryFpsVal">12 FPS</span></div>
+   <div class="settingsDesc">影響雲、雨、樹木、河流等背景的更新流暢度。越高越順，但較耗電。</div>
+   <select id="sceneryFpsSetting" style="width:100%;min-height:44px;margin-top:8px" aria-label="背景 FPS"><option value="8">省電 8 FPS</option><option value="12" selected>省電 12 FPS</option><option value="20">均衡 20 FPS</option><option value="30">細緻 30 FPS</option><option value="50">流暢 50 FPS</option></select>
+  </div></div>
+  <div class="settingsRow"><div style="flex:1;min-width:0">
+    <div class="settingsName">✨ 特效總強度 <span id="effectStrengthVal">100%</span></div>
+    <div class="settingsDesc">調整雨雪、雲光、星光、流星、水面和植物裝飾的視覺強度。</div>
+    <input id="effectStrength" type="range" min="0" max="150" value="100" step="10" style="width:100%;margin-top:8px">
+    <div class="meadowFxSwitches" id="meadowFxSwitches">
+      <label><input type="checkbox" data-fx="clouds" checked> ☁️ 雲朵</label>
+      <label><input type="checkbox" data-fx="stars" checked> ⭐ 星光</label>
+      <label><input type="checkbox" data-fx="meteors" checked> 🌠 流星</label>
+      <label><input type="checkbox" data-fx="weather" checked> 🌧️ 雨雪</label>
+      <label><input type="checkbox" data-fx="plants" checked> 🌿 花草樹木</label>
+      <label><input type="checkbox" data-fx="water" checked> 💧 水面微光</label>
+    </div>
+   </div></div>
   <div class="settingsRow">
    <div style="flex:1;min-width:0">
     <div class="settingsName">📣 集合遊行時間 <span id="paradeSecondsVal">20 秒</span></div>
@@ -988,6 +1026,30 @@ const DEFAULT_ZOOM_STORE='drawing_meadow_default_view_zoom_v1';
 let defaultViewZoom=Math.max(.154,Math.min(1.20,Number(localStorage.getItem(DEFAULT_ZOOM_STORE))||.32));
 const BASE  = { bird:104, land:132, reptile:118, fish:118, space:104, food:76 };
 const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+
+/* V2.3 進階畫質：設定值只儲存在本機，不干擾作品資料。 */
+const FX_STORE='drawing_meadow_quality_v23';
+const isTabletQuality=()=>document.documentElement.classList.contains('meadow-tablet');
+const fxDefaults={fps:50,sceneryFps:isTabletQuality()?12:21,strength:100,clouds:true,stars:true,meteors:true,weather:true,plants:true,water:true};
+let fxSettings={...fxDefaults};
+try{const saved=JSON.parse(localStorage.getItem(FX_STORE)||'null');if(saved&&typeof saved==='object')fxSettings={...fxDefaults,...saved};}catch{}
+fxSettings.fps=[20,30,40,50,60].includes(Number(fxSettings.fps))?Number(fxSettings.fps):50;
+fxSettings.sceneryFps=[8,12,20,30,50].includes(Number(fxSettings.sceneryFps))?Number(fxSettings.sceneryFps):12;
+fxSettings.strength=clamp(Number(fxSettings.strength)||0,0,150);
+const fxEnabled=name=>Boolean(fxSettings[name])&&fxSettings.strength>0;
+const fxPower=()=>fxSettings.strength/100;
+function saveFx(){try{localStorage.setItem(FX_STORE,JSON.stringify(fxSettings));}catch{} terrainLast=0;}
+(function initFxSettings(){
+  const fps=document.getElementById('fpsSetting'),scene=document.getElementById('sceneryFpsSetting'),strength=document.getElementById('effectStrength');
+  fps.value=String(fxSettings.fps);scene.value=String(fxSettings.sceneryFps);strength.value=String(fxSettings.strength);
+  const reflect=()=>{document.getElementById('fpsSettingVal').textContent=fxSettings.fps+' FPS';document.getElementById('sceneryFpsVal').textContent=fxSettings.sceneryFps+' FPS';document.getElementById('effectStrengthVal').textContent=fxSettings.strength+'%';};
+  fps.addEventListener('change',()=>{fxSettings.fps=Number(fps.value);saveFx();reflect();});
+  scene.addEventListener('change',()=>{fxSettings.sceneryFps=Number(scene.value);saveFx();reflect();});
+  strength.addEventListener('input',()=>{fxSettings.strength=Number(strength.value);saveFx();reflect();});
+  document.querySelectorAll('#meadowFxSwitches [data-fx]').forEach(el=>{el.checked=!!fxSettings[el.dataset.fx];el.addEventListener('change',()=>{fxSettings[el.dataset.fx]=el.checked;saveFx();});});
+  reflect();
+})();
+
 
 const state = {
   items: [], images: new Map(), selected: null, kind: null,
@@ -2686,6 +2748,7 @@ function extendedScenery(now,season,night,theme){
   for(let cell=from;cell<=to;cell++){
     const x=cell*155,seed=cell*19.37;
     // 地圖全寬統一繪製，中央與左右延伸沒有裝飾斷層。
+    if((Math.abs(cell)%5)>=Math.max(1,Math.round(5*Math.min(1,fxPower()))))continue;
     const rnd=forestHash(seed+3);
     // 遠處樹木與地平線灌木
     if(cell%4===0){
@@ -2731,12 +2794,12 @@ function extendedScenery(now,season,night,theme){
   // 天空雲朵以世界網格生成，不隨鏡頭平移突然跳躍
   const cloudFrom=Math.floor(bounds.left/450),cloudTo=Math.ceil(bounds.right/450);
   ctx.globalCompositeOperation='screen';
-  for(let k=cloudFrom;k<=cloudTo;k++){
+  if(fxEnabled('clouds'))for(let k=cloudFrom;k<=cloudTo;k++){
     const cx=k*450+forestHash(k*13.81)*250+Math.sin(now*.00012+k)*25;
     const cy=-590+forestHash(k*5.77)*360;
     const radius=120+forestHash(k*7.5)*85;
     const haze=ctx.createRadialGradient(cx,cy,0,cx,cy,radius);
-    const alpha=night?.10:.24;
+    const alpha=(night?.10:.24)*Math.min(1.5,fxPower());
     haze.addColorStop(0,`rgba(255,246,234,${alpha})`);
     haze.addColorStop(.58,`rgba(225,239,255,${alpha*.46})`);
     haze.addColorStop(1,'rgba(225,239,255,0)');
@@ -2864,16 +2927,18 @@ function drawNature(now,phase){
     nebula.addColorStop(0,colors[band]);nebula.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=nebula;ctx.beginPath();ctx.ellipse(bx,by,500,290,-.20,0,Math.PI*2);ctx.fill();
   }
-  for(let i=0;i<390;i++){
-    const x=-1780+forestHash(i*31.17+7)*3560;
-    const y=WORLD_REGIONS.cosmos.top+30+forestHash(i*59.83+3)*(-790-WORLD_REGIONS.cosmos.top);
-    const twinkle=.50+.45*Math.sin(now*.0007+i*1.4);
+  // 固定世界格點：平板橫向與最大縮放，左右星星保持連續，不會平移時跳位置。
+  if(fxEnabled('stars')) for(let cell=-Math.ceil(scenicSide/90);cell<=Math.ceil(scenicSide/90);cell++){
+    if(forestHash(cell*18.79+16)>Math.min(1,fxPower()))continue;
+    const x=cell*90+forestHash(cell*31.17+7)*78;
+    const y=WORLD_REGIONS.cosmos.top+30+forestHash(cell*59.83+3)*(-790-WORLD_REGIONS.cosmos.top);
+    const twinkle=.50+.45*Math.sin(now*.0007+cell*1.4);
     ctx.fillStyle=`rgba(234,246,255,${twinkle})`;
-    ctx.beginPath();ctx.arc(x,y,.7+(i%5)*.44,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(x,y,.7+(Math.abs(cell)%5)*.44,0,Math.PI*2);ctx.fill();
   }
   // V1.3 任務一：宇宙背景高亮星芒；固定少量大星光，避免手機掉幀。
-  for(let i=0;i<27;i++){
-    const sx=-1720+forestHash(i*87.31+11)*3440;
+  if(fxEnabled('stars')) for(let i=0;i<Math.min(65,Math.round((scenicSide*2/3440)*27*fxPower()));i++){
+    const sx=-scenicSide+forestHash(i*87.31+11)*(scenicSide*2);
     const sy=WORLD_REGIONS.cosmos.top+90+forestHash(i*47.61+23)*(-850-WORLD_REGIONS.cosmos.top);
     const shimmer=.80+.20*Math.sin(now*.0018+i*2.21);
     const radius=13+(i%4)*5;
@@ -2901,12 +2966,12 @@ function drawNature(now,phase){
   // 高空雲層沿風緩慢漂移：只在大氣交界，避免擋住陸地與動物。
   ctx.save();ctx.globalCompositeOperation='screen';
   const drift=((now*.009)%560)-280;
-  for(let i=0;i<13;i++){
+  if(fxEnabled('clouds')) for(let i=Math.floor((-scenicSide-500-drift+1680)/295);i<=Math.ceil((scenicSide+500-drift+1680)/295);i++){
     const cx=-1680+i*295+drift;
     const cy=-735+Math.sin(i*1.7)*93;
     const rx=260+(i%4)*39, ry=25+(i%3)*11;
     const cloud=ctx.createRadialGradient(cx,cy,8,cx,cy,rx);
-    const alpha=night?.065:.16;
+    const alpha=(night?.065:.16)*Math.min(1.5,fxPower());
     cloud.addColorStop(0,`rgba(244,250,255,${alpha})`);
     cloud.addColorStop(.52,`rgba(194,224,255,${alpha*.65})`);
     cloud.addColorStop(1,'rgba(194,224,255,0)');
@@ -2960,8 +3025,8 @@ function drawNature(now,phase){
     ctx.restore();
   }
 
-  drawSoftSkyTwinkles(now,night);
-  drawMeteorShower(now,night);
+  if(fxEnabled('stars'))drawSoftSkyTwinkles(now,night);
+  if(fxEnabled('meteors'))drawMeteorShower(now,night);
 
   const haze=ctx.createLinearGradient(0,-50,0,115);
   haze.addColorStop(0,theme.haze[0]);
@@ -3111,7 +3176,7 @@ function drawNature(now,phase){
       }
     }
   }
-  extendedScenery(now,season,night,theme);
+  if(fxEnabled('plants'))extendedScenery(now,season,night,theme);
   if(season===3)drawWinterSnowGround(now,night);
   // 保持河岸、河面、深水區、流動波紋原本的相對高度與尺寸，整段向下移。
   ctx.save();ctx.translate(0,LAND_EXTENSION+EXTRA_VERTICAL_LAND);
@@ -3145,7 +3210,7 @@ function drawNature(now,phase){
   ctx.lineTo(scenicSide,1520+EXTRA_DEEP_SEA);ctx.lineTo(-scenicSide,1520+EXTRA_DEEP_SEA);ctx.closePath();ctx.clip();
   // 只替換水域底圖；原本流動波紋、光束、海草珊瑚與所有角色均仍在其上繪製。
   drawCustomSeaBackground(night,scenicSide);
-  drawSoftOceanCaustics(now,night);
+  if(fxEnabled('water'))drawSoftOceanCaustics(now,night);
   const flow=now*.065;
   for(let i=0;i<34;i++){
     const drift=((i*173+flow)%3720+3720)%3720;
@@ -3188,7 +3253,7 @@ function drawNature(now,phase){
     ctx.beginPath();ctx.arc(x,y,1.0+(i%3)*.55,0,Math.PI*2);ctx.fill();
   }
   drawUnderwaterHabitat(now,night);
-  drawSoftOceanBubbles(now,night);
+  if(fxEnabled('water'))drawSoftOceanBubbles(now,night);
   for(let i=0;i<34;i++){
     const x=-1780+(i*139)%3550;
     const y=1435+(i*37)%57;
@@ -3236,8 +3301,8 @@ function drawNature(now,phase){
     ctx.beginPath();ctx.moveTo(x,floor);ctx.quadraticCurveTo(x-9,floor-18,x+2,floor-32);ctx.stroke();
   }
   ctx.restore();
-  if(season===3)drawWinterSnowfall(now,night);
-  drawLandscapeRain(now,season,night);
+  if(fxEnabled('weather')&&season===3)drawWinterSnowfall(now,night);
+  if(fxEnabled('weather'))drawLandscapeRain(now,season,night);
   ctx.restore(); // 世界相機轉換
 }
 /* ========== 背景 ========== */
@@ -3474,7 +3539,7 @@ $('#paradeSeconds').addEventListener('input',e=>{
   try{localStorage.setItem(PARADE_STORE,String(paradeSeconds));}catch{}
 });
 const PARADE_DURATION=()=>paradeSeconds*1000;
-const parade={active:false,returning:false,start:0,leaderId:null,members:[],angle:0};
+const parade={active:false,returning:false,start:0,leaderId:null,members:[],angle:0,travel:0,direction:1};
 
 function paradeAnimals(){
   return state.items.filter(o=>o.kind!=='food'&&(o.hp??100)>0);
@@ -3497,7 +3562,8 @@ function beginParade(){
   parade.members=[leader,...followers].map(o=>({
     id:o.id,homeX:o.x,homeY:o.y,homeZone:o.zone,arrived:false
   }));
-  parade.angle=Math.atan2((leader.y-195)/155,leader.x/1320);
+  parade.travel=clamp(leader.x,-1350,1350);
+  parade.direction=leader.x>0?-1:1;
   $('#callBtn').disabled=true;
   $('#callBtn').textContent='📣 排隊 '+paradeSeconds+'秒';
   audio.effect('parade');
@@ -3555,22 +3621,26 @@ function updateParade(now,dt){
   }
   $('#callBtn').textContent='📣 '+Math.max(0,Math.ceil((PARADE_DURATION()-elapsed)/1000))+'秒';
   const leader=live.get(parade.leaderId);
-  // 在同一張大地圖上繞圈：從草地、河岸旁走過，畫面可手動跟隨。
-  parade.angle+=dt*(Math.PI*2/46);
-  const tx=1320*Math.cos(parade.angle);
-  const ty=195+155*Math.sin(parade.angle);
-  moveToward(leader,tx,ty,dt,320);
+  // 全地圖 S 型遊行：以水平往返掃過草原，正弦曲線逐段轉彎。
+  // 基礎遊行速度 320 → 640，永遠不讓隊員擠到前面動物的身上。
+  const speed=640;
+  parade.travel+=parade.direction*speed*dt;
+  if(parade.travel>1350){parade.travel=1350;parade.direction=-1;}
+  if(parade.travel< -1350){parade.travel=-1350;parade.direction=1;}
+  const tx=parade.travel,ty=200+118*Math.sin(parade.travel/270);
+  moveToward(leader,tx,ty,dt,speed);
   let ahead=leader;
   for(const m of members.slice(1)){
     const o=live.get(m.id);
     const dx=ahead.x-o.x,dy=ahead.y-o.y;
     const distance=Math.hypot(dx,dy);
-    // 保持隊形間距，避免全部疊在一起。
-    const spacing=105;
+    const widthA=(BASE[ahead.kind]||100)*(ahead.size||1)*.42;
+    const widthB=(BASE[o.kind]||100)*(o.size||1)*.42;
+    const spacing=Math.max(125,widthA+widthB+45);
     if(distance>spacing){
       const targetX=ahead.x-dx/distance*spacing;
       const targetY=ahead.y-dy/distance*spacing;
-      moveToward(o,targetX,targetY,dt,340);
+      moveToward(o,targetX,targetY,dt,speed*1.12);
     }else{o.vx=0;o.vy=0;}
     ahead=o;
   }
@@ -4547,7 +4617,7 @@ let terrainPhase=-1,terrainSeason=-1;
 function drawCachedLandscape(now,phase,season){
   const coarse=matchMedia('(pointer: coarse)').matches;
   const tablet=coarse && Math.min(innerWidth,innerHeight)>=600;
-  const refreshInterval=tablet ? 85 : (coarse ? 48 : 32);
+  const refreshInterval=1000/fxSettings.sceneryFps;
   const redraw=terrainFrame.width!==world.width||terrainFrame.height!==world.height||
     Math.abs(state.cam.x-terrainCamX)>.01||Math.abs(state.cam.y-terrainCamY)>.01||
     Math.abs(state.cam.zoom-terrainZoom)>.00001||terrainPhase!==phase||terrainSeason!==season||
@@ -4572,14 +4642,18 @@ function drawCachedLandscape(now,phase,season){
 /* ========== 主迴圈 ========== */
 // iPhone／觸控設備將昂貴的全地景繪製限制為 30 FPS，
 // 以真正經過的時間更新移動，不改變動物的跑速、餵食或成長規則。
-const mobileFrameInterval = matchMedia('(pointer: coarse)').matches ? 1000/50 : 1000/60;
+let measuredFpsFrames=0,measuredFpsStart=0;
+const mobileFrameInterval=()=>1000/fxSettings.fps;
 let lastVisualFrame=0;
 function animate(now){
-  if(lastVisualFrame && now-lastVisualFrame < mobileFrameInterval-1){
+  if(lastVisualFrame && now-lastVisualFrame < mobileFrameInterval()-1){
     requestAnimationFrame(animate);
     return;
   }
   lastVisualFrame=now;
+  if(!measuredFpsStart)measuredFpsStart=now;
+  measuredFpsFrames++;
+  if(now-measuredFpsStart>=1300){const out=document.getElementById('actualFpsVal');if(out)out.textContent='實際：約 '+Math.round(measuredFpsFrames*1000/(now-measuredFpsStart))+' FPS';measuredFpsFrames=0;measuredFpsStart=now;}
   const dt=Math.min(.12,Math.max(0,(now-state.last)/1000));
   state.last=now;
   const phase=dayPhase(now),sleeping=phase===2;
